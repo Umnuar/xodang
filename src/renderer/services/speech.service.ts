@@ -76,3 +76,23 @@ export function createSpeechRecognizer(callbacks: SpeechRecognitionCallbacks): S
         isSupported: true
     };
 }
+
+export function isSpeechRecognitionSupported(): boolean {
+    if (typeof window === 'undefined') return false;
+    return Boolean(
+        (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
+        (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
+    );
+}
+
+export function startSpeechRecognition(
+    onResult: (text: string) => void,
+    onError: (err: string) => void
+): void {
+    const recognizer = createSpeechRecognizer({
+        onResult,
+        onError
+    });
+    recognizer.start();
+}
+

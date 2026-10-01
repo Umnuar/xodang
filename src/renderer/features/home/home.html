@@ -1,0 +1,137 @@
+<section id="home" class="container active" itemscope itemtype="https://schema.org/WebApplication">
+  <div itemprop="name" content="Ứng dụng số hóa hỗ trợ tự học và bảo tồn ngôn ngữ Xơ Đăng cho học sinh THCS trên nền tảng PWA" style="display:none;"></div>
+  <div itemprop="description" content="Ứng dụng PWA học tiếng Xơ Đăng miễn phí với từ điển tương tác" style="display:none;"></div>
+  <h1>Tra Cứu Tiếng Xơ Đăng - Tiếng Việt</h1>
+  <div class="intro-content">
+    <p>Hệ thống hỗ trợ học tiếng Xơ đăng (Xê đăng) trên nền tảng PWA cho học sinh THCS với <span id="dictionary-count">1000+ từ vựng chuẩn</span> và các mẫu câu ví dụ minh họa cụ thể, hỗ trợ phát âm và dịch thuật chính xác.</p>
+    <div class="dictionary-stats">
+        <div class="stat-item">
+            <div class="stat-number" id="stat-words">1000+</div>
+            <div class="stat-label">Từ vựng</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat-audio">1000+</div>
+            <div class="stat-label">File âm thanh</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat-examples">2000+</div>
+            <div class="stat-label">Ví dụ</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat-questions">100+</div>
+            <div class="stat-label">Câu hỏi ôn tập</div>
+        </div>
+    </div>
+
+    <!-- OFFLINE DOWNLOAD CARD -->
+    <div class="offline-download-card">
+        <div class="offline-card-header">
+            <div class="offline-card-icon">
+                <i class="fas fa-wifi"></i>
+            </div>
+            <div class="offline-card-info">
+                <strong class="offline-card-title">Học ngoại tuyến 100% (Offline Audio)</strong>
+                <span class="offline-card-desc" id="download-status">Bạn có thể tải toàn bộ âm thanh phát âm về máy để nghe khi không có mạng.</span>
+            </div>
+        </div>
+        
+        <!-- Progress Bar (Ẩn mặc định, chỉ hiện khi đang tải) -->
+        <div class="download-progress-container" id="download-progress-container" style="display: none;">
+            <div class="download-progress-header">
+                <span id="download-progress-text">Đang tải: 0/0 (0%)</span>
+                <span>Vui lòng không tắt trang...</span>
+            </div>
+            <div class="download-progress-track">
+                <div class="download-progress-bar" id="download-progress-bar"></div>
+            </div>
+        </div>
+        
+        <button id="btn-download-offline" class="btn-download-offline">
+            <i class="fas fa-download"></i> Tải âm thanh offline (~40MB)
+        </button>
+    </div>
+
+    <div class="features-list">
+        <div class="feature-item">
+            <i class="fas fa-book"></i>
+            <span>Từ vựng chuẩn theo tài liệu dạy học tiếng Xơ Đăng</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-volume-up"></i>
+            <span>Hỗ trợ phát âm chuẩn</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-language"></i>
+            <span>Dịch thuật song ngữ hai chiều</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-comment-alt"></i>
+            <span>Ví dụ minh họa cho từng từ</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-microphone"></i>
+            <span>Hỗ trợ tìm kiếm bằng giọng nói</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-question-circle"></i>
+            <span>Trắc nghiệm đa dạng chủ đề</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-gamepad"></i>
+            <span>Trò chơi giải trí học tập</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-comments"></i>
+            <span>Trợ lý chat thông minh</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-wifi"></i>
+            <span>Hoạt động offline (PWA)</span>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Có thể cài đặt như ứng dụng</span>
+        </div>
+    </div>
+  </div>
+  
+  <form id="searchForm" role="search">
+      <div class="input-group">
+          <label for="word" class="form-label">Nhập từ cần tra</label>
+          <div class="search-input-container">
+              <input type="text" id="word" placeholder="Ví dụ: đi học, lám hok..." autocomplete="off" list="suggestions" aria-label="Nhập từ cần tra cứu">
+             <button type="button" id="speechButton" title="Nhấn để đọc từ" aria-label="Nhận diện giọng nói để tìm từ vựng">
+            <i class="fas fa-microphone"></i>
+           </button>
+          </div>
+          <datalist id="suggestions"></datalist>
+      </div>
+      <div class="input-group">
+          <label for="direction" class="form-label">Hướng dịch</label>
+          <select id="direction" aria-label="Chọn hướng dịch">
+              <option value="viet_to_ethnic">Tiếng Việt → Tiếng Xơ Đăng</option>
+              <option value="ethnic_to_viet">Tiếng Xơ Đăng → Tiếng Việt</option>
+          </select>
+      </div>
+      <button type="submit" class="search-button" aria-label="Tra cứu"><i class="fas fa-search"></i> Tra cứu</button>
+  </form>
+  
+  <div class="search-status" id="searchStatus"></div>
+  
+  <div class="loading" id="loading" style="display:none">
+      <i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...
+  </div>
+  
+  <section aria-live="polite">
+      <div class="result-container" id="resultContainer">
+          <div id="result">
+              <div class="no-result">
+                  <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 1rem; color: #ccc; display: block;"></i>
+                  <p>Nhập từ cần tra cứu và nhấn nút "Tra cứu"</p>
+                  <p style="font-size: 0.9rem; margin-top: 0.5rem;">Hoặc sử dụng tính năng nhận diện giọng nói</p>
+              </div>
+          </div>
+          <div id="error" class="error" role="alert" hidden></div>
+      </div>
+  </section>
+</section>

@@ -1,0 +1,23 @@
+<div class="chat-widget-container">
+    <button class="chat-toggle-btn" id="chatToggleBtn" aria-label="Mở trợ lý chat">
+        <i class="fas fa-comments"></i>
+        <span class="notification-badge" id="chatNotification" style="display: none;">1</span>
+    </button>
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <h3><i class="fas fa-robot"></i> Trợ lý Xơ Đăng</h3>
+            <button class="close-chat-btn" id="closeChatBtn" aria-label="Đóng chat">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Tin nhắn sẽ được tạo động an toàn qua DOM nodes -->
+        </div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Nhập câu hỏi của bạn..." aria-label="Nhập câu hỏi">
+            <button class="send-btn" id="sendChatBtn" aria-label="Gửi tin nhắn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>

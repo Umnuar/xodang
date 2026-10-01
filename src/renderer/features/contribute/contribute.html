@@ -1,0 +1,101 @@
+<section id="contribute" class="container">
+    <h1>Đóng Góp Từ Vựng</h1>
+    
+    <div class="intro-content" style="margin-bottom: 1.5rem;">
+        <p style="text-align: justify;">Giúp chúng tôi xây dựng bộ từ điển Xơ Đăng hoàn thiện hơn bằng cách đóng góp từ vựng và file âm thanh. Bạn có thể chọn một trong hai chế độ đóng góp:</p>
+        <div class="features-list">
+            <div class="feature-item">
+                <i class="fas fa-font"></i>
+                <span style="text-align: justify;"><strong>Từ đơn:</strong> Đóng góp từng từ kèm âm thanh</span>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-bullhorn"></i>
+                <span style="text-align: justify;"><strong>Thu hàng loạt:</strong> Thu âm nhiều từ cùng lúc</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="contribute-tabs">
+        <button class="contribute-tab active" data-tab="single">Từ đơn</button>
+        <button class="contribute-tab" data-tab="batch">Thu hàng loạt</button>
+    </div>
+    
+    <!-- Tab Từ đơn -->
+    <div id="singleTab" class="contribute-form">
+        <div class="form-group">
+            <label for="vietnameseWord">Từ tiếng Việt</label>
+            <input type="text" id="vietnameseWord" class="form-input" placeholder="Ví dụ: Con mèo">
+        </div>
+        
+        <div class="form-group">
+            <label for="xodangWord">Nghĩa tiếng Xơ Đăng</label>
+            <input type="text" id="xodangWord" class="form-input" placeholder="Ví dụ: Kon meo">
+        </div>
+        
+        <div class="form-group">
+            <label>Âm thanh</label>
+            <div class="audio-controls">
+                <button id="recordAudioBtn" class="audio-btn record-btn">
+                    <i class="fas fa-microphone"></i> Thu âm
+                </button>
+                <button id="uploadAudioBtn" class="audio-btn upload-btn">
+                    <i class="fas fa-upload"></i> Tải lên
+                </button>
+                <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+            </div>
+            
+            <div class="audio-visualizer" id="audioVisualizer">
+                <div class="audio-wave" id="audioWave"></div>
+            </div>
+            
+            <div class="single-playback-controls" id="singlePlaybackControls" style="display: none;">
+                <button id="singlePlayAudioBtn" class="single-play-btn" aria-label="Phát lại">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button id="singleStopAudioBtn" class="single-stop-btn" aria-label="Dừng">
+                    <i class="fas fa-stop"></i>
+                </button>
+                <button id="singleDeleteAudioBtn" class="single-delete-btn" title="Xóa file" aria-label="Xóa file">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <span id="singleAudioFileName" style="margin-left: 10px; font-size: 0.9rem; color: #666;"></span>
+            </div>
+            
+            <div class="audio-status" id="audioStatus"></div>
+        </div>
+        
+        <button id="submitSingleBtn" class="submit-contribute-btn">
+            <i class="fas fa-paper-plane"></i> Gửi từ vựng
+        </button>
+    </div>
+    
+    <!-- Tab Thu hàng loạt -->
+    <div id="batchTab" class="contribute-form" style="display: none;">
+        <div class="form-group">
+            <label>Thu âm hàng loạt</label>
+            <div class="audio-controls">
+                <button id="recordBatchBtn" class="audio-btn record-btn">
+                    <i class="fas fa-microphone"></i> Bắt đầu thu
+                </button>
+                <button id="uploadBatchBtn" class="audio-btn upload-btn">
+                    <i class="fas fa-upload"></i> Tải file lên
+                </button>
+                <input type="file" id="batchAudioInput" accept="audio/*" multiple style="display: none;">
+            </div>
+            
+            <div class="audio-visualizer" id="batchVisualizer">
+                <div class="audio-wave" id="batchWave"></div>
+            </div>
+            
+            <div class="audio-status" id="batchStatus">Chưa có file nào trong hàng đợi</div>
+            
+            <div class="queue-list" id="batchQueueList" style="display: none;">
+                <!-- Các file trong hàng đợi sẽ hiển thị ở đây qua Event Delegation -->
+            </div>
+        </div>
+        
+        <button id="submitBatchBtn" class="submit-contribute-btn">
+            <i class="fas fa-paper-plane"></i> Gửi tất cả
+        </button>
+    </div>
+</section>

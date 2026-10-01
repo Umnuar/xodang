@@ -99,3 +99,19 @@ export async function fetchDictionaryEntries(options: SheetFetchOptions = {}): P
 export function clearSheetsCache(): void {
     memoryCache.clear();
 }
+
+/**
+ * Convenience methods for feature controllers.
+ */
+export async function fetchDictionaryData(): Promise<DictionaryEntry[]> {
+    return fetchDictionaryEntries();
+}
+
+export async function fetchChatData(): Promise<string[][]> {
+    return fetchSheetValues({ range: APP_CONFIG.CHAT_RANGE });
+}
+
+export async function fetchQuizData(): Promise<string[][]> {
+    return fetchSheetValues({ range: APP_CONFIG.QUIZ_RANGE });
+}
+

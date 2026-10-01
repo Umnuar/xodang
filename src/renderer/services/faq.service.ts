@@ -78,3 +78,7 @@ export function getRandomFaqSuggestions(
     selected.forEach(q => usedQuestions.add(q.question));
     return selected;
 }
+
+export type BotFAQ = FaqItem;
+export const pickRandomFaqSuggestions = getRandomFaqSuggestions;
+
