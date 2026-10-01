@@ -113,10 +113,10 @@
 
 ## 3. LỘ TRÌNH THỰC HIỆN TỪNG BƯỚC
 
-- [ ] **Bước 1**: Kiểm kê và phân loại (mục 2), kiểm tra mục 3. Chưa di chuyển gì. *(Đang ở bước này - chờ duyệt)*
-- [ ] **Bước 2**: Loại C (tài liệu → `docs/archive/`). Commit.
-- [ ] **Bước 3**: Loại A → `public/` (cấp gốc). Không đổi tên, không đổi URL. Commit.
-- [ ] **Bước 4**: Loại B → `public/icons/`, cập nhật `manifest.json`, `index.html` (apple-touch-icon). Commit.
-- [ ] **Bước 5**: Xử lý `audio/` → `public/audio/`. Commit riêng.
-- [ ] **Bước 6**: (Tùy chọn, chờ duyệt) Tạo bản ảnh chia sẻ đã nén, cập nhật meta, giữ file cũ. Commit riêng.
-- [ ] **Bước 7**: Bổ sung `src/shared/data/snapshot/` vào `.gitignore`, chạy kiểm chứng đối chiếu `dist`, test suites, và linter.
+- [x] **Bước 1**: Kiểm kê và phân loại (mục 2), kiểm tra mục 3. Xuất file `docs/tidy-plan.md`.
+- [x] **Bước 2**: Loại C (tài liệu → `docs/archive/`). Commit `6e032f0`.
+- [x] **Bước 3**: Loại A → `public/` (cấp gốc). Không đổi tên, không đổi URL. Commit `4a20014`.
+- [x] **Bước 4**: Loại B → `public/icons/`, cập nhật `manifest.json`, `index.html` (apple-touch-icon). Commit `8d9306a`.
+- [x] **Bước 5**: Xử lý `audio/` → `public/audio/`. Commit `22a732f`.
+- [x] **Bước 6**: Tạo bản ảnh chia sẻ đã nén (1200x630, 174 KB), cập nhật meta trong `index.html`, giữ file cũ. Commit `06a1d72`.
+- [x] **Bước 7**: Bổ sung `src/shared/data/snapshot/` vào `.gitignore`, chạy kiểm chứng đối chiếu `dist`, test suites (13 passed), và linter. Commit `ac6396f`.
