@@ -1,5 +1,107 @@
-<section id="game" class="container" style="padding: 0; max-width: 1200px; width: 95%; margin: 1.5rem auto; overflow: hidden; height: calc(100vh - 160px); min-height: 550px;">
-    <div class="game-wrapper" style="width: 100%; height: 100%; overflow: hidden; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); background: #fff;">
-        <iframe src="./game.html" style="width: 100%; height: 100%; border: none;" title="Trò chơi học tiếng Xơ Đăng" loading="lazy"></iframe>
+<section id="game" class="container">
+    <!-- Game Hub (Menu Selection) -->
+    <div id="gameHubView" class="game-hub">
+        <div class="game-hub-header">
+            <div class="game-badge"><i class="fas fa-gamepad"></i> Không gian trò chơi học tập</div>
+            <h2>Trò Chơi Giáo Dục Tiếng Xơ Đăng</h2>
+            <p>Vừa chơi vừa học, ghi nhớ từ vựng bản địa sinh động và phát triển tư duy phản xạ ngôn ngữ.</p>
+            
+            <div class="game-user-bar">
+                <div class="game-user-info">
+                    <i class="fas fa-user-graduate"></i>
+                    <span id="gameCurrentUserName">Học sinh Xơ Đăng</span>
+                </div>
+                <div class="game-sound-controls">
+                    <button id="toggleGameSfx" class="game-icon-btn" aria-label="Bật/Tắt âm thanh hiệu ứng" title="Âm thanh hiệu ứng">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-cards-grid">
+            <!-- Game 1 -->
+            <div class="game-select-card" data-game="game1">
+                <div class="game-card-icon g1-color">🎴</div>
+                <h3>Lật Thẻ Trí Nhớ</h3>
+                <p>Lật mở các cặp thẻ từ vựng Xơ Đăng và Tiếng Việt tương ứng để hoàn thành thử thách.</p>
+                <div class="game-card-footer">
+                    <span class="game-tag">Trí nhớ</span>
+                    <button class="game-play-btn" data-game="game1"><i class="fas fa-play"></i> Chơi ngay</button>
+                </div>
+            </div>
+
+            <!-- Game 2 -->
+            <div class="game-select-card" data-game="game2">
+                <div class="game-card-icon g2-color">🧺</div>
+                <h3>Mưa Từ Vựng</h3>
+                <p>Nhanh tay điều khiển giỏ hứng chính xác từ ngữ đang rơi xuống trước khi chạm đất.</p>
+                <div class="game-card-footer">
+                    <span class="game-tag">Phản xạ</span>
+                    <button class="game-play-btn" data-game="game2"><i class="fas fa-play"></i> Chơi ngay</button>
+                </div>
+            </div>
+
+            <!-- Game 3 -->
+            <div class="game-select-card" data-game="game3">
+                <div class="game-card-icon g3-color">🏹</div>
+                <h3>Bảo Vệ Làng</h3>
+                <p>Bắn trúng các mục tiêu từ ngữ chính xác để bảo vệ buôn làng Xơ Đăng bình yên.</p>
+                <div class="game-card-footer">
+                    <span class="game-tag">Tập trung</span>
+                    <button class="game-play-btn" data-game="game3"><i class="fas fa-play"></i> Chơi ngay</button>
+                </div>
+            </div>
+
+            <!-- Game 4 -->
+            <div class="game-select-card" data-game="game4">
+                <div class="game-card-icon g4-color">🌾</div>
+                <h3>Nông Trại Số</h3>
+                <p>Vận dụng vốn từ vựng để gieo hạt, chăm bón và thu hoạch những vụ mùa bội thu.</p>
+                <div class="game-card-footer">
+                    <span class="game-tag">Khám phá</span>
+                    <button class="game-play-btn" data-game="game4"><i class="fas fa-play"></i> Chơi ngay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Game Screen (Initially Hidden) -->
+    <div id="gameActiveView" class="game-active-view" style="display: none;">
+        <div class="game-active-topbar">
+            <button id="btnExitGame" class="game-btn-back">
+                <i class="fas fa-arrow-left"></i> Menu trò chơi
+            </button>
+            <div class="game-active-title-wrap">
+                <h3 id="activeGameTitle">Tên trò chơi</h3>
+                <span class="game-level-tag">Level <span id="activeGameLevel">1</span></span>
+            </div>
+            <div class="game-active-stats">
+                <div class="stat-pill"><i class="fas fa-star"></i> <span id="activeGameScore">0</span></div>
+                <div id="activeGameLivesWrap" class="stat-pill lives-pill"><i class="fas fa-heart"></i> <span id="activeGameLives">3</span></div>
+            </div>
+        </div>
+
+        <div id="gameStage" class="game-stage">
+            <!-- Game Canvas or Grid mounted dynamically here -->
+        </div>
+
+        <!-- Result / Level Complete Modal -->
+        <div id="gameOverModal" class="game-modal" style="display: none;">
+            <div class="game-modal-card">
+                <div id="modalIcon" class="modal-icon">🎉</div>
+                <h3 id="modalTitle">Hoàn thành màn chơi!</h3>
+                <p id="modalDesc">Bạn đã trả lời xuất sắc các câu hỏi từ vựng.</p>
+                <div class="modal-score-wrap">
+                    <span>Tổng điểm:</span>
+                    <strong id="modalFinalScore">0</strong>
+                </div>
+                <div class="modal-actions">
+                    <button id="btnNextLevel" class="modal-btn btn-primary"><i class="fas fa-forward"></i> Màn kế tiếp</button>
+                    <button id="btnReplayLevel" class="modal-btn btn-secondary"><i class="fas fa-redo"></i> Chơi lại</button>
+                    <button id="btnBackToMenu" class="modal-btn btn-outline"><i class="fas fa-home"></i> Về Menu</button>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
