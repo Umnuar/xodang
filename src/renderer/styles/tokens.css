@@ -1,0 +1,20 @@
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #27ae60;
+    --accent-color: #e74c3c;
+    --example-color: #c0392b;
+    --text-color: #000000;
+    --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    --transition-speed: 0.3s;
+    --chat-primary: #27ae60;
+    --chat-secondary: #2ecc71;
+}
+
+body.dark-mode {
+    --primary-color: #ecf0f1;
+    --secondary-color: #27ae60;
+    --accent-color: #e74c3c;
+    --example-color: #e74c3c;
+    --text-color: #ecf0f1;
+    --background-gradient: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+}
