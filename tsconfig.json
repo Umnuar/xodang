@@ -12,6 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "types": ["vite/client"],
 
     /* Linting / Strictness */
     "strict": true,
@@ -22,8 +23,9 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/renderer/*"],
+      "@/*": ["src/*"],
       "@shared/*": ["src/shared/*"],
+      "@snapshot/data": ["src/shared/data/snapshot-fallback.ts"],
       "@snapshot/*": ["src/shared/data/snapshot/*"]
     }
   },

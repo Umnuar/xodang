@@ -10,8 +10,9 @@ export default defineConfig({
   publicDir: 'public',
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src/renderer'),
+      '@': path.resolve(__dirname, 'src'),
       '@shared': path.resolve(__dirname, 'src/shared'),
+      '@snapshot/data': path.resolve(__dirname, 'src/shared/data/snapshot-fallback.ts'),
       '@snapshot': path.resolve(__dirname, 'src/shared/data/snapshot-fallback.ts')
     }
   },
