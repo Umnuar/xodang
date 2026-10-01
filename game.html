@@ -1,0 +1,4876 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học Tiếng Xê Đăng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+
+    .card {
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      padding: 6px;
+      text-align: center;
+      font-weight: 500;
+      box-sizing: border-box;
+    }
+    @media (min-width: 768px) {
+      .card-front, .card-back {
+        padding: 12px;
+      }
+    }
+
+    .card-front {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: clamp(24px, 4vw, 36px);
+    }
+
+    .card-back {
+      background: white;
+      color: #1e3a8a;
+      transform: rotateY(180deg);
+      border: 3px solid #3b82f6;
+      font-size: clamp(10px, 2.5vw, 14px);
+    }
+
+    .card.matched .card-back {
+      background: #10b981;
+      color: white;
+      border-color: #059669;
+    }
+
+    .falling-word {
+      position: absolute;
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      color: white;
+      min-width: 80px;
+      text-align: center;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .falling-word:hover {
+      transform: scale(1.05);
+    }
+
+    .basket-character {
+      position: absolute;
+      bottom: 10px;
+      width: 80px;
+      height: 100px;
+      transition: left 0.1s linear;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .basket-body {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .basket-base {
+      width: 70px;
+      height: 25px;
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      border-radius: 8px 8px 0 0;
+      margin-top: -10px;
+    }
+
+    .enemy {
+      position: absolute;
+      width: 70px;
+      height: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    .enemy-body {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .enemy-health-bar {
+      width: 60px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 3px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+
+    .enemy-health-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+      transition: width 0.3s;
+    }
+
+    .player-turret {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .turret-head {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      box-shadow: 0 8px 24px rgba(30, 58, 138, 0.7), 0 0 40px rgba(59, 130, 246, 0.4), inset 0 -10px 20px rgba(0, 0, 0, 0.3);
+      border: 5px solid #60a5fa;
+      position: relative;
+      transition: transform 0.1s ease-out;
+    }
+
+    .turret-head::before {
+      content: '';
+      position: absolute;
+      top: 15%;
+      left: 20%;
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.6), transparent);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .turret-head.shooting {
+      animation: cannonShoot 0.35s ease-out;
+    }
+
+    @keyframes cannonShoot {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.2) translateY(-8px); }
+      50% { transform: scale(0.9) translateY(5px); }
+      75% { transform: scale(1.05) translateY(-2px); }
+      100% { transform: scale(1); }
+    }
+
+    .arrow {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle, #fbbf24 0%, #f59e0b 50%, #ea580c 100%);
+      border-radius: 50%;
+      transition: all 0.02s linear;
+      z-index: 100;
+      box-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 40px rgba(234, 88, 12, 0.4);
+    }
+
+    .arrow::before {
+      content: '💥';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      animation: cannonballSpin 0.4s linear infinite;
+    }
+
+    @keyframes cannonballSpin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .arrow::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5), transparent);
+      top: 0;
+      left: 0;
+    }
+
+    .arrow-trail {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, rgba(234, 88, 12, 0.3) 50%, transparent 100%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: fadeTrail 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeTrail {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(2); }
+    }
+
+    .plant-plot {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .farmer-character {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: clamp(30px, 6vw, 40px);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .pulse {
+      animation: pulse 0.5s ease-in-out;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .bounce {
+      animation: bounce 0.6s ease-in-out infinite;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .shake {
+      animation: shake 0.3s ease-in-out;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+      max-width: 90vw;
+      word-wrap: break-word;
+    }
+
+    @media (max-width: 640px) {
+      .toast {
+        top: 15px !important;
+        right: 5% !important;
+        left: 5% !important;
+        max-width: 90vw !important;
+        animation: slideDownMobile 0.3s ease-out !important;
+      }
+    }
+    @keyframes slideDownMobile {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .level-complete-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+      }
+      to {
+        transform: scale(1);
+      }
+    }
+
+    .explosion {
+      position: absolute;
+      font-size: clamp(32px, 6vw, 48px);
+      pointer-events: none;
+      animation: explode 0.6s ease-out forwards;
+    }
+
+    @keyframes explode {
+      0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.5) rotate(180deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(3) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.15); }
+    }
+
+    .sparkle {
+      animation: sparkle 1s ease-in-out infinite;
+    }
+
+    @keyframes shrink {
+      0% { transform: scale(1); }
+      100% { transform: scale(0.8); opacity: 0.6; }
+    }
+
+    .shrink {
+      animation: shrink 0.4s ease-out forwards;
+    }
+
+    @keyframes grow {
+      0% { transform: scale(0.8); }
+      100% { transform: scale(1); }
+    }
+
+    .grow {
+      animation: grow 0.4s ease-out forwards;
+    }
+
+    @keyframes basketSquash {
+      0% { transform: scale(1, 1) translateY(0); }
+      50% { transform: scale(1.15, 0.85) translateY(10px); }
+      100% { transform: scale(1, 1) translateY(0); }
+    }
+
+    @keyframes wordAbsorb {
+      0% { 
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.4) translateY(-15px) rotate(10deg);
+        opacity: 1;
+      }
+      100% { 
+        transform: scale(0.3) translateY(30px);
+        opacity: 0;
+      }
+    }
+
+    .certificate-signature {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(28px, 4vw, 36px);
+      color: #1e3a8a;
+    }
+
+    @keyframes certificateFadeIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .certificate-container {
+      animation: certificateFadeIn 0.6s ease-out;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow: auto;
+      width: 100%;
+      padding: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .certificate-container {
+        max-width: 95vw;
+        padding: 0.5rem;
+      }
+      
+      .certificate-signature {
+        font-size: 1.5rem;
+      }
+    }
+
+    @keyframes sealRotate {
+      0% { transform: rotate(0deg) scale(0); }
+      60% { transform: rotate(360deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    .certificate-seal {
+      animation: sealRotate 0.8s ease-out 0.3s backwards;
+    }
+
+    /* ĐÃ XÓA: .offline-indicator và các style liên quan */
+
+    .sound-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+    }
+
+    .sound-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      cursor: pointer;
+      font-size: 20px;
+      transition: all 0.3s;
+      border: 2px solid #3b82f6;
+    }
+
+    .sound-btn:hover {
+      transform: scale(1.1);
+      background: #f0f9ff;
+    }
+
+    .sound-btn.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .sound-btn.muted {
+      background: #ef4444;
+      color: white;
+      border-color: #dc2626;
+    }
+
+    .leaderboard-entry {
+      transition: all 0.3s ease;
+    }
+    
+    .leaderboard-entry:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    .rank-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .score-progress {
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      background: #e5e7eb;
+    }
+    
+    .score-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .level-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: clamp(12px, 2vw, 14px);
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      color: white;
+    }
+
+    .level-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .level-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+      transition: width 0.5s ease;
+    }
+
+    .new-level-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      animation: pulse 1.5s infinite;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Game 1 - Sửa lỗi lật thẻ */
+    .card.disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    /* Game 2 - Cải thiện responsive và tốc độ */
+    @media (max-width: 640px) {
+      .basket-character {
+        width: 60px;
+        height: 80px;
+      }
+      
+      .basket-body {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+      }
+      
+      .basket-base {
+        width: 60px;
+      }
+      
+      .falling-word {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 60px;
+      }
+    }
+
+    /* Game 3 - Cải thiện responsive và tốc độ */
+    @media (max-width: 640px) {
+      .player-turret {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .turret-head {
+        width: 80px;
+        height: 80px;
+        font-size: 48px;
+      }
+      
+      .enemy {
+        width: 50px;
+        height: 70px;
+      }
+      
+      .enemy-body {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+      }
+    }
+
+    /* Game 4 - Cải thiện responsive */
+    @media (max-width: 640px) {
+      .plant-plot {
+        padding: 8px;
+      }
+    }
+
+    /* Focus styles cho accessibility */
+    button:focus, input:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+
+    /* Loading state */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Certificate close button */
+    .certificate-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.3s;
+      border: 2px solid white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .certificate-close-btn:hover {
+      background: #dc2626;
+      transform: scale(1.1);
+    }
+    
+    /* Touch optimization for mobile */
+    @media (hover: none) and (pointer: coarse) {
+      button, .card, [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+      }
+    }
+
+
+/* === UI GAME MOBILE (Code mới) === */
+.game-header-compact {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem; background: white; padding: 10px 15px;
+    border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.game-title-mobile { font-size: 1.1rem; font-weight: 800; color: #1e3a8a; display: flex; flex-direction: column; }
+.game-subtitle { font-size: 0.75rem; font-weight: 500; color: #64748b; }
+
+.btn-icon-circle {
+    width: 40px; height: 40px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; border: none; cursor: pointer;
+    font-size: 1.2rem; transition: transform 0.2s; margin-left: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.btn-save { background: #dcfce7; color: #16a34a; }
+.btn-exit { background: #fee2e2; color: #dc2626; }
+.btn-help { background: #dbeafe; color: #2563eb; }
+
+.stats-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px;
+}
+@media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.stat-card {
+    background: white; padding: 10px; border-radius: 12px; text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+}
+.stat-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: 600; }
+.stat-value { font-size: 1.1rem; font-weight: 700; color: #334155; }
+.stat-value.highlight { color: #3b82f6; }
+
+/* Modal Hướng Dẫn */
+.tutorial-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); z-index: 3000;
+    display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s;
+}
+.tutorial-card {
+    background: white; width: 90%; max-width: 400px; padding: 25px;
+    border-radius: 20px; text-align: center; position: relative; animation: slideUp 0.3s;
+}
+.tutorial-step { text-align: left; margin-bottom: 10px; display: flex; gap: 10px; font-size: 0.95rem; color: #475569; }
+.step-num { background: #3b82f6; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; flex-shrink: 0; }
+
+    /* === UI GAME MOBILE (Code mới) === */
+
+
+/* Nút âm thanh trong Header */
+.btn-sound {
+    background: #f1f5f9; 
+    color: #64748b; 
+    margin-left: 5px; /* Khoảng cách nhỏ */
+    border: 1px solid #cbd5e1;
+}
+
+/* Khi bật âm thanh (Active) */
+.btn-sound.active {
+    background: #3b82f6; /* Màu xanh dương */
+    color: white;
+    border-color: #2563eb;
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+}
+
+
+
+
+/* === UI MENU MOBILE (PROFILE CARD) === */
+.profile-header-card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.15);
+    margin-bottom: 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hiệu ứng nền trang trí */
+.profile-header-card::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.user-info-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 20px;
+}
+
+.user-avatar {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+
+.user-details h2 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.user-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    background: #eff6ff;
+    color: #3b82f6;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+/* Lưới thống kê 3 cột */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px dashed #e2e8f0;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-item-compact {
+    text-align: center;
+}
+
+.stat-label-c {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.stat-value-c {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+/* Thanh công cụ (Action Bar) */
+.action-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: transform 0.2s;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-action:active { transform: scale(0.95); }
+
+.btn-primary-soft { background: #eff6ff; color: #2563eb; }
+.btn-danger-soft { background: #fef2f2; color: #ef4444; }
+.btn-rank { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; flex: 2; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); }
+
+/* Thông báo nhỏ */
+.mini-alert {
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid #ffedd5;
+}
+
+
+
+/* === UI MENU MOBILE (PHIÊN BẢN MỚI - TỐI GIẢN & NỔI BẬT) === */
+
+/* 1. Khung Profile: Thêm viền đậm, bỏ Avatar */
+.profile-header-card {
+    background: white;
+    border-radius: 20px;
+    padding: 15px 20px;
+    /* Viền màu xanh nhạt tạo điểm nhấn */
+    border: 2px solid #bfdbfe; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Header chỉ còn Tên và Trạng thái */
+.user-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px dashed #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.user-name-display {
+    font-size: 1.4rem; /* Chữ to */
+    font-weight: 800;
+    color: #1e3a8a;
+    line-height: 1;
+}
+
+.user-status-badge {
+    font-size: 0.75rem;
+    background: #ecfdf5;
+    color: #059669;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    border: 1px solid #a7f3d0;
+}
+
+/* Lưới thống kê */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.stat-item-compact { text-align: center; }
+.stat-label-c { font-size: 0.7rem; color: #64748b; font-weight: 600; }
+.stat-value-c { font-size: 1.2rem; font-weight: 800; color: #334155; }
+
+/* 2. Thanh công cụ (Action Bar) - Đã chỉnh sửa kích thước */
+.action-bar {
+    display: flex;
+    gap: 8px;
+    align-items: stretch; /* Để các nút cao bằng nhau */
+}
+
+/* Nút chung */
+.btn-action-new {
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 5px;
+}
+.btn-action-new:active { transform: scale(0.95); }
+
+/* Nút Xếp hạng (Nhỏ lại một chút, màu Cam) */
+.btn-rank-new {
+    flex: 1.2; /* Chiếm ít chỗ hơn trước */
+    background: #fff7ed;
+    border: 2px solid #fdba74;
+    color: #c2410c;
+    flex-direction: row; /* Icon và chữ nằm ngang */
+    gap: 5px;
+}
+.btn-rank-new i { font-size: 1.2rem; }
+.btn-rank-new span { font-weight: 700; font-size: 0.9rem; }
+
+/* Nút Làm mới & Thoát (Icon To, Có chữ nhỏ bên dưới) */
+.btn-icon-new {
+    flex: 1;
+    background: #f8fafc;
+    border: 2px solid #cbd5e1;
+    color: #475569;
+}
+/* Icon to lên */
+.btn-icon-new div.icon { font-size: 1.5rem; margin-bottom: 2px; } 
+/* Chữ chú thích nhỏ */
+.btn-icon-new div.label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; }
+
+/* 3. Thẻ Game: Thêm viền nổi bật theo màu game */
+.game-card-new {
+    background: white;
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+    
+    /* Viền mặc định */
+    border: 2px solid #e2e8f0; 
+}
+.game-card-new:active { transform: scale(0.98); }
+
+/* Viền riêng cho từng loại game để dễ phân biệt */
+.game-card-new.border-blue { border-color: #93c5fd; }
+.game-card-new.border-purple { border-color: #c4b5fd; }
+.game-card-new.border-orange { border-color: #fdba74; }
+.game-card-new.border-green { border-color: #86efac; }
+
+.game-icon-new { font-size: 2.5rem; text-align: center; margin-bottom: 5px; }
+.game-title-new { font-size: 1rem; font-weight: 800; text-align: center; color: #1e293b; margin-bottom: 2px; }
+.game-desc-new { font-size: 0.7rem; text-align: center; color: #64748b; margin-bottom: 8px; }
+
+/* Thanh tiến độ trong thẻ game */
+.progress-container { background: #f1f5f9; height: 6px; border-radius: 3px; width: 100%; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 3px; }
+
+
+
+  /* Hiệu ứng Pop-up cho hộp thoại câu hỏi */
+@keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-pop {
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Nền mờ phía sau tối hơn để tập trung */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(4px);
+}  
+
+
+
+/* === FIX CĂN GIỮA TUYỆT ĐỐI CHO MODAL GAME 4 (ĐÃ SỬA LỖI CHE MÀN HÌNH) === */
+#game4-question {
+    /* 1. Vị trí phủ kín màn hình */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important; /* Chiều cao chuẩn mobile */
+    
+    /* 2. Căn giữa nội dung (Chỉ hoạt động khi JS bật display: flex) */
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* 3. Giao diện nền */
+    z-index: 9999 !important;
+    background-color: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(5px);
+    padding: 20px !important;
+    margin: 0 !important;
+    
+    /* LƯU Ý: Không được đặt display ở đây để tránh lỗi luôn hiện */
+}
+
+/* Khung nội dung bên trong */
+#game4-question > div {
+    width: 100% !important;
+    max-width: 360px !important;
+    max-height: 90dvh !important;
+    overflow-y: auto !important;
+    position: relative !important;
+    
+    /* Làm đẹp */
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+
+
+/* ================================================= */
+/* === FIX GAME 2: ĐIỀU CHỈNH VỊ TRÍ GIỎ HỨNG === */
+/* ================================================= */
+
+.basket-character {
+    /* Code cũ là 10px, giờ hạ xuống còn 2px để sát mép dưới */
+    bottom: 2px !important; 
+    
+    /* Thêm hiệu ứng nhún nhảy nhẹ khi di chuyển cho sinh động */
+    transition: left 0.08s ease-out, transform 0.1s !important;
+}
+
+/* Trên điện thoại, hạ thấp hơn nữa để dễ nhìn */
+@media (max-width: 640px) {
+    .basket-character {
+        bottom: 0px !important; /* Sát sàn sạt đáy màn hình */
+        width: 70px !important; /* Cho giỏ to ra một chút xíu để dễ hứng */
+    }
+    
+    /* Chỉnh lại cái đế giỏ cho cân đối */
+    .basket-base {
+        width: 70px !important;
+    }
+}
+/* ================================================= */
+    
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+</head>
+<body class="h-full">
+  <div id="app" class="h-full w-full overflow-auto bg-gradient-to-br from-blue-50 to-indigo-100"></div>
+  <!-- ĐÃ XÓA: <div id="offline-indicator" style="display: none;"></div> -->
+  
+
+  <script>
+    // ========== CẤU HÌNH TỰ ĐỘNG LEVEL ==========
+    const AUTO_LEVEL_CONFIG = {
+      game1: { questionsPerLevel: 3 },
+      game2: { questionsPerLevel: 5 },
+      game3: { questionsPerLevel: 5 },
+      game4: { questionsPerLevel: 4 }
+    };
+
+    // Cấu hình Google Sheets
+    const API_KEY = 'AIzaSyD757jS4SLR7-EzrPgrW9WrLQeD2DQExHw';
+    const SPREADSHEET_ID = '1Z59pDBu_tGwlYqUeS1-VJLpcHozp7LbxnC_-qhT3iHs';
+    const RANGE = 'Game!A3:AC100';
+
+    // Dữ liệu mẫu backup
+    const MOCK_DATA = {
+      game1: [
+        { question: 'Con voi', correct: 'Chiêng', wrongs: [], level: 1, topic: 'Động vật' },
+        { question: 'Mèo', correct: 'Meo', wrongs: [], level: 1, topic: 'Động vật' },
+        { question: 'Chó', correct: 'Aso', wrongs: [], level: 1, topic: 'Động vật' },
+        { question: 'Gà', correct: 'Manuk', wrongs: [], level: 2, topic: 'Động vật' },
+        { question: 'Nước', correct: 'Dak', wrongs: [], level: 2, topic: 'Thiên nhiên' },
+        { question: 'Mẹ', correct: 'Mê', wrongs: [], level: 2, topic: 'Gia đình' },
+        { question: 'Tốt', correct: 'Tôch', wrongs: [], level: 3, topic: 'Tính từ' },
+        { question: 'Một', correct: 'Muôi', wrongs: [], level: 3, topic: 'Số đếm' },
+        { question: 'Trời', correct: 'Muâ', wrongs: [], level: 3, topic: 'Thiên nhiên' },
+        { question: 'Yêu', correct: 'Mơ guôl', wrongs: [], level: 4, topic: 'Cảm xúc' }
+      ],
+      game2: [
+        { question: 'Nước', correct: 'Dak', wrongs: ['Lửa', 'Đất', 'Gió'], level: 1, topic: 'Thiên nhiên' },
+        { question: 'Lửa', correct: 'Apui', wrongs: ['Nước', 'Đất', 'Gió'], level: 1, topic: 'Thiên nhiên' },
+        { question: 'Trời', correct: 'Muâ', wrongs: ['Đất', 'Nước', 'Gió'], level: 1, topic: 'Thiên nhiên' },
+        { question: 'Ăn cơm', correct: 'Sa ơi', wrongs: ['Uống nước', 'Ngủ', 'Đi'], level: 1, topic: 'Hoạt động' },
+        { question: 'Tốt', correct: 'Tôch', wrongs: ['Xấu', 'Đẹp', 'To'], level: 1, topic: 'Tính từ' },
+        { question: 'Mẹ', correct: 'Mê', wrongs: ['Bố', 'Con', 'Anh'], level: 2, topic: 'Gia đình' },
+        { question: 'Con voi', correct: 'Chiêng', wrongs: ['Chuột', 'Gà', 'Chó'], level: 2, topic: 'Động vật' },
+        { question: 'Nhà', correct: 'Hơm', wrongs: ['Rừng', 'Núi', 'Sông'], level: 2, topic: 'Nơi chốn' },
+        { question: 'Yêu', correct: 'Mơ guôl', wrongs: ['Ghét', 'Thương', 'Nhớ'], level: 2, topic: 'Cảm xúc' },
+        { question: 'Cây', correct: 'Ka yông', wrongs: ['Hoa', 'Lá', 'Quả'], level: 2, topic: 'Thực vật' }
+      ],
+      game3: [
+        { question: 'Nhà', correct: 'Hơm', wrongs: ['Rừng', 'Núi', 'Sông'], level: 1, topic: 'Nơi chốn' },
+        { question: 'Rừng', correct: 'Bri', wrongs: ['Nhà', 'Núi', 'Biển'], level: 1, topic: 'Thiên nhiên' },
+        { question: 'Núi', correct: 'Gunung', wrongs: ['Rừng', 'Biển', 'Sông'], level: 1, topic: 'Thiên nhiên' },
+        { question: 'Ăn cơm', correct: 'Sa ơi', wrongs: ['Uống nước', 'Ngủ', 'Đi'], level: 1, topic: 'Hoạt động' },
+        { question: 'Mẹ', correct: 'Mê', wrongs: ['Bố', 'Con', 'Anh'], level: 1, topic: 'Gia đình' },
+        { question: 'Tốt', correct: 'Tôch', wrongs: ['Xấu', 'Đẹp', 'To'], level: 2, topic: 'Tính từ' },
+        { question: 'Con voi', correct: 'Chiêng', wrongs: ['Chuột', 'Gà', 'Chó'], level: 2, topic: 'Động vật' },
+        { question: 'Nước', correct: 'Dak', wrongs: ['Lửa', 'Đất', 'Gió'], level: 2, topic: 'Thiên nhiên' },
+        { question: 'Yêu', correct: 'Mơ guôl', wrongs: ['Ghét', 'Thương', 'Nhớ'], level: 2, topic: 'Cảm xúc' },
+        { question: 'Cây', correct: 'Ka yông', wrongs: ['Hoa', 'Lá', 'Quả'], level: 2, topic: 'Thực vật' }
+      ],
+      game4: [
+        { question: 'Một', correct: 'Muôi', wrongs: ['Hai', 'Ba', 'Bốn'], level: 1, topic: 'Số đếm' },
+        { question: 'Hai', correct: 'Bar', wrongs: ['Một', 'Ba', 'Bốn'], level: 1, topic: 'Số đếm' },
+        { question: 'Ba', correct: 'Pơi', wrongs: ['Một', 'Hai', 'Bốn'], level: 1, topic: 'Số đếm' },
+        { question: 'Bốn', correct: 'Pan', wrongs: ['Một', 'Hai', 'Ba'], level: 1, topic: 'Số đếm' },
+        { question: 'Năm', correct: 'Thơm', wrongs: ['Một', 'Hai', 'Ba'], level: 2, topic: 'Số đếm' },
+        { question: 'Sáu', correct: 'Ơm', wrongs: ['Một', 'Hai', 'Ba'], level: 2, topic: 'Số đếm' },
+        { question: 'Bảy', correct: 'Tuh', wrongs: ['Một', 'Hai', 'Ba'], level: 2, topic: 'Số đếm' },
+        { question: 'Tám', correct: 'Tam', wrongs: ['Một', 'Hai', 'Ba'], level: 2, topic: 'Số đếm' },
+        { question: 'Chín', correct: 'Chin', wrongs: ['Một', 'Hai', 'Ba'], level: 3, topic: 'Số đếm' },
+        { question: 'Mười', correct: 'Pluh', wrongs: ['Một', 'Hai', 'Ba'], level: 3, topic: 'Số đếm' }
+      ]
+    };
+
+    // ========== HỆ THỐNG TÍNH LEVEL TỰ ĐỘNG ==========
+    
+    function loadMaxLevelsFromCache() {
+      try {
+        const cached = localStorage.getItem('xedang_max_levels_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          const cacheTime = localStorage.getItem('xedang_max_levels_time');
+          const now = Date.now();
+          
+          if (cacheTime && (now - parseInt(cacheTime)) < 300000) {
+            console.log('📊 Đang sử dụng maxLevels từ cache');
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Không thể load maxLevels từ cache:', e);
+      }
+      
+      return {
+        game1: 3,
+        game2: 3,
+        game3: 3,
+        game4: 3
+      };
+    }
+
+    function calculateMaxLevelsFromSheet(gameData) {
+      const maxLevels = {};
+      
+      Object.keys(gameData).forEach(gameKey => {
+        const questions = gameData[gameKey];
+        if (!questions || questions.length === 0) {
+          maxLevels[gameKey] = 1;
+          return;
+        }
+        
+        const levels = questions
+          .filter(q => q.level && q.level > 0)
+          .map(q => q.level);
+        
+        const maxLevelFromSheet = levels.length > 0 ? Math.max(...levels) : 1;
+        
+        const questionsPerLevel = AUTO_LEVEL_CONFIG[gameKey].questionsPerLevel;
+        const maxLevelByCount = Math.max(1, Math.ceil(questions.length / questionsPerLevel));
+        
+        maxLevels[gameKey] = Math.max(maxLevelFromSheet, maxLevelByCount, 1);
+        maxLevels[gameKey] = Math.min(maxLevels[gameKey], 100);
+      });
+      
+      console.log('📊 Max levels từ sheet:', maxLevels);
+      return maxLevels;
+    }
+
+    function calculateMaxLevels() {
+      const maxLevels = {};
+      const lastUpdated = localStorage.getItem('xedang_last_level_calculation') || 0;
+      const now = Date.now();
+      
+      if (now - lastUpdated < 120000 && window.calculatedMaxLevels) {
+        return window.calculatedMaxLevels;
+      }
+      
+      Object.keys(gameData).forEach(gameKey => {
+        const gameQuestions = gameData[gameKey];
+        if (!gameQuestions || gameQuestions.length === 0) {
+          maxLevels[gameKey] = 1;
+          return;
+        }
+        
+        const manualLevels = gameQuestions
+          .filter(q => q.level && q.level > 0)
+          .map(q => q.level);
+        
+        const autoMaxLevel = Math.max(1, Math.ceil(gameQuestions.length / AUTO_LEVEL_CONFIG[gameKey].questionsPerLevel));
+        
+        const manualMax = manualLevels.length > 0 ? Math.max(...manualLevels) : 0;
+        maxLevels[gameKey] = Math.max(manualMax, autoMaxLevel, 1);
+        maxLevels[gameKey] = Math.min(maxLevels[gameKey], 100);
+        maxLevels[gameKey] = Math.max(1, maxLevels[gameKey]);
+      });
+      
+      window.calculatedMaxLevels = maxLevels;
+      localStorage.setItem('xedang_last_level_calculation', now.toString());
+      localStorage.setItem('xedang_max_levels_cache', JSON.stringify(maxLevels));
+      localStorage.setItem('xedang_max_levels_time', now.toString());
+      
+      console.log('📊 Đã tính lại maxLevels:', maxLevels);
+      return maxLevels;
+    }
+
+    function checkForNewLevels() {
+      try {
+        const lastSeenLevels = JSON.parse(localStorage.getItem('xedang_last_seen_levels') || '{}');
+        let hasNewLevels = false;
+        let newLevelsCount = 0;
+        
+        Object.keys(maxLevels).forEach(gameKey => {
+          const lastSeen = lastSeenLevels[gameKey] || 0;
+          if (maxLevels[gameKey] > lastSeen) {
+            hasNewLevels = true;
+            newLevelsCount += (maxLevels[gameKey] - lastSeen);
+            console.log(`🎮 ${gameKey}: Có ${maxLevels[gameKey] - lastSeen} level mới!`);
+          }
+        });
+        
+        localStorage.setItem('xedang_last_seen_levels', JSON.stringify(maxLevels));
+        
+        if (hasNewLevels && newLevelsCount > 0) {
+          showToast(`✨ Có ${newLevelsCount} level mới được mở khóa!`, 'success');
+          return true;
+        }
+      } catch (e) {
+        console.warn('Không thể kiểm tra level mới:', e);
+      }
+      return false;
+    }
+
+    function getQuestionsByLevelExact(gameKey, currentLevel) {
+      const questions = gameData[gameKey] || [];
+      if (!questions || questions.length === 0) {
+        return getFallbackQuestions(gameKey, currentLevel);
+      }
+      
+      currentLevel = Math.max(1, Math.min(currentLevel, maxLevels[gameKey] || 1));
+      
+      let levelQuestions = questions.filter(q => q.level === currentLevel);
+      
+      if (levelQuestions.length === 0) {
+        const questionsPerLevel = AUTO_LEVEL_CONFIG[gameKey].questionsPerLevel;
+        const startIndex = (currentLevel - 1) * questionsPerLevel;
+        const endIndex = startIndex + questionsPerLevel;
+        levelQuestions = questions.slice(startIndex, endIndex);
+      }
+      
+      const questionsPerLevel = AUTO_LEVEL_CONFIG[gameKey].questionsPerLevel;
+      if (levelQuestions.length < questionsPerLevel) {
+        const needed = questionsPerLevel - levelQuestions.length;
+        const additionalQuestions = questions.slice(0, needed);
+        levelQuestions = [...levelQuestions, ...additionalQuestions];
+      }
+      
+      if (gameKey !== 'game1') {
+        levelQuestions = levelQuestions.map(q => {
+          const allAnswers = [q.correct, ...q.wrongs];
+          const shuffledAnswers = [...allAnswers].sort(() => Math.random() - 0.5);
+          return {
+            ...q,
+            correct: q.correct,
+            wrongs: shuffledAnswers.filter(a => a !== q.correct).slice(0, 3)
+          };
+        });
+      }
+      
+      return levelQuestions.slice(0, questionsPerLevel);
+    }
+
+    function getQuestionsByLevel(gameKey, currentLevel) {
+      return getQuestionsByLevelExact(gameKey, currentLevel);
+    }
+
+    function getFallbackQuestions(gameKey, currentLevel) {
+      const fallback = {
+        game1: [
+          { question: `Level ${currentLevel} - Câu 1`, correct: 'Đáp án 1', wrongs: [], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 2`, correct: 'Đáp án 2', wrongs: [], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 3`, correct: 'Đáp án 3', wrongs: [], level: currentLevel, topic: 'Chung' }
+        ],
+        game2: [
+          { question: `Level ${currentLevel} - Câu 1`, correct: 'Đáp án 1', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 2`, correct: 'Đáp án 2', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 3`, correct: 'Đáp án 3', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 4`, correct: 'Đáp án 4', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 5`, correct: 'Đáp án 5', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' }
+        ],
+        game3: [
+          { question: `Level ${currentLevel} - Câu 1`, correct: 'Đáp án 1', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 2`, correct: 'Đáp án 2', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 3`, correct: 'Đáp án 3', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 4`, correct: 'Đáp án 4', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 5`, correct: 'Đáp án 5', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' }
+        ],
+        game4: [
+          { question: `Level ${currentLevel} - Câu 1`, correct: 'Đáp án 1', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 2`, correct: 'Đáp án 2', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 3`, correct: 'Đáp án 3', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' },
+          { question: `Level ${currentLevel} - Câu 4`, correct: 'Đáp án 4', wrongs: ['Sai 1', 'Sai 2', 'Sai 3'], level: currentLevel, topic: 'Chung' }
+        ]
+      };
+      
+      return fallback[gameKey] || [];
+    }
+
+    function checkGameCompletion(gameKey, currentLevel) {
+      return currentLevel >= maxLevels[gameKey];
+    }
+
+    let currentUser = null;
+    let gameData = {
+      game1: [],
+      game2: [],
+      game3: [],
+      game4: []
+    };
+    
+    let maxLevels = {
+      game1: 3,
+      game2: 3,
+      game3: 3,
+      game4: 3
+    };
+    
+    let currentScreen = 'login';
+    let isOnline = navigator.onLine;
+
+    // ========== GAME STATE OBJECTS ==========
+    let game1State = {
+      level: 1,
+      cards: [],
+      flippedCards: [],
+      matchedPairs: 0,
+      moves: 0,
+      totalPairs: 0,
+      totalScore: 0,
+      currentTopic: '',
+      canFlip: true
+    };
+
+    let game2State = {
+      score: 0,
+      level: 1,
+      questionsAnswered: 0,
+      currentQuestion: null,
+      fallingWords: [],
+      basketX: 0,
+      gameLoop: null,
+      questionIndex: 0,
+      lives: 3,
+      combo: 0,
+      maxCombo: 0,
+      currentTopic: '',
+      animationFrameId: null,
+      lastLifeLostTime: 0,
+      isProcessing: false
+    };
+
+    let game3State = {
+      score: 0,
+      level: 1,
+      questionsAnswered: 0,
+      enemies: [],
+      currentQuestion: null,
+      gameLoop: null,
+      questionIndex: 0,
+      lives: 3,
+      combo: 0,
+      maxCombo: 0,
+      currentTopic: '',
+      lastShotTime: 0,
+      shotCooldown: 800,
+      animationFrameId: null
+    };
+
+    // ========== GAME 4 STATE - ĐÃ SỬA LỖI LOGIC ==========
+    let game4State = {
+      level: 1,
+      harvestCount: 0,
+      totalScore: 0,
+      plots: [
+        { stage: 0, askedQuestions: [] },
+        { stage: 0, askedQuestions: [] },
+        { stage: 0, askedQuestions: [] },
+        { stage: 0, askedQuestions: [] }
+      ],
+      currentQuestion: null,
+      selectedPlot: null,
+      combo: 0,
+      maxCombo: 0,
+      currentTopic: '',
+      levelQuestions: [],
+      askedQuestionIds: []
+    };
+
+    let isGame4Initialized = false;
+
+    // ========== HỆ THỐNG ÂM THANH ==========
+    let audioContext;
+    let bgmEnabled = localStorage.getItem('xedang_bgm') === 'true';
+    let sfxEnabled = localStorage.getItem('xedang_sfx') !== 'false';
+    let bgmSource;
+    let bgmPlaying = false;
+    let currentBGM = null;
+
+    function initAudio() {
+      if (!audioContext) {
+        try {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          console.log('AudioContext initialized');
+        } catch (e) {
+          console.warn('Web Audio API not supported:', e);
+        }
+      }
+      // Resume AudioContext nếu bị suspended do autoplay
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('AudioContext resumed via interaction');
+        }).catch(err => {
+          console.warn('Failed to resume AudioContext:', err);
+        });
+      }
+    }
+
+    // Tự động kích hoạt AudioContext khi người dùng chạm hoặc click trên màn hình (đặc biệt khi nhúng trong iframe)
+    function autoResumeAudio() {
+      initAudio();
+      if (audioContext && audioContext.state === 'running') {
+        window.removeEventListener('click', autoResumeAudio);
+        window.removeEventListener('touchstart', autoResumeAudio);
+        window.removeEventListener('mousedown', autoResumeAudio);
+      }
+    }
+    window.addEventListener('click', autoResumeAudio);
+    window.addEventListener('touchstart', autoResumeAudio);
+    window.addEventListener('mousedown', autoResumeAudio);
+
+    function createBeep(frequency, duration, type = 'sine', volume = 0.3) {
+      if (!audioContext || !sfxEnabled) return null;
+      
+      try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = type;
+        
+        gainNode.gain.value = volume;
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+        
+        return oscillator;
+      } catch (e) {
+        console.warn('Error creating beep:', e);
+        return null;
+      }
+    }
+
+    const SoundEffects = {
+      flipCard: () => createBeep(523.25, 0.1, 'sine', 0.2),
+      matchSuccess: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(659.25, 0.1, 'sine', 0.3);
+        setTimeout(() => createBeep(783.99, 0.1, 'sine', 0.3), 100);
+        setTimeout(() => createBeep(1046.50, 0.2, 'sine', 0.3), 200);
+      },
+      matchFail: () => createBeep(220, 0.3, 'sine', 0.2),
+      wordCaught: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(784, 0.1, 'sine', 0.3);
+        setTimeout(() => createBeep(1047, 0.15, 'sine', 0.3), 50);
+      },
+      wordMissed: () => createBeep(330, 0.3, 'sawtooth', 0.2),
+      basketMove: () => {},
+      levelUpGame2: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(523, 0.1);
+        setTimeout(() => createBeep(659, 0.1), 100);
+        setTimeout(() => createBeep(784, 0.1), 200);
+        setTimeout(() => createBeep(1047, 0.3), 300);
+      },
+      shoot: () => createBeep(880, 0.1, 'square', 0.2),
+      enemyHit: () => createBeep(587, 0.1, 'sine', 0.3),
+      enemyDestroy: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(440, 0.1, 'sawtooth', 0.4);
+        setTimeout(() => createBeep(330, 0.2, 'sawtooth', 0.3), 100);
+      },
+      enemyPass: () => createBeep(220, 0.5, 'sine', 0.3),
+      plantSeed: () => createBeep(659, 0.2, 'sine', 0.2),
+      growPlant: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(523, 0.1);
+        setTimeout(() => createBeep(659, 0.1), 100);
+      },
+      harvest: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(784, 0.1);
+        setTimeout(() => createBeep(1047, 0.1), 80);
+        setTimeout(() => createBeep(1318, 0.2), 160);
+      },
+      wrongAnswer: () => createBeep(220, 0.3, 'sawtooth', 0.2),
+      buttonClick: () => createBeep(440, 0.05, 'sine', 0.1),
+      correctAnswer: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(523, 0.1);
+        setTimeout(() => createBeep(659, 0.1), 100);
+        setTimeout(() => createBeep(784, 0.2), 200);
+      },
+      wrongAnswerGeneral: () => createBeep(220, 0.3, 'sawtooth', 0.2),
+      levelComplete: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(523, 0.1);
+        setTimeout(() => createBeep(659, 0.1), 100);
+        setTimeout(() => createBeep(784, 0.1), 200);
+        setTimeout(() => createBeep(1047, 0.1), 300);
+        setTimeout(() => createBeep(1318, 0.3), 400);
+      },
+      gameOver: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(220, 0.3, 'sine', 0.3);
+        setTimeout(() => createBeep(196, 0.3, 'sine', 0.3), 300);
+        setTimeout(() => createBeep(165, 0.5, 'sine', 0.3), 600);
+      },
+      achievement: () => {
+        if (!audioContext || !sfxEnabled) return;
+        createBeep(1047, 0.1);
+        setTimeout(() => createBeep(1318, 0.1), 100);
+        setTimeout(() => createBeep(1568, 0.1), 200);
+        setTimeout(() => createBeep(2093, 0.3), 300);
+      }
+    };
+
+    function playBackgroundMusic(gameType) {
+      // Vô hiệu hóa nhạc nền đơn âm (Oscillator) gây tiếng hú kéo dài khó chịu
+      bgmPlaying = false;
+      return;
+    }
+
+    function stopBackgroundMusic() {
+      if (bgmSource) {
+        bgmSource.stop();
+        bgmSource = null;
+      }
+      bgmPlaying = false;
+      currentBGM = null;
+    }
+
+    function toggleBGM() {
+      bgmEnabled = !bgmEnabled;
+      localStorage.setItem('xedang_bgm', bgmEnabled);
+      
+      const btn = document.getElementById('bgm-toggle');
+      if (bgmEnabled) {
+        btn.classList.remove('muted');
+        btn.classList.add('active');
+        if (currentScreen.includes('game')) {
+          playBackgroundMusic(currentScreen);
+        }
+      } else {
+        btn.classList.remove('active');
+        btn.classList.add('muted');
+        stopBackgroundMusic();
+      }
+    }
+
+    function toggleSFX() {
+      sfxEnabled = !sfxEnabled;
+      localStorage.setItem('xedang_sfx', sfxEnabled);
+      
+      const btn = document.getElementById('sfx-toggle');
+      if (sfxEnabled) {
+        btn.classList.remove('muted');
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+        btn.classList.add('muted');
+      }
+      
+      if (sfxEnabled) {
+        SoundEffects.buttonClick();
+      }
+    }
+
+    function showSoundControls() {
+      const controls = document.getElementById('sound-controls');
+      if (controls) {
+        controls.style.display = 'flex';
+        
+        const bgmBtn = document.getElementById('bgm-toggle');
+        const sfxBtn = document.getElementById('sfx-toggle');
+        
+        if (bgmEnabled) {
+          bgmBtn.classList.add('active');
+          bgmBtn.classList.remove('muted');
+        } else {
+          bgmBtn.classList.add('muted');
+          bgmBtn.classList.remove('active');
+        }
+        
+        if (sfxEnabled) {
+          sfxBtn.classList.add('active');
+          sfxBtn.classList.remove('muted');
+        } else {
+          sfxBtn.classList.add('muted');
+          sfxBtn.classList.remove('active');
+        }
+      }
+    }
+
+    const defaultConfig = {
+      app_title: 'Ứng dụng số hóa hỗ trợ tự học và bảo tồn ngôn ngữ Xơ Đăng cho học sinh THCS trên nền tảng PWA',
+      welcome_message: 'Chào mừng đến với',
+      game1_name: 'Lật Ô Ghi Nhớ',
+      game2_name: 'Mưa Từ Vựng',
+      game3_name: 'Bảo Vệ Cứ Điểm',
+      game4_name: 'Nông Trại Số',
+      certificate_title: 'CHỨNG NHẬN HOÀN THÀNH',
+      certificate_text: 'Đã hoàn thành xuất sắc khóa học',
+      primary_color: '#3b82f6',
+      secondary_color: '#8b5cf6',
+      background_color: '#eff6ff',
+      text_color: '#1e3a8a',
+      success_color: '#10b981'
+    };
+
+    function initWithCache() {
+      clearStaleCache();
+      
+      maxLevels = loadMaxLevelsFromCache();
+      
+      const cacheTimestamp = localStorage.getItem('xedang_cache_timestamp');
+      const now = Date.now();
+      const oneHour = 3600000;
+      
+      if (!cacheTimestamp || (now - parseInt(cacheTimestamp)) > oneHour) {
+        localStorage.setItem('xedang_needs_refresh', 'true');
+      }
+      
+      try {
+        const cachedData = localStorage.getItem('xedang_offline_data');
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          gameData = parsed.gameData || parsed;
+          
+          if (localStorage.getItem('xedang_needs_refresh') === 'true') {
+            console.log('🔄 Tính lại maxLevels từ cache...');
+            maxLevels = calculateMaxLevels();
+            localStorage.removeItem('xedang_needs_refresh');
+          }
+        }
+      } catch (e) {
+        console.warn('Cache bị lỗi, sử dụng dữ liệu mẫu');
+        gameData = MOCK_DATA;
+        maxLevels = calculateMaxLevels();
+      }
+      
+      localStorage.setItem('xedang_cache_timestamp', now.toString());
+    }
+
+    function clearStaleCache() {
+      const keys = [
+        'xedang_offline_data',
+        'xedang_max_levels_cache',
+        'xedang_last_level_calculation',
+        'xedang_last_seen_levels',
+        'xedang_max_levels_time'
+      ];
+      
+      keys.forEach(key => {
+        const value = localStorage.getItem(key);
+        if (value) {
+          try {
+            JSON.parse(value);
+          } catch (e) {
+            console.warn(`Xóa cache lỗi: ${key}`);
+            localStorage.removeItem(key);
+          }
+        }
+      });
+    }
+
+    window.addEventListener('online', () => {
+      isOnline = true;
+      updateOfflineIndicator();
+      fetchData();
+    });
+
+    window.addEventListener('offline', () => {
+      isOnline = false;
+      updateOfflineIndicator();
+    });
+
+    function updateOfflineIndicator() {
+      // THAY ĐỔI: Sử dụng showToast thay vì hiển thị cố định
+      if (!isOnline) {
+        const offlineTimestamp = localStorage.getItem('xedang_offline_timestamp');
+        const lastUpdate = offlineTimestamp ? new Date(parseInt(offlineTimestamp)).toLocaleString('vi-VN') : 'Chưa có';
+        showToast(`📵 Đang offline. Dữ liệu lần cuối: ${lastUpdate}`, 'error');
+      } else {
+        const offlineTimestamp = localStorage.getItem('xedang_offline_timestamp');
+        const lastUpdate = offlineTimestamp ? new Date(parseInt(offlineTimestamp)).toLocaleString('vi-VN') : 'Mới';
+        showToast(`📶 Đã online. Dữ liệu: ${lastUpdate}`, 'success');
+      }
+    }
+
+    async function fetchData() {
+      console.log('🔄 Đang fetch dữ liệu...');
+      
+      maxLevels = loadMaxLevelsFromCache();
+      
+      const offlineData = localStorage.getItem('xedang_offline_data');
+      
+      if (offlineData) {
+        try {
+          const parsedData = JSON.parse(offlineData);
+          gameData = parsedData.gameData || parsedData;
+          
+          const recalculated = calculateMaxLevels();
+          maxLevels = { ...maxLevels, ...recalculated };
+        } catch (e) {
+          console.warn('Dữ liệu offline bị lỗi:', e);
+          gameData = MOCK_DATA;
+          maxLevels = calculateMaxLevels();
+        }
+      } else {
+        gameData = MOCK_DATA;
+        maxLevels = calculateMaxLevels();
+      }
+
+      if (isOnline) {
+        try {
+          const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+          const response = await fetch(url, { 
+            method: 'GET',
+            signal: AbortSignal.timeout(15000)
+          });
+          
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          
+          const data = await response.json();
+          
+          if (data.values && data.values.length > 0) {
+            console.log('📥 Đã nhận dữ liệu từ Google Sheets');
+            
+            const newGameData = {
+              game1: [], game2: [], game3: [], game4: []
+            };
+            
+            let totalQuestions = 0;
+            
+            data.values.forEach((row, rowIndex) => {
+              if (row[1] && row[1].trim()) {
+                let manualLevel = 1;
+                if (row[3] !== undefined && row[3] !== '') {
+                  const parsed = parseInt(row[3]);
+                  if (!isNaN(parsed) && parsed >= 1) {
+                    manualLevel = parsed;
+                  }
+                }
+                
+                newGameData.game1.push({
+                  question: row[1].trim(),
+                  correct: row[2] ? row[2].trim() : 'Đáp án',
+                  wrongs: [],
+                  level: manualLevel,
+                  topic: row[4] ? row[4].trim() : 'Chung'
+                });
+                totalQuestions++;
+              }
+              
+              if (row[6] && row[6].trim()) {
+                let manualLevel = 1;
+                if (row[11] !== undefined && row[11] !== '') {
+                  const parsed = parseInt(row[11]);
+                  if (!isNaN(parsed) && parsed >= 1) {
+                    manualLevel = parsed;
+                  }
+                }
+                
+                newGameData.game2.push({
+                  question: row[6].trim(),
+                  correct: row[7] ? row[7].trim() : 'Đáp án',
+                  wrongs: [
+                    row[8] ? row[8].trim() : 'Sai 1',
+                    row[9] ? row[9].trim() : 'Sai 2',
+                    row[10] ? row[10].trim() : 'Sai 3'
+                  ].filter(a => a && a !== 'Đáp án' && a !== ''),
+                  level: manualLevel,
+                  topic: row[12] ? row[12].trim() : 'Chung'
+                });
+                totalQuestions++;
+              }
+              
+              if (row[14] && row[14].trim()) {
+                let manualLevel = 1;
+                if (row[19] !== undefined && row[19] !== '') {
+                  const parsed = parseInt(row[19]);
+                  if (!isNaN(parsed) && parsed >= 1) {
+                    manualLevel = parsed;
+                  }
+                }
+                
+                newGameData.game3.push({
+                  question: row[14].trim(),
+                  correct: row[15] ? row[15].trim() : 'Đáp án',
+                  wrongs: [
+                    row[16] ? row[16].trim() : 'Sai 1',
+                    row[17] ? row[17].trim() : 'Sai 2',
+                    row[18] ? row[18].trim() : 'Sai 3'
+                  ].filter(a => a && a !== 'Đáp án' && a !== ''),
+                  level: manualLevel,
+                  topic: row[20] ? row[20].trim() : 'Chung'
+                });
+                totalQuestions++;
+              }
+              
+              if (row[22] && row[22].trim()) {
+                let manualLevel = 1;
+                if (row[27] !== undefined && row[27] !== '') {
+                  const parsed = parseInt(row[27]);
+                  if (!isNaN(parsed) && parsed >= 1) {
+                    manualLevel = parsed;
+                  }
+                }
+                
+                newGameData.game4.push({
+                  question: row[22].trim(),
+                  correct: row[23] ? row[23].trim() : 'Đáp án',
+                  wrongs: [
+                    row[24] ? row[24].trim() : 'Sai 1',
+                    row[25] ? row[25].trim() : 'Sai 2',
+                    row[26] ? row[26].trim() : 'Sai 3'
+                  ].filter(a => a && a !== 'Đáp án' && a !== ''),
+                  level: manualLevel,
+                  topic: row[28] ? row[28].trim() : 'Chung'
+                });
+                totalQuestions++;
+              }
+            });
+
+            Object.keys(newGameData).forEach(gameKey => {
+              newGameData[gameKey].sort((a, b) => {
+                if (a.level !== b.level) return a.level - b.level;
+                return newGameData[gameKey].indexOf(a) - newGameData[gameKey].indexOf(b);
+              });
+            });
+
+            gameData = newGameData;
+            
+            maxLevels = calculateMaxLevelsFromSheet(newGameData);
+            
+            localStorage.setItem('xedang_offline_data', JSON.stringify({
+              gameData: gameData,
+              maxLevels: maxLevels,
+              totalQuestions: totalQuestions,
+              fetchedAt: Date.now()
+            }));
+            localStorage.setItem('xedang_offline_timestamp', Date.now().toString());
+            
+            const oldMaxLevels = { ...maxLevels };
+            maxLevels = calculateMaxLevels();
+            
+            const hasNewLevels = checkForNewLevels();
+            
+            console.log('✅ Đã cập nhật dữ liệu:', {
+              totalQuestions,
+              oldMaxLevels,
+              newMaxLevels: maxLevels,
+              hasNewLevels
+            });
+            
+            if (hasNewLevels) {
+              showToast('✨ Có level mới được mở khóa!', 'success');
+            } else {
+              showToast('✅ Đã cập nhật dữ liệu mới!', 'success');
+            }
+            
+            updateOfflineIndicator();
+          }
+        } catch (error) {
+          console.warn('Không thể fetch dữ liệu online:', error);
+          if (!offlineData) {
+            localStorage.setItem('xedang_offline_data', JSON.stringify({
+              gameData: MOCK_DATA,
+              maxLevels: calculateMaxLevels(),
+              fetchedAt: Date.now()
+            }));
+            localStorage.setItem('xedang_offline_timestamp', Date.now().toString());
+          }
+          showToast('⚠️ Đang sử dụng dữ liệu offline', 'info');
+        }
+      } else {
+        console.log('📴 Đang ở chế độ offline, sử dụng dữ liệu cache');
+        showToast('📴 Đang ở chế độ offline', 'info');
+      }
+    }
+
+    async function forceRefreshData() {
+      if (!isOnline) {
+        showToast('📵 Bạn đang offline, không thể làm mới dữ liệu', 'error');
+        return;
+      }
+      
+      showToast('🔄 Đang làm mới dữ liệu và tính lại level...', 'info');
+      
+      localStorage.removeItem('xedang_last_level_calculation');
+      localStorage.removeItem('xedang_max_levels_cache');
+      localStorage.removeItem('xedang_max_levels_time');
+      localStorage.setItem('xedang_needs_refresh', 'true');
+      
+      await fetchData();
+      
+      if (currentScreen === 'menu') {
+        render();
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : type === 'info' ? 'bg-blue-500' : 'bg-yellow-500'}`;
+      toast.textContent = message;
+      toast.setAttribute('role', 'alert');
+      toast.setAttribute('aria-live', 'assertive');
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    function saveUser(username) {
+      const users = JSON.parse(localStorage.getItem('xedang_users') || '{}');
+      if (!users[username]) {
+        users[username] = {
+          name: username,
+          level: 1,
+          totalScore: 0,
+          bestScore: 0,
+          gamesPlayed: 0,
+          certificates: [],
+          gameScores: {
+            game1: [],
+            game2: [],
+            game3: [],
+            game4: []
+          },
+          lastPlayed: Date.now(),
+          joinedDate: new Date().toISOString(),
+          highestLevels: {
+            game1: 0,
+            game2: 0,
+            game3: 0,
+            game4: 0
+          }
+        };
+      }
+      currentUser = users[username];
+      localStorage.setItem('xedang_users', JSON.stringify(users));
+      localStorage.setItem('xedang_current_user', username);
+    }
+
+    function loadUser() {
+      const username = localStorage.getItem('xedang_current_user');
+      if (username) {
+        const users = JSON.parse(localStorage.getItem('xedang_users') || '{}');
+        currentUser = users[username];
+        
+        if (currentUser && !currentUser.gameScores) {
+          currentUser.gameScores = {
+            game1: [],
+            game2: [],
+            game3: [],
+            game4: []
+          };
+          currentUser.bestScore = currentUser.totalScore || 0;
+          currentUser.lastPlayed = Date.now();
+          currentUser.joinedDate = currentUser.joinedDate || new Date().toISOString();
+          
+          users[username] = currentUser;
+          localStorage.setItem('xedang_users', JSON.stringify(users));
+        }
+        
+        return true;
+      }
+      return false;
+    }
+
+    function updateUserScore(gameType, score, levelCompleted, sessionScore = 0) {
+      const users = JSON.parse(localStorage.getItem('xedang_users') || '{}');
+      
+      if (currentUser && users[currentUser.name]) {
+        const user = users[currentUser.name];
+        
+        if (!user.gameScores) user.gameScores = {};
+        if (!user.gameScores[gameType]) user.gameScores[gameType] = [];
+        
+        const gameSession = {
+          score: score,
+          level: levelCompleted,
+          timestamp: Date.now(),
+          date: new Date().toLocaleDateString('vi-VN'),
+          time: new Date().toLocaleTimeString('vi-VN'),
+          sessionScore: sessionScore,
+          isFinal: levelCompleted >= maxLevels[gameType]
+        };
+        
+        user.gameScores[gameType].push(gameSession);
+        
+        if (user.gameScores[gameType].length > 20) {
+          user.gameScores[gameType] = user.gameScores[gameType].slice(-20);
+        }
+        
+        if (!user.highestLevels) user.highestLevels = {};
+        user.highestLevels[gameType] = Math.max(user.highestLevels[gameType] || 0, levelCompleted);
+        
+        const gameBestScore = Math.max(...user.gameScores[gameType].map(s => s.score));
+        
+        let totalAllGames = 0;
+        Object.values(user.gameScores).forEach(gameScores => {
+          if (Array.isArray(gameScores) && gameScores.length > 0) {
+            const gameTotal = gameScores.reduce((sum, session) => sum + session.score, 0);
+            totalAllGames += gameTotal;
+          }
+        });
+        
+        user.totalScore = totalAllGames;
+        user.bestScore = Math.max(user.bestScore || 0, gameBestScore);
+        user.gamesPlayed += 1;
+        user.lastPlayed = Date.now();
+        user.level = Math.min(10, Math.floor(user.totalScore / 500) + 1);
+        
+        localStorage.setItem('xedang_users', JSON.stringify(users));
+        currentUser = user;
+        
+        console.log(`💾 Đã lưu điểm: ${score} cho game ${gameType}, Level: ${levelCompleted}/${maxLevels[gameType]}`);
+        
+        return user;
+      }
+      return null;
+    }
+
+    function getLeaderboard() {
+      const users = JSON.parse(localStorage.getItem('xedang_users') || '{}');
+      
+      const leaderboard = Object.values(users).map(user => {
+        let avgScorePerGame = 0;
+        let gamesWithScores = 0;
+        
+        if (user.gameScores) {
+          Object.values(user.gameScores).forEach(gameSessions => {
+            if (Array.isArray(gameSessions) && gameSessions.length > 0) {
+              const gameTotal = gameSessions.reduce((sum, session) => sum + session.score, 0);
+              avgScorePerGame += gameTotal / gameSessions.length;
+              gamesWithScores++;
+            }
+          });
+        }
+        
+        avgScorePerGame = gamesWithScores > 0 ? avgScorePerGame / gamesWithScores : 0;
+        
+        return {
+          name: user.name,
+          totalScore: user.totalScore || 0,
+          bestScore: user.bestScore || 0,
+          level: user.level || 1,
+          gamesPlayed: user.gamesPlayed || 0,
+          avgScorePerGame: avgScorePerGame,
+          lastPlayed: user.lastPlayed || 0,
+          joinedDate: user.joinedDate || new Date().toISOString()
+        };
+      });
+      
+      leaderboard.sort((a, b) => {
+        if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+        if (b.bestScore !== a.bestScore) return b.bestScore - a.bestScore;
+        if (b.level !== a.level) return b.level - a.level;
+        return b.lastPlayed - a.lastPlayed;
+      });
+      
+      return leaderboard.slice(0, 10);
+    }
+
+    function getCurrentUserRank() {
+      const leaderboard = getLeaderboard();
+      const currentIndex = leaderboard.findIndex(user => user.name === currentUser.name);
+      return currentIndex >= 0 ? currentIndex + 1 : null;
+    }
+
+    function getUserStats(username) {
+      const users = JSON.parse(localStorage.getItem('xedang_users') || '{}');
+      const user = users[username];
+      
+      if (!user) return null;
+      
+      const stats = {
+        name: user.name,
+        level: user.level || 1,
+        totalScore: user.totalScore || 0,
+        bestScore: user.bestScore || 0,
+        gamesPlayed: user.gamesPlayed || 0,
+        certificatesCount: (user.certificates || []).length,
+        lastPlayed: user.lastPlayed ? new Date(user.lastPlayed).toLocaleDateString('vi-VN') : 'Chưa chơi',
+        joinedDate: user.joinedDate ? new Date(user.joinedDate).toLocaleDateString('vi-VN') : 'Mới',
+        highestLevels: user.highestLevels || {}
+      };
+      
+      if (user.gameScores) {
+        stats.gameStats = {};
+        Object.keys(user.gameScores).forEach(gameType => {
+          const sessions = user.gameScores[gameType] || [];
+          if (sessions.length > 0) {
+            const totalScore = sessions.reduce((sum, session) => sum + session.score, 0);
+            const bestScore = Math.max(...sessions.map(s => s.score));
+            const avgScore = totalScore / sessions.length;
+            const lastPlayed = sessions.length > 0 ? 
+              new Date(sessions[sessions.length - 1].timestamp).toLocaleDateString('vi-VN') : 'Chưa chơi';
+            
+            stats.gameStats[gameType] = {
+              playCount: sessions.length,
+              totalScore: totalScore,
+              bestScore: bestScore,
+              avgScore: avgScore.toFixed(1),
+              lastPlayed: lastPlayed,
+              highestLevel: stats.highestLevels[gameType] || 0
+            };
+          }
+        });
+      }
+      
+      return stats;
+    }
+
+    function saveCertificate(gameName, score, level) {
+      const users = JSON.parse(localStorage.getItem('xedang_users') || '{}');
+      if (currentUser && users[currentUser.name]) {
+        if (!users[currentUser.name].certificates) {
+          users[currentUser.name].certificates = [];
+        }
+        
+        const certificate = {
+          gameName: gameName,
+          score: score,
+          level: level,
+          date: new Date().toLocaleDateString('vi-VN'),
+          timestamp: Date.now()
+        };
+        
+        users[currentUser.name].certificates.push(certificate);
+        currentUser = users[currentUser.name];
+        localStorage.setItem('xedang_users', JSON.stringify(users));
+      }
+    }
+
+    let autoSaveInterval = null;
+
+    function startAutoSave(gameType, getStateFunc) {
+      if (autoSaveInterval) clearInterval(autoSaveInterval);
+      
+      autoSaveInterval = setInterval(() => {
+        const state = getStateFunc();
+        const users = JSON.parse(localStorage.getItem('xedang_users') || '{}');
+        
+        if (currentUser && users[currentUser.name]) {
+          users[currentUser.name].tempProgress = {
+            gameType: gameType,
+            state: JSON.parse(JSON.stringify(state)),
+            timestamp: Date.now()
+          };
+          localStorage.setItem('xedang_users', JSON.stringify(users));
+        }
+      }, 30000);
+    }
+
+    function stopAutoSave() {
+      if (autoSaveInterval) {
+        clearInterval(autoSaveInterval);
+        autoSaveInterval = null;
+      }
+    }
+
+    function saveAndExit(gameType) {
+      let score = 0;
+      let level = 1;
+      
+      switch(gameType) {
+        case 'game1':
+          score = game1State.totalScore;
+          level = game1State.level;
+          break;
+        case 'game2':
+          score = game2State.score;
+          level = game2State.level;
+          break;
+        case 'game3':
+          score = game3State.score;
+          level = game3State.level;
+          break;
+        case 'game4':
+          score = game4State.totalScore;
+          level = game4State.level;
+          break;
+      }
+      
+      updateUserScore(gameType, score, level, score);
+      SoundEffects.buttonClick();
+      showToast(`✅ Đã lưu ${score} điểm!`, 'success');
+      stopAutoSave();
+      setTimeout(() => backToMenu(), 1000);
+    }
+
+    function resetGame4ForNewGame() {
+      game4State = {
+        level: 1,
+        harvestCount: 0,
+        totalScore: 0,
+        plots: [
+          { stage: 0, askedQuestions: [] },
+          { stage: 0, askedQuestions: [] },
+          { stage: 0, askedQuestions: [] },
+          { stage: 0, askedQuestions: [] }
+        ],
+        currentQuestion: null,
+        selectedPlot: null,
+        combo: 0,
+        maxCombo: 0,
+        currentTopic: '',
+        levelQuestions: [],
+        askedQuestionIds: []
+      };
+      isGame4Initialized = true;
+      startAutoSave('game4', () => game4State);
+    }
+
+    function updateGame4UI() {
+      const levelElement = document.getElementById('game4-level');
+      const harvestElement = document.getElementById('game4-harvest');
+      const scoreElement = document.getElementById('game4-score');
+      const topicElement = document.getElementById('game4-topic');
+      
+      if (levelElement) levelElement.textContent = game4State.level;
+      if (harvestElement) harvestElement.textContent = game4State.harvestCount;
+      if (scoreElement) scoreElement.textContent = game4State.totalScore;
+      if (topicElement) topicElement.textContent = game4State.currentTopic || 'Chung';
+    }
+
+    function updateAllPlotsDisplay() {
+      for (let i = 0; i < game4State.plots.length; i++) {
+        updatePlotDisplay(i);
+      }
+    }
+
+    function getPlotDisplay(stage) {
+      const stages = [
+        { icon: '🟫', text: 'Đất trống', bg: 'linear-gradient(135deg, #78350f 0%, #451a03 100%)', color: '#fef3c7', size: '48px' },
+        { icon: '🌰', text: 'Hạt giống', bg: 'linear-gradient(135deg, #65a30d 0%, #3f6212 100%)', color: '#ecfccb', size: '40px' },
+        { icon: '🌱', text: 'Mầm non', bg: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)', color: '#dcfce7', size: '52px' },
+        { icon: '🌿', text: 'Cây lớn', bg: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#d1fae5', size: '56px' },
+        { icon: '🌾', text: 'Chín rộ ✨', bg: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', color: '#fef9c3', size: '60px' }
+      ];
+      return stages[stage] || stages[0];
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      
+      if (currentScreen === 'login') {
+        app.innerHTML = renderLogin();
+        showSoundControls();
+      } else if (currentScreen === 'menu') {
+        app.innerHTML = renderMenu();
+        showSoundControls();
+        stopBackgroundMusic();
+        isGame4Initialized = false;
+      } else if (currentScreen === 'leaderboard') {
+        app.innerHTML = renderLeaderboard();
+        showSoundControls();
+        stopBackgroundMusic();
+      } else if (currentScreen === 'certificates') {
+        app.innerHTML = renderCertificatesList();
+        showSoundControls();
+        stopBackgroundMusic();
+      } else if (currentScreen === 'badges') {
+        app.innerHTML = renderBadges();
+        showSoundControls();
+        stopBackgroundMusic();
+      } else if (currentScreen === 'game1') {
+        app.innerHTML = renderGame1();
+        initGame1();
+        playBackgroundMusic('game1');
+        showSoundControls();
+      } else if (currentScreen === 'game2') {
+        app.innerHTML = renderGame2();
+        initGame2();
+        playBackgroundMusic('game2');
+        showSoundControls();
+      } else if (currentScreen === 'game3') {
+        app.innerHTML = renderGame3();
+        initGame3();
+        playBackgroundMusic('game3');
+        showSoundControls();
+      } else if (currentScreen === 'game4') {
+        app.innerHTML = renderGame4();
+        
+        if (!isGame4Initialized) {
+          resetGame4ForNewGame();
+        } else {
+          updateGame4UI();
+          updateAllPlotsDisplay();
+        }
+        
+        playBackgroundMusic('game4');
+        showSoundControls();
+      }
+    }
+
+    function renderLogin() {
+      const config = window.elementSdk?.config || defaultConfig;
+      const appTitle = config.app_title || defaultConfig.app_title;
+      
+      return `
+        <div class="min-h-screen flex flex-col items-center justify-center p-4 md:p-8" 
+             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          
+          <div class="w-full max-w-md mb-6 text-center">
+            <div class="text-5xl mb-4 animate-bounce" aria-hidden="true">🎮</div>
+            <h1 class="text-base md:text-lg font-normal text-slate-100/90 tracking-wide leading-relaxed px-4">${appTitle}</h1>
+          </div>
+
+          <div class="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all duration-300 hover:scale-[1.02]">
+            <div class="text-center mb-6">
+              <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                <i class="fas fa-user text-2xl text-white"></i>
+              </div>
+              <h2 class="text-xl font-bold text-gray-800">Đăng nhập để bắt đầu</h2>
+              <p class="text-gray-600 text-sm mt-1">Nhập tên của bạn để lưu tiến độ</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+              <div>
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                  Tên người chơi
+                </label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-user text-gray-400"></i>
+                  </div>
+                  <input 
+                    type="text" 
+                    id="username" 
+                    class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                    placeholder="Nhập tên của bạn"
+                    required
+                    autocomplete="username"
+                    autofocus
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-[1px] shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                onclick="SoundEffects.buttonClick()"
+              >
+                <i class="fas fa-rocket"></i>
+                <span>Bắt đầu học ngay</span>
+              </button>
+
+              <!-- NÚT THỨ CẤP VỀ TRANG CHỦ -->
+              <button 
+                type="button"
+                onclick="window.location.href='https://hoctiengxodang.online/'"
+                class="w-full py-3 border-2 border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 font-semibold rounded-xl flex items-center justify-center gap-2 transform active:scale-[0.98] active:translate-y-[1px] shadow-sm mt-4"
+              >
+                <i class="fas fa-home"></i>
+                <span>Về trang chủ</span>
+              </button>
+            </form>
+
+            <div class="mt-6 pt-6 border-t border-gray-200">
+              <div class="text-center">
+                <button 
+                  onclick="forceRefreshData()"
+                  class="inline-flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-800 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <i class="fas fa-sync-alt animate-spin text-blue-600"></i>
+                  <span>Làm mới dữ liệu</span>
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 text-center mt-4">
+                Dữ liệu sẽ được đồng bộ tự động khi có kết nối internet
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+function renderMenu() {
+    const config = window.elementSdk?.config || defaultConfig;
+    const bgColor = config.background_color || defaultConfig.background_color;
+    
+    // Lấy tên các game
+    const game1Name = config.game1_name || defaultConfig.game1_name;
+    const game2Name = config.game2_name || defaultConfig.game2_name;
+    const game3Name = config.game3_name || defaultConfig.game3_name;
+    const game4Name = config.game4_name || defaultConfig.game4_name;
+    
+    // Cấu hình danh sách game (Thêm thuộc tính màu viền)
+    const games = [
+        { id: 'game1', name: game1Name, icon: '🎴', borderColor: 'border-blue', barColor: '#3b82f6', desc: 'Lật thẻ', maxLevel: maxLevels.game1 },
+        { id: 'game2', name: game2Name, icon: '🧺', borderColor: 'border-purple', barColor: '#8b5cf6', desc: 'Hứng từ', maxLevel: maxLevels.game2 },
+        { id: 'game3', name: game3Name, icon: '🎯', borderColor: 'border-orange', barColor: '#f97316', desc: 'Bắn súng', maxLevel: maxLevels.game3 },
+        { id: 'game4', name: game4Name, icon: '🌾', borderColor: 'border-green', barColor: '#10b981', desc: 'Nông trại', maxLevel: maxLevels.game4 }
+    ];
+
+    const userStats = getUserStats(currentUser.name);
+    const userRank = getCurrentUserRank();
+    
+    // Kiểm tra level mới
+    let hasNewLevels = false;
+    if (userStats && userStats.highestLevels) {
+        Object.keys(userStats.highestLevels).forEach(gameKey => {
+            if (maxLevels[gameKey] > userStats.highestLevels[gameKey]) hasNewLevels = true;
+        });
+    }
+
+    return `
+    <div class="min-h-full p-4" style="background: ${bgColor};">
+        <div class="max-w-md mx-auto">
+            
+            <div class="profile-header-card">
+                
+                <div class="user-header-row">
+                    <div class="user-name-display">👋 Xin chào, ${currentUser.name}</div>
+                    <div class="user-status-badge">
+                        ${isOnline ? '🟢 Online' : '⚫ Offline'}
+                    </div>
+                </div>
+
+                ${hasNewLevels ? `
+                <div class="mb-3 text-center text-xs font-bold text-orange-600 bg-orange-50 py-1 rounded border border-orange-200 animate-pulse">
+                    ✨ Có level mới vừa mở khóa!
+                </div>` : ''}
+
+                <div class="stats-row">
+                    <div class="stat-item-compact">
+                        <div class="stat-label-c">Cấp độ</div>
+                        <div class="stat-value-c text-blue-600">${currentUser.level || 1}</div>
+                    </div>
+                    <div class="stat-item-compact">
+                        <div class="stat-label-c">Tổng điểm</div>
+                        <div class="stat-value-c text-orange-500">${currentUser.totalScore || 0}</div>
+                    </div>
+                    <div class="stat-item-compact">
+                        <div class="stat-label-c">Xếp hạng</div>
+                        <div class="stat-value-c text-purple-600">#${userRank || '-'}</div>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button onclick="showLeaderboard(); SoundEffects.buttonClick()" class="btn-action-new btn-rank-new">
+                        <i class="fas fa-trophy mr-1"></i> <span>Bảng Xếp Hạng</span>
+                    </button>
+                    
+                    <button onclick="forceRefreshData(); SoundEffects.buttonClick()" class="btn-action-new btn-icon-new" title="Tải lại dữ liệu">
+                        <div class="icon"><i class="fas fa-sync-alt"></i></div>
+                        <div class="label">Tải lại</div>
+                    </button>
+                    
+                    <button onclick="logout(); SoundEffects.buttonClick()" class="btn-action-new btn-icon-new" style="border-color: #fca5a5; background: #fef2f2; color: #dc2626;" title="Đăng xuất">
+                        <div class="icon"><i class="fas fa-sign-out-alt"></i></div>
+                        <div class="label">Thoát</div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                ${games.map(game => {
+                    const userHighestLevel = userStats?.highestLevels?.[game.id] || 0;
+                    const hasNew = maxLevels[game.id] > userHighestLevel;
+                    const percent = maxLevels[game.id] > 0 ? Math.min(100, (userHighestLevel / maxLevels[game.id]) * 100) : 0;
+
+                    return `
+                    <div onclick="startGame('${game.id}'); SoundEffects.buttonClick()" 
+                         class="game-card-new ${game.borderColor}">
+                        
+                        ${hasNew ? '<div class="absolute top-0 right-0 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg z-10">NEW</div>' : ''}
+                        
+                        <div class="game-icon-new transition-transform hover:scale-110">${game.icon}</div>
+                        
+                        <h3 class="game-title-new truncate">${game.name}</h3>
+                        <p class="game-desc-new line-clamp-1">${game.desc}</p>
+                        
+                        <div class="progress-container">
+                            <div class="progress-bar-fill" style="width: ${percent}%; background-color: ${game.barColor};"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-gray-500 font-medium mt-1">
+                            <span>Lv.${userHighestLevel}</span>
+                            <span>Max.${game.maxLevel}</span>
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+
+            <div class="pb-4"></div>
+        </div>
+    </div>
+    `;
+}
+
+    function renderLeaderboard() {
+      const config = window.elementSdk?.config || defaultConfig;
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const leaderboard = getLeaderboard();
+      const currentUserRank = getCurrentUserRank();
+      const currentUserStats = currentUser ? getUserStats(currentUser.name) : null;
+
+      return `
+        <div class="min-h-full p-4" style="background: ${bgColor};">
+          <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-2xl p-8">
+              <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+                <div>
+                  <h2 class="text-3xl font-bold" style="color: ${textColor};">🏆 Bảng xếp hạng</h2>
+                  <p class="text-gray-600 mt-2">Top 10 người chơi có điểm cao nhất</p>
+                </div>
+                <div class="flex gap-3">
+                  <button onclick="backToMenu()" class="px-4 py-2 bg-gray-200 rounded-lg font-medium hover:bg-gray-300 transition" onclick="SoundEffects.buttonClick()">
+                    ← Quay lại
+                  </button>
+                </div>
+              </div>
+
+              ${currentUser && currentUserRank ? `
+                <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="flex items-center gap-3">
+                        <div class="rank-badge bg-blue-500 text-white">
+                          #${currentUserRank}
+                        </div>
+                        <div>
+                          <span class="font-bold text-blue-700 text-lg">${currentUser.name}</span>
+                          <div class="text-sm text-gray-600">
+                            Level ${currentUser.level || 1} • ${currentUser.gamesPlayed || 0} trận
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-2xl font-bold" style="color: ${primaryColor};">${currentUser.totalScore || 0}</div>
+                      <div class="text-xs text-gray-500">Tổng điểm</div>
+                    </div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="flex justify-between text-xs text-gray-600 mb-1">
+                      <span>Tiến độ level</span>
+                      <span>${currentUser.totalScore || 0}/5000</span>
+                    </div>
+                    <div class="score-progress">
+                      <div class="score-progress-fill bg-blue-500" style="width: ${Math.min(100, ((currentUser.totalScore || 0) % 500) / 5)}%"></div>
+                    </div>
+                  </div>
+                </div>
+              ` : ''}
+
+              <div class="space-y-3">
+                ${leaderboard.map((user, index) => {
+                  const isCurrentUser = currentUser && user.name === currentUser.name;
+                  const rankColors = [
+                    { bg: 'bg-gradient-to-r from-yellow-50 to-amber-50', border: 'border-yellow-300', text: 'text-yellow-700' },
+                    { bg: 'bg-gradient-to-r from-gray-50 to-slate-50', border: 'border-gray-300', text: 'text-gray-700' },
+                    { bg: 'bg-gradient-to-r from-orange-50 to-amber-50', border: 'border-orange-300', text: 'text-orange-700' },
+                    { bg: 'bg-gradient-to-r from-blue-50 to-indigo-50', border: 'border-blue-300', text: 'text-blue-700' }
+                  ];
+                  
+                  const rankColor = index < 3 ? rankColors[index] : rankColors[3];
+                  const rankBg = isCurrentUser ? 'bg-gradient-to-r from-blue-100 to-indigo-100 border-blue-300' : rankColors.bg;
+                  const rankBorder = isCurrentUser ? 'border-blue-300 border-2' : `border ${rankColors.border}`;
+                  
+                  return `
+                    <div class="leaderboard-entry flex items-center justify-between p-4 rounded-xl ${rankBg} ${rankBorder} ${isCurrentUser ? 'ring-2 ring-blue-300' : ''}">
+                      <div class="flex items-center gap-4">
+                        <div class="rank-badge ${index === 0 ? 'bg-yellow-500 text-white' : index === 1 ? 'bg-gray-400 text-white' : index === 2 ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'}">
+                          ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                        </div>
+                        <div>
+                          <div class="font-bold text-lg ${isCurrentUser ? 'text-blue-700' : rankColors.text}">
+                            ${user.name}
+                            ${isCurrentUser ? ' (Bạn)' : ''}
+                          </div>
+                          <div class="text-sm text-gray-600">
+                            Level ${user.level} • ${user.gamesPlayed} trận
+                            ${user.bestScore > 0 ? `• Cao nhất: ${user.bestScore}` : ''}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <div class="text-2xl font-bold" style="color: ${primaryColor};">${user.totalScore}</div>
+                        <div class="text-xs text-gray-500">Tổng điểm</div>
+                        <div class="text-xs text-gray-400 mt-1">
+                          ${user.lastPlayed ? 'Chơi: ' + new Date(user.lastPlayed).toLocaleDateString('vi-VN') : ''}
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+                
+                ${leaderboard.length === 0 ? `
+                  <div class="text-center py-12 text-gray-500">
+                    <div class="text-6xl mb-4" aria-hidden="true">🏆</div>
+                    <p class="text-lg">Chưa có người chơi nào</p>
+                    <p class="text-sm text-gray-400 mt-2">Hãy là người đầu tiên lập kỷ lục!</p>
+                    <button onclick="backToMenu()" class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                      Bắt đầu chơi ngay
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+              
+              ${leaderboard.length > 0 ? `
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="bg-blue-50 rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-blue-600">${leaderboard[0]?.totalScore || 0}</div>
+                    <div class="text-sm text-gray-600">Điểm cao nhất</div>
+                    <div class="text-xs text-gray-500 mt-1">${leaderboard[0]?.name || 'Chưa có'}</div>
+                  </div>
+                  <div class="bg-green-50 rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-green-600">${leaderboard.reduce((sum, user) => sum + user.gamesPlayed, 0)}</div>
+                    <div class="text-sm text-gray-600">Tổng số trận</div>
+                    <div class="text-xs text-gray-500 mt-1">Tất cả người chơi</div>
+                  </div>
+                  <div class="bg-purple-50 rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-purple-600">${leaderboard.length}</div>
+                    <div class="text-sm text-gray-600">Người chơi</div>
+                    <div class="text-xs text-gray-500 mt-1">Đang hoạt động</div>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCertificatesList() {
+      const config = window.elementSdk?.config || defaultConfig;
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const certificates = currentUser.certificates || [];
+
+      return `
+        <div class="min-h-full p-4" style="background: ${bgColor};">
+          <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 mb-6">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold flex items-center gap-2" style="color: ${textColor};"><i class="fas fa-certificate text-amber-500"></i> Chứng Nhận Của Bạn</h2>
+                <button onclick="backToMenu()" class="px-4 py-2 bg-gray-200 rounded-lg font-medium hover:bg-gray-300 transition flex items-center gap-2" onclick="SoundEffects.buttonClick()">
+                  <i class="fas fa-arrow-left"></i> Quay lại
+                </button>
+              </div>
+
+              ${certificates.length === 0 ? `
+                <div class="text-center py-16">
+                  <div class="text-7xl mb-4 text-amber-400" aria-hidden="true"><i class="fas fa-award"></i></div>
+                  <p class="text-gray-500 text-lg">Chưa có chứng nhận nào</p>
+                  <p class="text-gray-400 text-sm mt-2">Hoàn thành các game để nhận chứng nhận!</p>
+                </div>
+              ` : `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  ${certificates.map((cert, index) => `
+                    <div class="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl shadow-lg p-6 border-2 border-amber-200 hover:shadow-xl transition">
+                      <div class="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 class="text-xl font-bold" style="color: ${textColor};">${cert.gameName}</h3>
+                          <p class="text-sm text-gray-600">Ngày: ${cert.date}</p>
+                        </div>
+                        <div class="text-3xl text-yellow-500" aria-hidden="true"><i class="fas fa-trophy"></i></div>
+                      </div>
+                      <div class="bg-white rounded-lg p-4 mb-4">
+                        <div class="grid grid-cols-2 gap-3 text-center">
+                          <div>
+                            <div class="text-xs text-gray-600">Điểm</div>
+                            <div class="text-2xl font-bold text-amber-600">${cert.score}</div>
+                          </div>
+                          <div>
+                            <div class="text-xs text-gray-600">Level</div>
+                            <div class="text-2xl font-bold text-amber-600">${cert.level}</div>
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        onclick="viewCertificate(${index}); SoundEffects.buttonClick()" 
+                        class="w-full py-2 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition flex items-center justify-center gap-2"
+                      >
+                        <i class="fas fa-eye"></i> Xem & Tải xuống
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBadges() {
+      const config = window.elementSdk?.config || defaultConfig;
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const badges = currentUser.badges || [];
+
+      const allBadges = [
+        { id: 'streak_3', name: '🔥 Streak 3 ngày', desc: 'Chơi liên tục 3 ngày', category: 'Streak' },
+        { id: 'streak_7', name: '🔥🔥 Streak 7 ngày', desc: 'Chơi liên tục 7 ngày', category: 'Streak' },
+        { id: 'streak_14', name: '🔥🔥🔥 Streak 14 ngày', desc: 'Chơi liên tục 14 ngày', category: 'Streak' },
+        { id: 'streak_30', name: '🔥🔥🔥🔥 Streak 30 ngày', desc: 'Chơi liên tục 30 ngày', category: 'Streak' },
+        { id: 'combo_5', name: '⚡ Combo x5', desc: 'Trả lời đúng liên tiếp 5 lần', category: 'Combo' },
+        { id: 'combo_10', name: '⚡⚡ Combo x10', desc: 'Trả lời đúng liên tiếp 10 lần', category: 'Combo' },
+        { id: 'combo_20', name: '⚡⚡⚡ Combo x20', desc: 'Trả lời đúng liên tiếp 20 lần', category: 'Combo' },
+        { id: 'score_100', name: '⭐ Điểm 100+', desc: 'Đạt tổng điểm 100', category: 'Điểm' },
+        { id: 'score_500', name: '⭐⭐ Điểm 500+', desc: 'Đạt tổng điểm 500', category: 'Điểm' },
+        { id: 'score_1000', name: '⭐⭐⭐ Điểm 1000+', desc: 'Đạt tổng điểm 1000', category: 'Điểm' },
+        { id: 'score_2000', name: '⭐⭐⭐⭐ Điểm 2000+', desc: 'Đạt tổng điểm 2000', category: 'Điểm' },
+        { id: 'games_5', name: '🎮 Chơi 5 trận', desc: 'Hoàn thành 5 trận game', category: 'Game' },
+        { id: 'games_10', name: '🎮🎮 Chơi 10 trận', desc: 'Hoàn thành 10 trận game', category: 'Game' },
+        { id: 'games_25', name: '🎮🎮🎮 Chơi 25 trận', desc: 'Hoàn thành 25 trận game', category: 'Game' },
+        { id: 'games_50', name: '🎮🎮🎮🎮 Chơi 50 trận', desc: 'Hoàn thành 50 trận game', category: 'Game' }
+      ];
+
+      const earnedBadgeIds = badges.map(b => b.id);
+      
+      return `
+        <div class="min-h-full p-4" style="background: ${bgColor};">
+          <div class="max-w-6xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 mb-6">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-3xl font-bold" style="color: ${textColor};">🎖️ Bộ Sưu Tập Huy Hiệu</h2>
+                  <p class="text-gray-600 mt-2">Đã mở khóa: ${badges.length}/${allBadges.length} huy hiệu</p>
+                </div>
+                <button onclick="backToMenu()" class="px-4 py-2 bg-gray-200 rounded-lg font-medium hover:bg-gray-300 transition" onclick="SoundEffects.buttonClick()">
+                  ← Quay lại
+                </button>
+              </div>
+
+              ${['Streak', 'Combo', 'Điểm', 'Game'].map(category => {
+                const categoryBadges = allBadges.filter(b => b.category === category);
+                return `
+                  <div class="mb-8">
+                    <h3 class="text-xl font-bold mb-4" style="color: ${textColor};">📂 ${category}</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      ${categoryBadges.map(badge => {
+                        const earned = earnedBadgeIds.includes(badge.id);
+                        const earnedBadge = badges.find(b => b.id === badge.id);
+                        
+                        return `
+                          <div class="relative bg-gradient-to-br ${earned ? 'from-yellow-50 to-amber-100 border-amber-300' : 'from-gray-50 to-gray-100 border-gray-300'} rounded-xl p-6 border-2 text-center ${earned ? '' : 'opacity-50'}">
+                            <div class="text-5xl mb-3 ${earned ? '' : 'grayscale'}" aria-hidden="true">${badge.name.split(' ')[0]}</div>
+                            <div class="text-sm font-bold ${earned ? 'text-amber-800' : 'text-gray-600'} mb-2">${badge.name}</div>
+                            <div class="text-xs ${earned ? 'text-amber-600' : 'text-gray-500'} mb-2">${badge.desc}</div>
+                            ${earned ? `
+                              <div class="absolute top-2 right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xs">✓</div>
+                              <div class="text-xs text-gray-500 mt-2">📅 ${earnedBadge.earnedDate}</div>
+                            ` : `
+                              <div class="text-xs text-gray-400 mt-2">🔒 Chưa mở khóa</div>
+                            `}
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+function renderGame1() {
+    const config = window.elementSdk?.config || defaultConfig;
+    const game1Name = config.game1_name || defaultConfig.game1_name;
+    
+    // Kiểm tra trạng thái âm thanh để tô màu nút
+    const bgmClass = bgmEnabled ? 'active' : '';
+    const sfxClass = sfxEnabled ? 'active' : '';
+
+    return `
+    <div class="min-h-full p-3 sm:p-4" style="background: #f8fafc;">
+        <div class="max-w-4xl mx-auto">
+            <div class="game-header-compact">
+                <div class="game-title-mobile">
+                    <span>${game1Name}</span>
+                    <span class="game-subtitle">Level <span id="header-level-display">${game1State.level}</span></span>
+                </div>
+                <div class="flex">
+                    <button class="btn-icon-circle btn-sound ${bgmClass}" onclick="toggleBGM(); this.classList.toggle('active')" title="Nhạc nền"><i class="fas fa-music"></i></button>
+                    <button class="btn-icon-circle btn-sound ${sfxClass}" onclick="toggleSFX(); this.classList.toggle('active')" title="Hiệu ứng"><i class="fas fa-volume-up"></i></button>
+                    
+                    <button class="btn-icon-circle btn-help" onclick="showTutorial('game1'); SoundEffects.buttonClick()" title="Hướng dẫn"><i class="fas fa-question"></i></button>
+                    <button class="btn-icon-circle btn-save" onclick="saveAndExit('game1')" title="Lưu"><i class="fas fa-save"></i></button>
+                    <button class="btn-icon-circle btn-exit" onclick="backToMenu()" title="Thoát"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">Cấp độ</div><div class="stat-value highlight"><span id="game1-level">${game1State.level}</span>/${maxLevels.game1}</div></div>
+                <div class="stat-card"><div class="stat-label">Số bước</div><div class="stat-value"><span id="moves">${game1State.moves}</span></div></div>
+                <div class="stat-card"><div class="stat-label">Đã ghép</div><div class="stat-value"><span id="matched">${game1State.matchedPairs}</span>/<span id="total-pairs">${game1State.totalPairs}</span></div></div>
+                <div class="stat-card"><div class="stat-label">Điểm số</div><div class="stat-value highlight"><span id="game1-score">${game1State.totalScore}</span></div></div>
+            </div>
+
+            <div class="text-center mb-4 text-sm text-gray-500 bg-white py-1 px-3 rounded-full inline-block mx-auto border border-gray-200">
+                Chủ đề: <strong id="game1-topic" class="text-blue-600">${game1State.currentTopic || 'Chung'}</strong>
+            </div>
+            <div id="game1-board" class="grid gap-3"></div>
+        </div>
+    </div>
+    `;
+}
+
+    function initGame1() {
+      game1State.level = 1;
+      game1State.moves = 0;
+      game1State.matchedPairs = 0;
+      game1State.totalScore = 0;
+      game1State.flippedCards = [];
+      game1State.currentTopic = '';
+      game1State.canFlip = true;
+      
+      startAutoSave('game1', () => game1State);
+      startGame1Level();
+    }
+
+    function startGame1Level() {
+      const selectedQuestions = getQuestionsByLevelExact('game1', game1State.level);
+      
+      const pairCount = Math.min(selectedQuestions.length, 3);
+      game1State.totalPairs = pairCount;
+      
+      if (selectedQuestions.length > 0 && selectedQuestions[0].topic) {
+        game1State.currentTopic = selectedQuestions[0].topic;
+      }
+      
+      const cards = [];
+      selectedQuestions.slice(0, pairCount).forEach((item, index) => {
+        cards.push({ id: `q${index}`, content: item.question, type: 'question', pairId: index });
+        cards.push({ id: `a${index}`, content: item.correct, type: 'answer', pairId: index });
+      });
+
+      cards.sort(() => Math.random() - 0.5);
+      game1State.cards = cards;
+      game1State.flippedCards = [];
+      game1State.matchedPairs = 0;
+      game1State.canFlip = true;
+
+      document.getElementById('game1-level').textContent = game1State.level;
+      document.getElementById('moves').textContent = game1State.moves;
+      document.getElementById('matched').textContent = game1State.matchedPairs;
+      document.getElementById('total-pairs').textContent = pairCount;
+      document.getElementById('game1-score').textContent = game1State.totalScore;
+      document.getElementById('game1-topic').textContent = game1State.currentTopic || 'Chung';
+
+      const totalCards = pairCount * 2;
+      const cols = totalCards <= 4 ? 2 : totalCards <= 6 ? 3 : 4;
+
+      const board = document.getElementById('game1-board');
+      board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      board.innerHTML = cards.map((card, index) => `
+        <div class="card" data-index="${index}" onclick="flipCard(${index})" style="aspect-ratio: 1/1; height: auto; min-height: 95px;" aria-label="Thẻ số ${index + 1}, nhấn để lật">
+          <div class="card-inner">
+            <div class="card-front" aria-hidden="true">
+              <span>🎴</span>
+            </div>
+            <div class="card-back">
+              <span>${card.content}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function flipCard(index) {
+      const cardElement = document.querySelector(`[data-index="${index}"]`);
+      if (game1State.flippedCards.length >= 2 || 
+          game1State.flippedCards.includes(index) || 
+          cardElement.classList.contains('matched') ||
+          !game1State.canFlip) {
+        return;
+      }
+      
+      SoundEffects.flipCard();
+      cardElement.classList.add('flipped');
+      game1State.flippedCards.push(index);
+      
+      if (game1State.flippedCards.length === 2) {
+        game1State.moves++;
+        document.getElementById('moves').textContent = game1State.moves;
+        game1State.canFlip = false;
+        
+        const [idx1, idx2] = game1State.flippedCards;
+        const card1 = game1State.cards[idx1];
+        const card2 = game1State.cards[idx2];
+        
+        if (card1.pairId === card2.pairId) {
+          setTimeout(() => {
+            document.querySelector(`[data-index="${idx1}"]`).classList.add('matched');
+            document.querySelector(`[data-index="${idx2}"]`).classList.add('matched');
+            
+            document.querySelector(`[data-index="${idx1}"]`).classList.add('flipped');
+            document.querySelector(`[data-index="${idx2}"]`).classList.add('flipped');
+            
+            SoundEffects.matchSuccess();
+            game1State.matchedPairs++;
+            document.getElementById('matched').textContent = game1State.matchedPairs;
+            
+            game1State.flippedCards = [];
+            game1State.canFlip = true;
+            
+            if (game1State.matchedPairs === game1State.totalPairs) {
+              completeGame1Level();
+            }
+          }, 500);
+        } else {
+          setTimeout(() => {
+            document.querySelector(`[data-index="${idx1}"]`).classList.remove('flipped');
+            document.querySelector(`[data-index="${idx2}"]`).classList.remove('flipped');
+            game1State.flippedCards = [];
+            game1State.canFlip = true;
+            SoundEffects.matchFail();
+          }, 1000);
+        }
+      }
+    }
+
+    function completeGame1Level() {
+      const levelScore = Math.max(0, 100 - game1State.moves * 5 + game1State.level * 10);
+      game1State.totalScore += levelScore;
+      document.getElementById('game1-score').textContent = game1State.totalScore;
+
+      const isGameComplete = checkGameCompletion('game1', game1State.level);
+      
+      updateUserScore('game1', game1State.totalScore, game1State.level, game1State.totalScore);
+      setTimeout(() => SoundEffects.levelComplete(), 200);
+      
+      setTimeout(() => {
+        showLevelCompleteModal(
+          game1State.level,
+          levelScore,
+          game1State.moves,
+          () => {
+            if (isGameComplete) {
+              showToast(`🎉 Hoàn thành tất cả ${maxLevels.game1} level! Tổng điểm: ${game1State.totalScore}`, 'success');
+              setTimeout(() => {
+                showCertificate('Lật Ô Ghi Nhớ', game1State.totalScore, maxLevels.game1);
+              }, 1000);
+            } else {
+              game1State.level++;
+              game1State.moves = 0;
+              game1State.matchedPairs = 0;
+              game1State.flippedCards = [];
+              game1State.canFlip = true;
+              
+              setTimeout(() => startGame1Level(), 300);
+            }
+          }
+        );
+      }, 500);
+    }
+
+    function renderGame2() {
+    const config = window.elementSdk?.config || defaultConfig;
+    const game2Name = config.game2_name || defaultConfig.game2_name;
+    const bgmClass = bgmEnabled ? 'active' : '';
+    const sfxClass = sfxEnabled ? 'active' : '';
+    
+    return `
+    <div class="min-h-full p-3 sm:p-4" style="background: #f0f9ff;">
+        <div class="max-w-4xl mx-auto">
+            <div class="game-header-compact">
+                <div class="game-title-mobile">
+                    <span>🧺 ${game2Name}</span>
+                    <span class="game-subtitle">Level ${game2State.level}</span>
+                </div>
+                <div class="flex">
+                    <button class="btn-icon-circle btn-sound ${bgmClass}" onclick="toggleBGM(); this.classList.toggle('active')" title="Nhạc nền"><i class="fas fa-music"></i></button>
+                    <button class="btn-icon-circle btn-sound ${sfxClass}" onclick="toggleSFX(); this.classList.toggle('active')" title="Hiệu ứng"><i class="fas fa-volume-up"></i></button>
+                    <button class="btn-icon-circle btn-help" onclick="showTutorial('game2'); SoundEffects.buttonClick()" title="Hướng dẫn"><i class="fas fa-question"></i></button>
+                    <button class="btn-icon-circle btn-save" onclick="saveAndExit('game2')" title="Lưu"><i class="fas fa-save"></i></button>
+                    <button class="btn-icon-circle btn-exit" onclick="endGame2()" title="Thoát"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">Cấp độ</div><div class="stat-value"><span id="game2-level">${game2State.level}</span>/${maxLevels.game2}</div></div>
+                <div class="stat-card"><div class="stat-label">Điểm số</div><div class="stat-value highlight"><span id="game2-score">${game2State.score}</span></div></div>
+                <div class="stat-card"><div class="stat-label">Đã đúng</div><div class="stat-value"><span id="game2-correct">${game2State.questionsAnswered}</span>/5</div></div>
+                <div class="stat-card"><div class="stat-label">Mạng sống</div><div class="stat-value text-red-500" id="game2-lives">${Array(game2State.lives).fill('❤️').join('')}</div></div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-3 mb-3 text-center border border-blue-100">
+                <div class="text-xs text-gray-400 uppercase font-bold mb-1">Câu hỏi</div>
+                <div class="text-lg font-bold text-blue-800" id="game2-question"></div>
+                <div class="text-xs text-gray-500 mt-1 bg-gray-100 inline-block px-2 py-1 rounded">Chủ đề: <span id="game2-topic">${game2State.currentTopic || 'Chung'}</span></div>
+            </div>
+
+            <div id="game2-canvas" class="bg-gradient-to-b from-sky-200 to-sky-50 rounded-xl shadow-inner relative overflow-hidden" style="height: 60vh; max-height: 500px;">
+                <div class="absolute bottom-0 w-full h-2 bg-green-600"></div>
+                <div class="absolute bottom-2 left-0 w-full text-center text-xs text-gray-500 opacity-70 pointer-events-none">Vuốt màn hình để di chuyển giỏ</div>
+            </div>
+            
+            <!-- Mobile Controls -->
+            <div class="flex justify-between gap-4 mt-3 sm:hidden">
+                <button class="flex-1 py-3.5 bg-blue-600 active:bg-blue-800 text-white rounded-xl font-bold shadow-md text-base select-none" onclick="moveBasketButton('left')">
+                    ◀ SANG TRÁI
+                </button>
+                <button class="flex-1 py-3.5 bg-blue-600 active:bg-blue-800 text-white rounded-xl font-bold shadow-md text-base select-none" onclick="moveBasketButton('right')">
+                    SANG PHẢI ▶
+                </button>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+    function moveBasketButton(direction) {
+      const canvas = document.getElementById('game2-canvas');
+      if (!canvas) return;
+      
+      const step = 45;
+      if (direction === 'left') {
+        game2State.basketX = Math.max(0, game2State.basketX - step);
+      } else if (direction === 'right') {
+        game2State.basketX = Math.min(canvas.offsetWidth - 80, game2State.basketX + step);
+      }
+      
+      const basket = canvas.querySelector('.basket-character');
+      if (basket) basket.style.left = game2State.basketX + 'px';
+      
+      if (Math.random() > 0.7) {
+        SoundEffects.basketMove();
+      }
+    }
+
+    function initGame2() {
+      game2State = {
+        score: 0,
+        level: 1,
+        questionsAnswered: 0,
+        currentQuestion: null,
+        fallingWords: [],
+        basketX: 0,
+        gameLoop: null,
+        questionIndex: 0,
+        lives: 3,
+        combo: 0,
+        maxCombo: 0,
+        currentTopic: '',
+        animationFrameId: null,
+        lastLifeLostTime: 0,
+        isProcessing: false
+      };
+
+      startAutoSave('game2', () => game2State);
+
+      const canvas = document.getElementById('game2-canvas');
+      const basketWidth = 80;
+      game2State.basketX = (canvas.offsetWidth - basketWidth) / 2;
+
+      canvas.innerHTML = `
+        <div class="basket-character" style="left: ${game2State.basketX}px;" aria-label="Giỏ hứng từ">
+          <div class="basket-body">🧺</div>
+          <div class="basket-base"></div>
+        </div>
+      `;
+
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile) {
+        const basket = canvas.querySelector('.basket-character');
+        if (basket) {
+          basket.style.width = '60px';
+          basket.style.height = '80px';
+          basket.querySelector('.basket-body').style.width = '45px';
+          basket.querySelector('.basket-body').style.height = '45px';
+          basket.querySelector('.basket-base').style.width = '55px';
+        }
+      }
+
+      document.addEventListener('mousemove', handleGame2Mouse);
+      document.addEventListener('touchmove', handleGame2Touch, { passive: false });
+      document.addEventListener('keydown', handleGame2Keys);
+
+      document.getElementById('game2-level').textContent = game2State.level;
+      document.getElementById('game2-score').textContent = game2State.score;
+      document.getElementById('game2-correct').textContent = game2State.questionsAnswered;
+      updateGame2Lives();
+
+      nextQuestion2();
+      startGame2Loop();
+    }
+
+    function startGame2Loop() {
+      if (game2State.animationFrameId) {
+        cancelAnimationFrame(game2State.animationFrameId);
+      }
+      
+      function gameLoop() {
+        if (currentScreen === 'game2') {
+          updateGame2();
+          game2State.animationFrameId = requestAnimationFrame(gameLoop);
+        }
+      }
+      
+      game2State.animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function handleGame2Mouse(e) {
+      if (currentScreen !== 'game2') return;
+      const canvas = document.getElementById('game2-canvas');
+      if (!canvas) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      game2State.basketX = Math.max(0, Math.min(x - 40, canvas.offsetWidth - 80));
+      const basket = canvas.querySelector('.basket-character');
+      if (basket) basket.style.left = game2State.basketX + 'px';
+      
+      if (Math.random() > 0.8) {
+        SoundEffects.basketMove();
+      }
+    }
+
+    let lastTouchTime = 0;
+    const TOUCH_THROTTLE = 16;
+
+    function handleGame2Touch(e) {
+      if (currentScreen !== 'game2') return;
+      e.preventDefault();
+      
+      const now = Date.now();
+      if (now - lastTouchTime < TOUCH_THROTTLE) return;
+      lastTouchTime = now;
+      
+      const canvas = document.getElementById('game2-canvas');
+      if (!canvas || currentScreen !== 'game2') return;
+      
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      
+      const targetX = Math.max(0, Math.min(x - 40, canvas.offsetWidth - 80));
+      game2State.basketX += (targetX - game2State.basketX) * 0.3;
+      
+      const basket = canvas.querySelector('.basket-character');
+      if (basket) basket.style.left = game2State.basketX + 'px';
+      
+      if (Math.random() > 0.9) {
+        SoundEffects.basketMove();
+      }
+    }
+
+    function handleGame2Keys(e) {
+      if (currentScreen !== 'game2') return;
+      const canvas = document.getElementById('game2-canvas');
+      if (!canvas) return;
+
+      if (e.key === 'ArrowLeft') {
+        game2State.basketX = Math.max(0, game2State.basketX - 25);
+        SoundEffects.basketMove();
+      } else if (e.key === 'ArrowRight') {
+        game2State.basketX = Math.min(canvas.offsetWidth - 80, game2State.basketX + 25);
+        SoundEffects.basketMove();
+      }
+      const basket = canvas.querySelector('.basket-character');
+      if (basket) basket.style.left = game2State.basketX + 'px';
+    }
+
+    function nextQuestion2() {
+      if (game2State.isProcessing) return;
+      game2State.isProcessing = true;
+      
+      const levelQuestions = getQuestionsByLevelExact('game2', game2State.level);
+      
+      if (levelQuestions.length === 0) {
+        showToast('Không có câu hỏi cho level này!', 'error');
+        game2State.isProcessing = false;
+        return;
+      }
+
+      const questionData = levelQuestions[game2State.questionIndex % levelQuestions.length];
+      game2State.currentQuestion = {
+        question: questionData.question,
+        correctAnswer: questionData.correct,
+        wrongAnswers: questionData.wrongs,
+        topic: questionData.topic
+      };
+
+      if (questionData.topic) {
+        game2State.currentTopic = questionData.topic;
+        document.getElementById('game2-topic').textContent = questionData.topic;
+      }
+
+      document.getElementById('game2-question').textContent = game2State.currentQuestion.question;
+
+      const canvas = document.getElementById('game2-canvas');
+      const allAnswers = [game2State.currentQuestion.correctAnswer, ...game2State.currentQuestion.wrongAnswers]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 4);
+
+      const baseSpeed = 0.8;
+      const levelFactor = 0.15;
+      const speed = baseSpeed + game2State.level * levelFactor;
+
+      game2State.fallingWords.forEach(w => {
+        if (w.element && w.element.parentNode) {
+          w.element.remove();
+        }
+      });
+      game2State.fallingWords = [];
+
+      allAnswers.forEach((answer, i) => {
+        setTimeout(() => {
+          const word = document.createElement('div');
+          word.className = 'falling-word';
+          word.textContent = answer;
+          word.dataset.correct = (answer === game2State.currentQuestion.correctAnswer) ? 'true' : 'false';
+          word.style.left = (Math.random() * (canvas.offsetWidth - 120)) + 'px';
+          word.style.top = '-50px';
+          word.style.background = word.dataset.correct === 'true' ? 
+            'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 
+            'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+          
+          canvas.appendChild(word);
+          game2State.fallingWords.push({
+            element: word,
+            y: -50,
+            x: parseFloat(word.style.left),
+            correct: word.dataset.correct === 'true',
+            speed: speed,
+            caught: false,
+            answer: answer
+          });
+        }, i * 1200);
+      });
+
+      game2State.questionIndex++;
+      setTimeout(() => {
+        game2State.isProcessing = false;
+      }, 500);
+    }
+
+    function updateGame2() {
+      const canvas = document.getElementById('game2-canvas');
+      if (!canvas) return;
+
+      const now = Date.now();
+      let correctWordMissed = false;
+      let missedCorrectWord = null;
+
+      game2State.fallingWords = game2State.fallingWords.filter(word => {
+        if (word.exploded) {
+          return false;
+        }
+
+        word.y += word.speed;
+        word.element.style.top = word.y + 'px';
+
+        if (word.y > canvas.offsetHeight) {
+          if (word.correct && !word.caught) {
+            missedCorrectWord = word;
+          }
+          word.element.remove();
+          return false;
+        }
+
+        if (!word.caught && word.y > canvas.offsetHeight - 120 && word.y < canvas.offsetHeight - 10) {
+          const wordCenterX = word.x + 40;
+          const basketCenterX = game2State.basketX + 40;
+          
+          if (Math.abs(wordCenterX - basketCenterX) < 60) {
+            word.caught = true;
+            if (word.correct) {
+              SoundEffects.wordCaught();
+              
+              game2State.score += 20;
+              game2State.questionsAnswered++;
+              document.getElementById('game2-score').textContent = game2State.score;
+              document.getElementById('game2-correct').textContent = game2State.questionsAnswered;
+              
+              const basket = canvas.querySelector('.basket-character');
+              
+              basket.style.animation = 'basketSquash 0.4s ease-out';
+              setTimeout(() => basket.style.animation = '', 400);
+              
+              word.element.style.animation = 'wordAbsorb 0.6s ease-out forwards';
+              word.element.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+              word.element.style.boxShadow = '0 0 30px rgba(251, 191, 36, 0.9)';
+              
+              setTimeout(() => word.element.remove(), 600);
+              
+              setTimeout(() => {
+                explodeWrongAnswers();
+                
+                if (game2State.questionsAnswered >= 5) {
+                  setTimeout(() => completeGame2Level(), 600);
+                } else {
+                  setTimeout(() => nextQuestion2(), 1000);
+                }
+              }, 700);
+              
+              return false;
+            } else {
+              SoundEffects.wrongAnswerGeneral();
+              
+              game2State.score = Math.max(0, game2State.score - 5);
+              document.getElementById('game2-score').textContent = game2State.score;
+              word.element.classList.add('shake');
+              showToast('Hứng sai rồi! -5 điểm', 'error');
+            }
+          }
+        }
+
+        return true;
+      });
+
+      if (missedCorrectWord && now - game2State.lastLifeLostTime > 1000) {
+        game2State.lastLifeLostTime = now;
+        game2State.lives--;
+        updateGame2Lives();
+        showToast('Bỏ lỡ đáp án đúng! -1 mạng', 'error');
+        SoundEffects.wordMissed();
+        
+        if (game2State.lives <= 0) {
+          endGame2WithGameOver();
+          return;
+        } else if (game2State.questionsAnswered < 5) {
+          setTimeout(() => nextQuestion2(), 1000);
+        }
+      }
+    }
+
+    function explodeWrongAnswers() {
+      const canvas = document.getElementById('game2-canvas');
+      if (!canvas) return;
+
+      game2State.fallingWords.forEach(word => {
+        if (!word.correct && !word.caught && !word.exploded) {
+          word.exploded = true;
+          
+          const wordRect = word.element.getBoundingClientRect();
+          const canvasRect = canvas.getBoundingClientRect();
+          const centerX = wordRect.left - canvasRect.left + wordRect.width / 2;
+          const centerY = wordRect.top - canvasRect.top + wordRect.height / 2;
+          
+          const explosionEmojis = ['💥', '✨', '⭐', '🔥', '💫'];
+          
+          explosionEmojis.forEach((emoji, i) => {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.textContent = emoji;
+            explosion.style.left = centerX + 'px';
+            explosion.style.top = centerY + 'px';
+            explosion.style.fontSize = '48px';
+            explosion.style.position = 'absolute';
+            explosion.style.pointerEvents = 'none';
+            explosion.style.animationDelay = (i * 0.05) + 's';
+            canvas.appendChild(explosion);
+            
+            setTimeout(() => explosion.remove(), 800);
+          });
+          
+          word.element.style.transition = 'all 0.3s ease-out';
+          word.element.style.transform = 'scale(0) rotate(180deg)';
+          word.element.style.opacity = '0';
+          
+          setTimeout(() => word.element.remove(), 300);
+        }
+      });
+
+      game2State.fallingWords = game2State.fallingWords.filter(w => !w.exploded);
+    }
+
+    function updateGame2Lives() {
+      const hearts = ['❤️', '❤️', '❤️'];
+      for (let i = 0; i < 3 - game2State.lives; i++) {
+        hearts[i] = '🖤';
+      }
+      document.getElementById('game2-lives').textContent = hearts.join('');
+    }
+
+    function endGame2WithGameOver() {
+      if (game2State.animationFrameId) {
+        cancelAnimationFrame(game2State.animationFrameId);
+        game2State.animationFrameId = null;
+      }
+      
+      document.removeEventListener('mousemove', handleGame2Mouse);
+      document.removeEventListener('touchmove', handleGame2Touch);
+      document.removeEventListener('keydown', handleGame2Keys);
+      
+      SoundEffects.gameOver();
+      updateUserScore('game2', game2State.score, game2State.level, game2State.score);
+      
+      showGameOverModal(
+        game2State.score,
+        game2State.level,
+        () => {
+          currentScreen = 'game2';
+          render();
+        },
+        () => backToMenu()
+      );
+    }
+
+    function completeGame2Level() {
+      if (game2State.animationFrameId) {
+        cancelAnimationFrame(game2State.animationFrameId);
+        game2State.animationFrameId = null;
+      }
+
+      const levelBonus = game2State.level * 50;
+      game2State.score += levelBonus;
+      document.getElementById('game2-score').textContent = game2State.score;
+
+      const isGameComplete = checkGameCompletion('game2', game2State.level);
+      
+      updateUserScore('game2', game2State.score, game2State.level, game2State.score);
+      SoundEffects.levelUpGame2();
+      
+      showLevelCompleteModal(
+        game2State.level,
+        levelBonus,
+        game2State.questionsAnswered,
+        () => {
+          if (isGameComplete) {
+            document.removeEventListener('mousemove', handleGame2Mouse);
+            document.removeEventListener('touchmove', handleGame2Touch);
+            document.removeEventListener('keydown', handleGame2Keys);
+            showToast(`🎉 Hoàn thành! Tổng điểm: ${game2State.score}`, 'success');
+            setTimeout(() => {
+              showCertificate('Mưa Từ Vựng', game2State.score, maxLevels.game2);
+            }, 1000);
+          } else {
+            game2State.level++;
+            game2State.questionsAnswered = 0;
+            game2State.lives = 3;
+            game2State.currentTopic = '';
+            game2State.lastLifeLostTime = 0;
+            game2State.isProcessing = false;
+            
+            document.getElementById('game2-level').textContent = game2State.level;
+            document.getElementById('game2-correct').textContent = game2State.questionsAnswered;
+            updateGame2Lives();
+            
+            const canvas = document.getElementById('game2-canvas');
+            game2State.fallingWords.forEach(w => w.element.remove());
+            game2State.fallingWords = [];
+            
+            nextQuestion2();
+            startGame2Loop();
+          }
+        }
+      );
+    }
+
+    function endGame2() {
+      if (game2State.animationFrameId) {
+        cancelAnimationFrame(game2State.animationFrameId);
+        game2State.animationFrameId = null;
+      }
+      document.removeEventListener('mousemove', handleGame2Mouse);
+      document.removeEventListener('touchmove', handleGame2Touch);
+      document.removeEventListener('keydown', handleGame2Keys);
+      
+      updateUserScore('game2', game2State.score, game2State.level, game2State.score);
+      showToast(`Game kết thúc! Điểm: ${game2State.score}`, 'success');
+      setTimeout(() => backToMenu(), 1500);
+    }
+
+function renderGame3() {
+    const config = window.elementSdk?.config || defaultConfig;
+    const game3Name = config.game3_name || defaultConfig.game3_name;
+    const bgmClass = bgmEnabled ? 'active' : '';
+    const sfxClass = sfxEnabled ? 'active' : '';
+    
+    return `
+    <div class="min-h-full p-3 sm:p-4" style="background: #f5f3ff;">
+        <div class="max-w-4xl mx-auto">
+            <div class="game-header-compact">
+                <div class="game-title-mobile">
+                    <span>🎯 ${game3Name}</span>
+                    <span class="game-subtitle">Level ${game3State.level}</span>
+                </div>
+                <div class="flex">
+                    <button class="btn-icon-circle btn-sound ${bgmClass}" onclick="toggleBGM(); this.classList.toggle('active')" title="Nhạc nền"><i class="fas fa-music"></i></button>
+                    <button class="btn-icon-circle btn-sound ${sfxClass}" onclick="toggleSFX(); this.classList.toggle('active')" title="Hiệu ứng"><i class="fas fa-volume-up"></i></button>
+                    <button class="btn-icon-circle btn-help" onclick="showTutorial('game3'); SoundEffects.buttonClick()" title="Hướng dẫn"><i class="fas fa-question"></i></button>
+                    <button class="btn-icon-circle btn-save" onclick="saveAndExit('game3')" title="Lưu"><i class="fas fa-save"></i></button>
+                    <button class="btn-icon-circle btn-exit" onclick="endGame3()" title="Thoát"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">Cấp độ</div><div class="stat-value"><span id="game3-level">${game3State.level}</span>/${maxLevels.game3}</div></div>
+                <div class="stat-card"><div class="stat-label">Điểm số</div><div class="stat-value highlight"><span id="game3-score">${game3State.score}</span></div></div>
+                <div class="stat-card"><div class="stat-label">Tiêu diệt</div><div class="stat-value"><span id="game3-kills">${game3State.questionsAnswered}</span>/5</div></div>
+                <div class="stat-card"><div class="stat-label">Mạng sống</div><div class="stat-value text-red-500" id="game3-lives">${Array(game3State.lives).fill('❤️').join('')}</div></div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-3 mb-3 text-center border border-purple-100">
+                <div class="text-xs text-gray-400 uppercase font-bold mb-1">Kẻ địch đang hỏi:</div>
+                <div class="text-xl font-bold text-purple-800" id="game3-question"></div>
+                <div class="text-xs text-gray-500 mt-1">Chủ đề: <span id="game3-topic">${game3State.currentTopic || 'Chung'}</span></div>
+            </div>
+
+            <div id="game3-canvas" class="bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-800 rounded-xl shadow-inner relative overflow-hidden mb-3" style="height: 40vh; min-height: 300px;">
+                <div class="player-turret"><div class="turret-head">🔫</div><div class="turret-base"></div></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3" id="game3-answers"></div>
+        </div>
+    </div>
+    `;
+}
+
+    function initGame3() {
+      game3State = {
+        score: 0,
+        level: 1,
+        questionsAnswered: 0,
+        enemies: [],
+        currentQuestion: null,
+        gameLoop: null,
+        questionIndex: 0,
+        lives: 3,
+        combo: 0,
+        maxCombo: 0,
+        currentTopic: '',
+        lastShotTime: 0,
+        shotCooldown: 800,
+        animationFrameId: null
+      };
+
+      startAutoSave('game3', () => game3State);
+
+      document.getElementById('game3-level').textContent = game3State.level;
+      document.getElementById('game3-score').textContent = game3State.score;
+      document.getElementById('game3-kills').textContent = game3State.questionsAnswered;
+      updateGame3Lives();
+
+      nextQuestion3();
+      startGame3Loop();
+    }
+
+    function startGame3Loop() {
+      if (game3State.animationFrameId) {
+        cancelAnimationFrame(game3State.animationFrameId);
+      }
+      
+      function gameLoop() {
+        if (currentScreen === 'game3') {
+          updateGame3();
+          game3State.animationFrameId = requestAnimationFrame(gameLoop);
+        }
+      }
+      
+      game3State.animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function nextQuestion3() {
+      const levelQuestions = getQuestionsByLevelExact('game3', game3State.level);
+      
+      if (levelQuestions.length === 0) {
+        showToast('Không có câu hỏi cho level này!', 'error');
+        return;
+      }
+
+      const questionData = levelQuestions[game3State.questionIndex % levelQuestions.length];
+      game3State.currentQuestion = {
+        question: questionData.question,
+        correctAnswer: questionData.correct,
+        allAnswers: [questionData.correct, ...questionData.wrongs]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 4),
+        topic: questionData.topic
+      };
+
+      if (questionData.topic) {
+        game3State.currentTopic = questionData.topic;
+        document.getElementById('game3-topic').textContent = questionData.topic;
+      }
+
+      document.getElementById('game3-question').textContent = game3State.currentQuestion.question;
+
+      const answersDiv = document.getElementById('game3-answers');
+      answersDiv.innerHTML = game3State.currentQuestion.allAnswers.map((answer, i) => `
+        <button 
+          onclick="shootAnswer('${answer.replace(/'/g, "\\'")}', this)" 
+          class="py-2.5 sm:py-3 px-3 sm:px-4 text-sm sm:text-base bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition transform hover:scale-105 active:scale-95"
+          aria-label="Bắn đáp án: ${answer}"
+        >
+          ${answer}
+        </button>
+      `).join('');
+
+      spawnEnemy();
+      game3State.questionIndex++;
+    }
+
+    function spawnEnemy() {
+      const canvas = document.getElementById('game3-canvas');
+      if (!canvas) return;
+
+      const enemy = document.createElement('div');
+      enemy.className = 'enemy';
+      enemy.setAttribute('aria-label', 'Kẻ địch cần tiêu diệt');
+      enemy.innerHTML = `
+        <div class="enemy-body">👾</div>
+        <div class="enemy-health-bar">
+          <div class="enemy-health-fill" style="width: 100%;"></div>
+        </div>
+      `;
+      enemy.style.left = '-80px';
+      enemy.style.top = (Math.random() * (canvas.offsetHeight - 200) + 20) + 'px';
+      
+      canvas.appendChild(enemy);
+      
+      const baseSpeed = 0.3;
+      const levelFactor = 0.08;
+      const speed = baseSpeed + game3State.level * levelFactor;
+      const finalSpeed = speed * (0.9 + Math.random() * 0.2);
+      
+      game3State.enemies.push({
+        element: enemy,
+        x: -80,
+        speed: finalSpeed,
+        health: 100,
+        maxHealth: 100
+      });
+    }
+
+    function updateGame3() {
+      const canvas = document.getElementById('game3-canvas');
+      if (!canvas) return;
+
+      game3State.enemies = game3State.enemies.filter(enemy => {
+        enemy.x += enemy.speed;
+        enemy.element.style.left = enemy.x + 'px';
+
+        if (enemy.x > canvas.offsetWidth) {
+          const explosion = document.createElement('div');
+          explosion.className = 'explosion';
+          explosion.textContent = '💥';
+          explosion.style.left = enemy.element.style.left;
+          explosion.style.top = enemy.element.style.top;
+          canvas.appendChild(explosion);
+          setTimeout(() => explosion.remove(), 600);
+
+          enemy.element.remove();
+          game3State.lives--;
+          updateGame3Lives();
+          showToast('Kẻ địch xâm nhập! -1 mạng', 'error');
+          
+          SoundEffects.enemyPass();
+          
+          if (game3State.lives <= 0) {
+            endGame3WithGameOver();
+            return false;
+          } else {
+            setTimeout(() => spawnEnemy(), 1500);
+          }
+          
+          return false;
+        }
+
+        return true;
+      });
+    }
+
+    function updateGame3Lives() {
+      const hearts = ['❤️', '❤️', '❤️'];
+      for (let i = 0; i < 3 - game3State.lives; i++) {
+        hearts[i] = '🖤';
+      }
+      document.getElementById('game3-lives').textContent = hearts.join('');
+    }
+
+    function shootAnswer(answer, button) {
+      const canvas = document.getElementById('game3-canvas');
+      const now = Date.now();
+      if (now - game3State.lastShotTime < game3State.shotCooldown) {
+        showToast('Chờ một chút rồi bắn tiếp!', 'info');
+        return;
+      }
+      
+      if (game3State.enemies.length === 0) return;
+
+      game3State.lastShotTime = now;
+      SoundEffects.buttonClick();
+      
+      button.classList.add('pulse');
+      setTimeout(() => button.classList.remove('pulse'), 300);
+
+      const enemy = game3State.enemies[0];
+      const turret = canvas.querySelector('.player-turret');
+      const turretHead = turret.querySelector('.turret-head');
+      const turretRect = turret.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const enemyRect = enemy.element.getBoundingClientRect();
+
+      turretHead.classList.add('shooting');
+      setTimeout(() => turretHead.classList.remove('shooting'), 300);
+
+      const startX = turretRect.left - canvasRect.left + turretRect.width / 2;
+      const startY = turretRect.top - canvasRect.top + turretRect.height / 2;
+      const endX = enemyRect.left - canvasRect.left + enemyRect.width / 2;
+      const endY = enemyRect.top - canvasRect.top + enemyRect.height / 2;
+      
+      const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+      
+      const arrow = document.createElement('div');
+      arrow.className = 'arrow';
+      arrow.style.left = (startX - 15) + 'px';
+      arrow.style.top = (startY - 15) + 'px';
+      
+      canvas.appendChild(arrow);
+
+      let currentDistance = 0;
+      const speed = 15;
+      const flyInterval = setInterval(() => {
+        currentDistance += speed;
+        const progress = currentDistance / distance;
+        
+        if (progress >= 1) {
+          clearInterval(flyInterval);
+          arrow.remove();
+          
+          if (answer === game3State.currentQuestion.correctAnswer) {
+            SoundEffects.enemyHit();
+            
+            enemy.health -= 50;
+            
+            const healthBar = enemy.element.querySelector('.enemy-health-fill');
+            if (healthBar) {
+              healthBar.style.width = Math.max(0, (enemy.health / enemy.maxHealth) * 100) + '%';
+            }
+
+            enemy.element.classList.add('shake');
+            setTimeout(() => enemy.element.classList.remove('shake'), 300);
+
+            if (enemy.health <= 0) {
+              SoundEffects.enemyDestroy();
+              
+              game3State.score += 30;
+              game3State.questionsAnswered++;
+              document.getElementById('game3-score').textContent = game3State.score;
+              document.getElementById('game3-kills').textContent = game3State.questionsAnswered;
+              
+              enemy.element.style.transition = 'all 0.3s ease-out';
+              enemy.element.style.transform = 'scale(0) rotate(180deg)';
+              enemy.element.style.opacity = '0';
+              
+              setTimeout(() => {
+                enemy.element.remove();
+                game3State.enemies = game3State.enemies.filter(e => e !== enemy);
+                
+                if (game3State.questionsAnswered >= 5) {
+                  completeGame3Level();
+                } else {
+                  nextQuestion3();
+                }
+              }, 300);
+            } else {
+              showToast(`Trúng mục tiêu! Còn ${enemy.health}% máu`, 'success');
+            }
+          } else {
+            SoundEffects.wrongAnswerGeneral();
+            
+            game3State.score = Math.max(0, game3State.score - 10);
+            document.getElementById('game3-score').textContent = game3State.score;
+            showToast('Trượt mục tiêu! -10 điểm', 'error');
+          }
+          return;
+        }
+
+        const newX = startX + (endX - startX) * progress - 15;
+        const newY = startY + (endY - startY) * progress - 15;
+        
+        arrow.style.left = newX + 'px';
+        arrow.style.top = newY + 'px';
+      }, 20);
+    }
+
+    function endGame3WithGameOver() {
+      if (game3State.animationFrameId) {
+        cancelAnimationFrame(game3State.animationFrameId);
+        game3State.animationFrameId = null;
+      }
+      
+      SoundEffects.gameOver();
+      updateUserScore('game3', game3State.score, game3State.level, game3State.score);
+      
+      showGameOverModal(
+        game3State.score,
+        game3State.level,
+        () => {
+          currentScreen = 'game3';
+          render();
+        },
+        () => backToMenu()
+      );
+    }
+
+    function completeGame3Level() {
+      if (game3State.animationFrameId) {
+        cancelAnimationFrame(game3State.animationFrameId);
+        game3State.animationFrameId = null;
+      }
+
+      const levelBonus = game3State.level * 50;
+      game3State.score += levelBonus;
+      document.getElementById('game3-score').textContent = game3State.score;
+
+      const isGameComplete = checkGameCompletion('game3', game3State.level);
+      
+      updateUserScore('game3', game3State.score, game3State.level, game3State.score);
+      SoundEffects.levelComplete();
+      
+      showLevelCompleteModal(
+        game3State.level,
+        levelBonus,
+        game3State.questionsAnswered,
+        () => {
+          if (isGameComplete) {
+            showToast(`🎉 Hoàn thành! Tổng điểm: ${game3State.score}`, 'success');
+            setTimeout(() => {
+              showCertificate('Bảo Vệ Cứ Điểm', game3State.score, maxLevels.game3);
+            }, 1000);
+          } else {
+            game3State.level++;
+            game3State.questionsAnswered = 0;
+            game3State.lives = 3;
+            game3State.currentTopic = '';
+            game3State.lastShotTime = 0;
+            
+            document.getElementById('game3-level').textContent = game3State.level;
+            document.getElementById('game3-kills').textContent = game3State.questionsAnswered;
+            updateGame3Lives();
+            
+            const canvas = document.getElementById('game3-canvas');
+            game3State.enemies.forEach(e => e.element.remove());
+            game3State.enemies = [];
+            
+            nextQuestion3();
+            startGame3Loop();
+          }
+        }
+      );
+    }
+
+    function endGame3() {
+      if (game3State.animationFrameId) {
+        cancelAnimationFrame(game3State.animationFrameId);
+        game3State.animationFrameId = null;
+      }
+      
+      updateUserScore('game3', game3State.score, game3State.level, game3State.score);
+      showToast(`Game kết thúc! Điểm: ${game3State.score}`, 'success');
+      setTimeout(() => backToMenu(), 1500);
+    }
+
+function renderGame4() {
+    const config = window.elementSdk?.config || defaultConfig;
+    const game4Name = config.game4_name || defaultConfig.game4_name;
+    const bgmClass = bgmEnabled ? 'active' : '';
+    const sfxClass = sfxEnabled ? 'active' : '';
+    
+    const plotsHtml = game4State.plots.map((plot, i) => {
+        const plotInfo = getPlotDisplay(plot.stage);
+        return `
+        <div onclick="selectPlot(${i})" 
+             class="rounded-xl shadow-md cursor-pointer relative overflow-hidden transition-transform active:scale-95 border-2 border-white/60"
+             style="height: 140px; background: ${plotInfo.bg}; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"
+             data-plot-index="${i}">
+             
+             <div class="plant-plot">
+                <div class="text-center mb-1" style="font-size: ${plotInfo.size}; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));">
+                    <div class="${plot.stage === 4 ? 'sparkle grow' : 'grow'} transition-all">${plotInfo.icon}</div>
+                </div>
+                <div class="text-sm font-bold text-center text-white drop-shadow-md bg-black/10 rounded-full px-2 py-0.5 mx-auto inline-block mt-1">${plotInfo.text}</div>
+             </div>
+             
+             ${plot.stage === 4 
+                ? '<div class="absolute inset-0 flex items-center justify-center bg-green-900/60 text-white font-bold text-base backdrop-blur-[2px] animate-pulse">🌾 Thu hoạch!</div>' 
+                : '<div class="absolute inset-0 flex items-center justify-center bg-black/20 text-white text-xs font-semibold opacity-0 active:opacity-100 transition">Chạm để chăm sóc</div>'}
+        </div>
+        `;
+    }).join('');
+
+    return `
+    <div class="min-h-full p-3 sm:p-4" style="background: #ecfdf5;">
+        <div class="max-w-md mx-auto relative h-full flex flex-col">
+            
+            <div class="game-header-compact">
+                <div class="game-title-mobile">
+                    <span>👨‍🌾 ${game4Name}</span>
+                    <span class="game-subtitle">Level ${game4State.level}</span>
+                </div>
+                <div class="flex">
+                    <button class="btn-icon-circle btn-sound ${bgmClass}" onclick="toggleBGM(); this.classList.toggle('active')" title="Nhạc nền"><i class="fas fa-music"></i></button>
+                    <button class="btn-icon-circle btn-sound ${sfxClass}" onclick="toggleSFX(); this.classList.toggle('active')" title="Hiệu ứng"><i class="fas fa-volume-up"></i></button>
+                    <button class="btn-icon-circle btn-help" onclick="showTutorial('game4'); SoundEffects.buttonClick()" title="Hướng dẫn"><i class="fas fa-question"></i></button>
+                    <button class="btn-icon-circle btn-save" onclick="saveAndExit('game4')" title="Lưu"><i class="fas fa-save"></i></button>
+                    <button class="btn-icon-circle btn-exit" onclick="backToMenu()" title="Thoát"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">Cấp độ</div><div class="stat-value"><span id="game4-level">${game4State.level}</span>/${maxLevels.game4}</div></div>
+                <div class="stat-card"><div class="stat-label">Điểm số</div><div class="stat-value highlight"><span id="game4-score">${game4State.totalScore}</span></div></div>
+                <div class="stat-card"><div class="stat-label">Thu hoạch</div><div class="stat-value"><span id="game4-harvest">${game4State.harvestCount}</span>/4</div></div>
+                <div class="stat-card"><div class="stat-label">Chủ đề</div><div class="stat-value text-green-600 text-sm truncate px-1" id="game4-topic">${game4State.currentTopic || 'Chung'}</div></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-20 flex-grow">
+                ${plotsHtml}
+            </div>
+
+            <div id="game4-question" style="display: none;">
+                <div class="modal-content animate-pop">
+                    <div class="h-4 w-full bg-gradient-to-r from-green-400 to-green-600 rounded-t-3xl"></div>
+                    
+                    <div class="p-6">
+                        <div class="text-center mb-6">
+                            <span class="inline-block bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded-full mb-2 tracking-wider">CÂU HỎI</span>
+                            <h3 class="text-xl md:text-2xl font-extrabold text-gray-800 leading-snug" id="q-text">
+                                Nội dung câu hỏi?
+                            </h3>
+                        </div>
+
+                        <div class="flex flex-col gap-3" id="q-answers"></div>
+
+                        <div class="text-center mt-5 pt-4 border-t border-gray-100">
+                            <p class="text-xs text-gray-400 italic">"Chọn đúng để cây lớn, sai cây sẽ héo!"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="fixed bottom-2 left-0 w-full text-center pointer-events-none">
+                <span class="text-[10px] text-gray-500 bg-white/90 px-3 py-1 rounded-full shadow-sm backdrop-blur-sm border border-gray-100">
+                    Chủ đề hiện tại: <span id="game4-current-topic" class="font-bold text-green-700">${game4State.currentTopic || 'Chung'}</span>
+                </span>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+    // ========== GAME 4 LOGIC - ĐÃ SỬA LỖI ==========
+    function selectPlot(plotIndex) {
+      const plot = game4State.plots[plotIndex];
+      
+      if (plot.stage >= 4) {
+        SoundEffects.harvest();
+        
+        const score = 50 + game4State.level * 10;
+        game4State.totalScore += score;
+        document.getElementById('game4-score').textContent = game4State.totalScore;
+        
+        game4State.harvestCount++;
+        document.getElementById('game4-harvest').textContent = game4State.harvestCount;
+        
+        showToast(`🎉 Thu hoạch thành công! +${score} điểm`, 'success');
+        
+        if (game4State.harvestCount >= 4) {
+          completeGame4Level();
+        } else {
+          updatePlotDisplay(plotIndex);
+        }
+      } else {
+        game4State.selectedPlot = plotIndex;
+        showQuestion4();
+      }
+    }
+
+    function showQuestion4() {
+    const plotIndex = game4State.selectedPlot;
+    const plot = game4State.plots[plotIndex];
+    
+    // Nếu cây đã chín (stage 4) thì không hiện câu hỏi nữa
+    if (plot.stage >= 4) {
+        return;
+    }
+    
+    // Logic lấy câu hỏi (Giữ nguyên)
+    if (game4State.levelQuestions.length === 0) {
+        game4State.levelQuestions = getQuestionsByLevelExact('game4', game4State.level);
+    }
+    
+    const availableQuestions = game4State.levelQuestions.filter(q => {
+        const notAskedInThisPlot = !plot.askedQuestions.includes(q.question);
+        const askCount = game4State.askedQuestionIds.filter(id => id === q.question).length;
+        return notAskedInThisPlot && askCount < 2;
+    });
+    
+    let questionData;
+    if (availableQuestions.length === 0) {
+        plot.askedQuestions = [];
+        questionData = game4State.levelQuestions[Math.floor(Math.random() * game4State.levelQuestions.length)];
+    } else {
+        questionData = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+    }
+    
+    plot.askedQuestions.push(questionData.question);
+    game4State.askedQuestionIds.push(questionData.question);
+    
+    game4State.currentQuestion = {
+        question: questionData.question,
+        correctAnswer: questionData.correct,
+        allAnswers: [questionData.correct, ...questionData.wrongs].sort(() => Math.random() - 0.5).slice(0, 4),
+        topic: questionData.topic
+    };
+
+    if (questionData.topic && game4State.currentTopic !== questionData.topic) {
+        game4State.currentTopic = questionData.topic;
+        document.getElementById('game4-topic').textContent = questionData.topic;
+        document.getElementById('game4-current-topic').textContent = questionData.topic;
+    }
+
+    // Hiển thị nội dung lên giao diện
+    document.getElementById('q-text').textContent = game4State.currentQuestion.question;
+    
+    // Tạo nút đáp án (Dạng cột dọc cho đẹp)
+    document.getElementById('q-answers').innerHTML = game4State.currentQuestion.allAnswers.map(answer => `
+        <button 
+            onclick="answerQuestion4('${answer.replace(/'/g, "\\'")}', this)" 
+            class="w-full py-3.5 px-4 text-base bg-white border-2 border-gray-100 text-gray-700 rounded-xl font-bold hover:bg-green-50 hover:border-green-500 hover:text-green-700 transition-all duration-200 shadow-sm active:scale-98 flex items-center justify-center min-h-[50px]"
+        >
+            ${answer}
+        </button>
+    `).join('');
+
+    // QUAN TRỌNG: Bật chế độ Flex để căn giữa màn hình
+    const modal = document.getElementById('game4-question');
+    modal.style.display = 'flex'; 
+}
+
+    function answerQuestion4(answer, button) {
+      const plotIndex = game4State.selectedPlot;
+      const plot = game4State.plots[plotIndex];
+      const plotElement = document.querySelector(`[data-plot-index="${plotIndex}"]`);
+
+      button.classList.add('pulse');
+
+      if (answer === game4State.currentQuestion.correctAnswer) {
+        SoundEffects.correctAnswer();
+        
+        plot.stage = Math.min(4, plot.stage + 1);
+        
+        const messages = [
+          '🌰 Đúng rồi! Hạt giống đã nảy mầm!',
+          '🌱 Tuyệt vời! Mầm đang lớn lên!',
+          '🌿 Xuất sắc! Cây đang phát triển!',
+          '🌾 Hoàn hảo! Cây đã chín rộ!'
+        ];
+        
+        if (plot.stage === 1) {
+          SoundEffects.plantSeed();
+        } else if (plot.stage > 1) {
+          SoundEffects.growPlant();
+        }
+        
+        showToast(messages[Math.min(plot.stage - 1, 3)], 'success');
+        
+        setTimeout(() => {
+          document.getElementById('game4-question').style.display = 'none';
+          updatePlotDisplay(plotIndex);
+        }, 500);
+      } else {
+        SoundEffects.wrongAnswer();
+        
+        if (plot.stage > 0) {
+          plot.stage = Math.max(0, plot.stage - 1);
+          showToast('❌ Sai rồi! Cây bị héo lùi lại 1 giai đoạn!', 'error');
+          
+          setTimeout(() => {
+            document.getElementById('game4-question').style.display = 'none';
+            updatePlotDisplay(plotIndex);
+          }, 500);
+        } else {
+          showToast('❌ Sai rồi! Thử lại để gieo hạt nhé!', 'error');
+          setTimeout(() => button.classList.remove('pulse'), 300);
+        }
+      }
+    }
+
+    function updatePlotDisplay(plotIndex) {
+      const plot = game4State.plots[plotIndex];
+      const plotElement = document.querySelector(`[data-plot-index="${plotIndex}"]`);
+      if (!plotElement) return;
+
+      const plotInfo = getPlotDisplay(plot.stage);
+      
+      plotElement.style.background = plotInfo.bg;
+      plotElement.innerHTML = `
+        <div class="plant-plot">
+          <div class="text-center mb-2" style="font-size: ${plotInfo.size}; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));">
+            <div class="${plot.stage === 4 ? 'sparkle grow' : 'grow'}">${plotInfo.icon}</div>
+          </div>
+          <div class="text-sm sm:text-base font-bold text-center" style="color: ${plotInfo.color};">${plotInfo.text}</div>
+          ${plot.stage > 0 ? '<div class="absolute bottom-2 right-2 text-2xl sm:text-3xl" aria-hidden="true">👨‍🌾</div>' : ''}
+        </div>
+        ${plot.stage === 4 ? '<div class="absolute inset-0 flex items-center justify-center text-white text-xs sm:text-sm font-semibold opacity-0 active:opacity-100 sm:hover:opacity-100 transition bg-black bg-opacity-40 rounded-xl sm:rounded-2xl">Nhấn để thu hoạch</div>' : '<div class="absolute inset-0 flex items-center justify-center text-white text-xs sm:text-sm font-semibold opacity-0 active:opacity-100 sm:hover:opacity-100 transition bg-black bg-opacity-40 rounded-xl sm:rounded-2xl">Nhấn để trả lời</div>'}
+      `;
+    }
+
+    function completeGame4Level() {
+      const levelBonus = game4State.level * 50;
+      game4State.totalScore += levelBonus;
+      document.getElementById('game4-score').textContent = game4State.totalScore;
+
+      const isGameComplete = checkGameCompletion('game4', game4State.level);
+      
+      updateUserScore('game4', game4State.totalScore, game4State.level, game4State.totalScore);
+      SoundEffects.levelComplete();
+      
+      showLevelCompleteModal(
+        game4State.level,
+        levelBonus,
+        game4State.harvestCount,
+        () => {
+          if (isGameComplete) {
+            showToast(`🎉 Hoàn thành tất cả! Tổng điểm: ${game4State.totalScore}`, 'success');
+            setTimeout(() => {
+              showCertificate('Nông Trại Số', game4State.totalScore, maxLevels.game4);
+            }, 1000);
+          } else {
+            game4State.level++;
+            game4State.harvestCount = 0;
+            game4State.currentTopic = '';
+            
+            document.getElementById('game4-level').textContent = game4State.level;
+            document.getElementById('game4-harvest').textContent = game4State.harvestCount;
+            document.getElementById('game4-topic').textContent = 'Chung';
+            document.getElementById('game4-current-topic').textContent = 'Chung';
+            
+            game4State.plots.forEach(plot => {
+              plot.stage = 0;
+              plot.askedQuestions = [];
+            });
+            game4State.levelQuestions = [];
+            game4State.askedQuestionIds = [];
+            
+            updateGame4UI();
+            updateAllPlotsDisplay();
+          }
+        }
+      );
+    }
+
+    function showLevelCompleteModal(level, score, stat, onNext) {
+      const modal = document.createElement('div');
+      modal.className = 'level-complete-modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-labelledby', 'level-complete-title');
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md mx-4 shadow-2xl transform scale-0" style="animation: scaleIn 0.3s ease-out forwards;">
+          <div class="text-center">
+            <div class="text-5xl sm:text-7xl mb-3 sm:mb-4" aria-hidden="true">🎉</div>
+            <h3 id="level-complete-title" class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Level ${level} Hoàn Thành!</h3>
+            <div class="text-4xl sm:text-5xl font-bold text-green-500 mb-3 sm:mb-4">+${score}</div>
+            <div class="bg-gray-100 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+              <p class="text-sm sm:text-base text-gray-600">Thành tích: ${stat}</p>
+            </div>
+            <button 
+              class="w-full py-3 bg-blue-500 text-white rounded-xl font-bold text-base sm:text-lg hover:bg-blue-600 transition active:scale-95"
+              onclick="SoundEffects.buttonClick()"
+              autofocus
+            >
+              ${level >= maxLevels[currentScreen] ? '🎊 Hoàn thành tất cả' : '➡️ Level tiếp theo'}
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      modal.querySelector('button').onclick = () => {
+        modal.remove();
+        onNext();
+      };
+    }
+
+    function showGameOverModal(finalScore, level, onRestart, onMenu) {
+      const modal = document.createElement('div');
+      modal.className = 'level-complete-modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-labelledby', 'game-over-title');
+      modal.innerHTML = `
+        <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md mx-4 shadow-2xl transform scale-0 border-4 border-red-500" style="animation: scaleIn 0.3s ease-out forwards;">
+          <div class="text-center">
+            <div class="text-6xl sm:text-8xl mb-3 sm:mb-4 animate-pulse" aria-hidden="true">💀</div>
+            <h3 id="game-over-title" class="text-3xl sm:text-4xl font-bold text-red-600 mb-2">GAME OVER!</h3>
+            <p class="text-base sm:text-lg text-gray-700 mb-4">Hết mạng rồi bạn ơi!</p>
+            <div class="bg-white rounded-xl p-4 mb-4 shadow-inner">
+              <div class="text-sm text-gray-600 mb-2">Điểm đạt được</div>
+              <div class="text-3xl sm:text-4xl font-bold text-orange-500">${finalScore}</div>
+              <div class="text-xs sm:text-sm text-gray-500 mt-2">Level ${level}</div>
+            </div>
+            <div class="space-y-2 sm:space-y-3">
+              <button 
+                id="restart-btn"
+                class="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold text-base sm:text-lg hover:from-green-600 hover:to-emerald-600 transition active:scale-95 shadow-lg"
+                onclick="SoundEffects.buttonClick()"
+              >
+                🔄 Chơi lại
+              </button>
+              <button 
+                id="menu-btn"
+                class="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-bold text-base sm:text-lg hover:from-blue-600 hover:to-indigo-600 transition active:scale-95 shadow-lg"
+                onclick="SoundEffects.buttonClick()"
+              >
+                🏠 Về Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      modal.querySelector('#restart-btn').onclick = () => {
+        modal.remove();
+        onRestart();
+      };
+      modal.querySelector('#menu-btn').onclick = () => {
+        modal.remove();
+        onMenu();
+      };
+    }
+
+    function showCertificate(gameName, score, level) {
+      saveCertificate(gameName, score, level);
+      
+      SoundEffects.achievement();
+      
+      const config = window.elementSdk?.config || defaultConfig;
+      const certTitle = config.certificate_title || defaultConfig.certificate_title;
+      const certText = config.certificate_text || defaultConfig.certificate_text;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      
+      const modal = document.createElement('div');
+      modal.className = 'level-complete-modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-labelledby', 'certificate-title');
+      modal.innerHTML = `
+        <div class="certificate-container bg-white rounded-3xl p-8 max-w-3xl mx-4 shadow-2xl border-8 border-amber-400" id="certificate-content">
+          <div class="text-center relative">
+            <div class="certificate-close-btn" onclick="closeCertificate()" title="Đóng" aria-label="Đóng chứng nhận">×</div>
+            
+            <div class="certificate-seal absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center transform rotate-12 shadow-lg border-4 border-red-900">
+              <div class="text-center">
+                <div class="text-2xl" aria-hidden="true">🏆</div>
+                <div class="text-xs text-white font-bold">XUẤT SẮC</div>
+              </div>
+            </div>
+
+            <div class="mb-6 pb-4 border-b-4 border-amber-400">
+              <div class="text-6xl mb-3" aria-hidden="true">🎓</div>
+              <h2 id="certificate-title" class="text-4xl font-bold mb-2" style="color: ${textColor};">${certTitle}</h2>
+              <div class="flex items-center justify-center gap-3 text-amber-600">
+                <div class="w-16 h-1 bg-amber-400"></div>
+                <div class="text-2xl" aria-hidden="true">✦</div>
+                <div class="w-16 h-1 bg-amber-400"></div>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <p class="text-lg text-gray-700 mb-4">${certText}</p>
+              <div class="text-5xl font-bold mb-3" style="color: ${primaryColor};">${gameName}</div>
+              <p class="text-xl text-gray-600 mb-4">Được trao cho</p>
+              <div class="certificate-signature text-amber-900 mb-2">${currentUser.name}</div>
+              <p class="text-sm text-gray-500 italic">Vì đã hoàn thành xuất sắc ${level} cấp độ</p>
+            </div>
+
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-6 mb-6 border-2 border-amber-200">
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <div class="text-xs text-gray-600 mb-1">Tổng điểm</div>
+                  <div class="text-3xl font-bold text-amber-600">${score}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-600 mb-1">Cấp độ</div>
+                  <div class="text-3xl font-bold text-amber-600">${level}/${maxLevels[gameName.includes('Lật') ? 'game1' : gameName.includes('Mưa') ? 'game2' : gameName.includes('Bảo') ? 'game3' : 'game4']}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-600 mb-1">Ngày</div>
+                  <div class="text-sm font-bold text-amber-600">${new Date().toLocaleDateString('vi-VN')}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-end mb-6 px-8">
+              <div class="text-center">
+                <div class="text-sm text-gray-500 mb-2">Giảng viên</div>
+                <div class="certificate-signature text-2xl text-gray-800">Hệ Thống</div>
+                <div class="w-32 h-0.5 bg-gray-400 mx-auto"></div>
+              </div>
+              <div class="text-6xl opacity-20 transform -rotate-12" aria-hidden="true">🏅</div>
+            </div>
+
+            <div class="space-y-3">
+              <button 
+                onclick="downloadCertificate()"
+                class="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl font-bold text-lg hover:from-amber-600 hover:to-yellow-600 transition shadow-lg active:scale-95"
+                onclick="SoundEffects.buttonClick()"
+              >
+                📥 Tải xuống chứng nhận
+              </button>
+              <button 
+                onclick="closeCertificate()"
+                class="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-bold text-lg hover:from-blue-600 hover:to-indigo-600 transition shadow-lg active:scale-95"
+                onclick="SoundEffects.buttonClick()"
+              >
+                ✅ Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+
+    function viewCertificate(index) {
+      const cert = currentUser.certificates[index];
+      const config = window.elementSdk?.config || defaultConfig;
+      const certTitle = config.certificate_title || defaultConfig.certificate_title;
+      const certText = config.certificate_text || defaultConfig.certificate_text;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      
+      const modal = document.createElement('div');
+      modal.className = 'level-complete-modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-labelledby', 'certificate-title');
+      modal.innerHTML = `
+        <div class="certificate-container bg-white rounded-3xl p-8 max-w-3xl mx-4 shadow-2xl border-8 border-amber-400" id="certificate-content">
+          <div class="text-center relative">
+            <div class="certificate-close-btn" onclick="closeCertificate()" title="Đóng" aria-label="Đóng chứng nhận">×</div>
+            
+            <div class="certificate-seal absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center transform rotate-12 shadow-lg border-4 border-red-900">
+              <div class="text-center">
+                <div class="text-2xl" aria-hidden="true">🏆</div>
+                <div class="text-xs text-white font-bold">XUẤT SẮC</div>
+              </div>
+            </div>
+
+            <div class="mb-6 pb-4 border-b-4 border-amber-400">
+              <div class="text-6xl mb-3" aria-hidden="true">🎓</div>
+              <h2 id="certificate-title" class="text-4xl font-bold mb-2" style="color: ${textColor};">${certTitle}</h2>
+              <div class="flex items-center justify-center gap-3 text-amber-600">
+                <div class="w-16 h-1 bg-amber-400"></div>
+                <div class="text-2xl" aria-hidden="true">✦</div>
+                <div class="w-16 h-1 bg-amber-400"></div>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <p class="text-lg text-gray-700 mb-4">${certText}</p>
+              <div class="text-5xl font-bold mb-3" style="color: ${primaryColor};">${cert.gameName}</div>
+              <p class="text-xl text-gray-600 mb-4">Được trao cho</p>
+              <div class="certificate-signature text-amber-900 mb-2">${currentUser.name}</div>
+              <p class="text-sm text-gray-500 italic">Vì đã hoàn thành xuất sắc ${cert.level} cấp độ</p>
+            </div>
+
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-6 mb-6 border-2 border-amber-200">
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <div class="text-xs text-gray-600 mb-1">Tổng điểm</div>
+                  <div class="text-3xl font-bold text-amber-600">${cert.score}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-600 mb-1">Cấp độ</div>
+                  <div class="text-3xl font-bold text-amber-600">${cert.level}/${maxLevels[cert.gameName.includes('Lật') ? 'game1' : cert.gameName.includes('Mưa') ? 'game2' : cert.gameName.includes('Bảo') ? 'game3' : 'game4']}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-gray-600 mb-1">Ngày</div>
+                  <div class="text-sm font-bold text-amber-600">${cert.date}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-end mb-6 px-8">
+              <div class="text-center">
+                <div class="text-sm text-gray-500 mb-2">Giảng viên</div>
+                <div class="certificate-signature text-2xl text-gray-800">Hệ Thống</div>
+                <div class="w-32 h-0.5 bg-gray-400 mx-auto"></div>
+              </div>
+              <div class="text-6xl opacity-20 transform -rotate-12" aria-hidden="true">🏅</div>
+            </div>
+
+            <div class="space-y-3">
+              <button 
+                onclick="downloadCertificate()"
+                class="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl font-bold text-lg hover:from-amber-600 hover:to-yellow-600 transition shadow-lg active:scale-95"
+                onclick="SoundEffects.buttonClick()"
+              >
+                📥 Tải xuống chứng nhận
+              </button>
+              <button 
+                onclick="closeCertificate()"
+                class="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-bold text-lg hover:from-blue-600 hover:to-indigo-600 transition shadow-lg active:scale-95"
+                onclick="SoundEffects.buttonClick()"
+              >
+                ✅ Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+
+    function downloadCertificate() {
+      const certificate = document.getElementById('certificate-content');
+      if (!certificate) return;
+
+      SoundEffects.buttonClick();
+      
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      script.onload = () => {
+        window.html2canvas(certificate, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false
+        }).then(canvas => {
+          canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.download = `Chung-Nhan-${currentUser.name}-${Date.now()}.png`;
+            link.href = url;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            showToast('✅ Đã tải xuống chứng nhận!', 'success');
+          });
+        });
+      };
+      document.head.appendChild(script);
+    }
+
+    function closeCertificate() {
+      const modal = document.querySelector('.level-complete-modal');
+      if (modal) modal.remove();
+      backToMenu();
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      if (!username) {
+        showToast('Vui lòng nhập tên của bạn', 'error');
+        return;
+      }
+      SoundEffects.buttonClick();
+      saveUser(username);
+      currentScreen = 'menu';
+      render();
+    }
+
+    function backToMenu() {
+      stopAutoSave();
+      
+      if (game2State.animationFrameId) {
+        cancelAnimationFrame(game2State.animationFrameId);
+        game2State.animationFrameId = null;
+      }
+      document.removeEventListener('mousemove', handleGame2Mouse);
+      document.removeEventListener('touchmove', handleGame2Touch);
+      document.removeEventListener('keydown', handleGame2Keys);
+      
+      if (game3State.animationFrameId) {
+        cancelAnimationFrame(game3State.animationFrameId);
+        game3State.animationFrameId = null;
+      }
+      
+      currentScreen = 'menu';
+      render();
+    }
+
+    function logout() {
+      stopAutoSave();
+      
+      if (game2State.animationFrameId) {
+        cancelAnimationFrame(game2State.animationFrameId);
+        game2State.animationFrameId = null;
+      }
+      document.removeEventListener('mousemove', handleGame2Mouse);
+      document.removeEventListener('touchmove', handleGame2Touch);
+      document.removeEventListener('keydown', handleGame2Keys);
+      
+      if (game3State.animationFrameId) {
+        cancelAnimationFrame(game3State.animationFrameId);
+        game3State.animationFrameId = null;
+      }
+      
+      localStorage.removeItem('xedang_current_user');
+      currentUser = null;
+      currentScreen = 'login';
+      render();
+    }
+
+    function showLeaderboard() {
+      currentScreen = 'leaderboard';
+      render();
+    }
+
+    function showCertificatesList() {
+      currentScreen = 'certificates';
+      render();
+    }
+
+    function showBadges() {
+      currentScreen = 'badges';
+      render();
+    }
+
+    function startGame(gameId) {
+      currentScreen = gameId;
+      if (gameId === 'game4') {
+        isGame4Initialized = false;
+      }
+      render();
+    }
+
+    window.addEventListener('beforeunload', function() {
+      if (currentScreen.includes('game')) {
+        const gameType = currentScreen.replace('game', 'game');
+        let state;
+        
+        switch(gameType) {
+          case 'game1': state = game1State; break;
+          case 'game2': state = game2State; break;
+          case 'game3': state = game3State; break;
+          case 'game4': state = game4State; break;
+        }
+        
+        localStorage.setItem('xedang_last_game_state', JSON.stringify({
+          gameType: gameType,
+          state: state,
+          timestamp: Date.now(),
+          level: state.level
+        }));
+      }
+      
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close();
+      }
+    });
+
+    async function onConfigChange(config) {
+      render();
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig: defaultConfig,
+        onConfigChange: onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.primary_color || defaultConfig.primary_color,
+              set: (value) => {
+                window.elementSdk.config.primary_color = value;
+                window.elementSdk.setConfig({ primary_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_color || defaultConfig.secondary_color,
+              set: (value) => {
+                window.elementSdk.config.secondary_color = value;
+                window.elementSdk.setConfig({ secondary_color: value });
+              }
+            },
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                window.elementSdk.config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                window.elementSdk.config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.success_color || defaultConfig.success_color,
+              set: (value) => {
+                window.elementSdk.config.success_color = value;
+                window.elementSdk.setConfig({ success_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['app_title', config.app_title || defaultConfig.app_title],
+          ['welcome_message', config.welcome_message || defaultConfig.welcome_message],
+          ['game1_name', config.game1_name || defaultConfig.game1_name],
+          ['game2_name', config.game2_name || defaultConfig.game2_name],
+          ['game3_name', config.game3_name || defaultConfig.game3_name],
+          ['game4_name', config.game4_name || defaultConfig.game4_name],
+          ['certificate_title', config.certificate_title || defaultConfig.certificate_title],
+          ['certificate_text', config.certificate_text || defaultConfig.certificate_text]
+        ])
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', async function() {
+      try {
+        initAudio();
+        
+        initWithCache();
+        
+        await fetchData();
+        
+        if (loadUser()) {
+          currentScreen = 'menu';
+        } else {
+          currentScreen = 'login';
+        }
+        
+        render();
+        updateOfflineIndicator();
+        
+        document.getElementById('bgm-toggle')?.addEventListener('click', toggleBGM);
+        document.getElementById('sfx-toggle')?.addEventListener('click', toggleSFX);
+        
+        console.log('🎮 Ứng dụng Học Tiếng Xê Đăng đã khởi động!');
+        console.log('📊 Cấu hình level:', AUTO_LEVEL_CONFIG);
+        console.log('🎯 Max levels:', maxLevels);
+        console.log('📝 Dữ liệu game1:', gameData.game1.length, 'câu hỏi');
+        console.log('📝 Dữ liệu game2:', gameData.game2.length, 'câu hỏi');
+        console.log('📝 Dữ liệu game3:', gameData.game3.length, 'câu hỏi');
+        console.log('📝 Dữ liệu game4:', gameData.game4.length, 'câu hỏi');
+        
+        const isNewUser = !localStorage.getItem('xedang_tutorial_shown');
+        if (isNewUser && currentScreen === 'menu') {
+          setTimeout(() => {
+            showToast('🎮 Chào mừng! Chọn game để bắt đầu học tiếng Xê Đăng!', 'info', 5000);
+            localStorage.setItem('xedang_tutorial_shown', 'true');
+          }, 1000);
+        }
+        
+      } catch (error) {
+        console.error('Lỗi khởi động ứng dụng:', error);
+        currentScreen = 'login';
+        render();
+        showToast('⚠️ Có lỗi xảy ra khi khởi động ứng dụng', 'error');
+      }
+    });
+
+// Hàm hiển thị hướng dẫn chơi game
+function showTutorial(gameType) {
+    const tutorials = {
+        'game1': {
+            title: 'Cách chơi Lật Ô',
+            icon: '🎴',
+            steps: [
+                'Chạm vào các thẻ để lật chúng lên.',
+                'Tìm 2 thẻ có nội dung giống nhau (Tiếng Việt - Tiếng Xơ Đăng).',
+                'Ghép hết các cặp để qua màn!',
+                'Cố gắng dùng ít bước nhất để đạt điểm cao.'
+            ]
+        },
+        'game2': {
+            title: 'Cách chơi Mưa Từ Vựng',
+            icon: '🧺',
+            steps: [
+                'Đọc câu hỏi ở phía trên.',
+                'Di chuyển cái giỏ sang trái/phải bằng cách vuốt màn hình.',
+                'Hứng các từ rơi xuống là ĐÁP ÁN ĐÚNG.',
+                'Tránh hứng nhầm từ sai, bạn sẽ bị trừ mạng!'
+            ]
+        },
+        'game3': {
+            title: 'Bảo Vệ Cứ Điểm',
+            icon: '🔫',
+            steps: [
+                'Kẻ địch đang tấn công! Đọc câu hỏi hiện ra.',
+                'Bấm vào nút ĐÁP ÁN ĐÚNG bên dưới để bắn đạn.',
+                'Tiêu diệt hết kẻ địch trước khi chúng chạm vào bạn.',
+                'Trả lời sai sẽ bị trừ điểm.'
+            ]
+        },
+        'game4': {
+            title: 'Nông Trại Số',
+            icon: '🌾',
+            steps: [
+                'Nhấn vào các ô đất để trả lời câu hỏi.',
+                'Trả lời đúng: Cây sẽ lớn lên 1 giai đoạn.',
+                'Trả lời sai: Cây sẽ héo và nhỏ lại.',
+                'Khi cây chín vàng, nhấn vào để thu hoạch và ghi điểm.'
+            ]
+        }
+    };
+
+    const data = tutorials[gameType];
+    if(!data) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'tutorial-overlay';
+    modal.innerHTML = `
+        <div class="tutorial-card">
+            <div class="tutorial-icon">${data.icon}</div>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">${data.title}</h2>
+            <div class="mb-6">
+                ${data.steps.map((step, index) => `
+                    <div class="tutorial-step">
+                        <div class="step-num">${index + 1}</div>
+                        <div>${step}</div>
+                    </div>
+                `).join('')}
+            </div>
+            <button onclick="this.closest('.tutorial-overlay').remove()" 
+                class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition">
+                Đã hiểu, Chơi ngay! 🚀
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+    
+  </script>
+</body>
+</html>

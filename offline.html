@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng đang offline | Học tập tiếng Xơ đăng</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            color: #2c3e50;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-size: 4rem;
+            color: #27ae60;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #e74c3c;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .message {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #34495e;
+        }
+        
+        .offline-icon {
+            font-size: 80px;
+            color: #e74c3c;
+            margin: 30px 0;
+        }
+        
+        .features {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: left;
+            border-left: 5px solid #27ae60;
+        }
+        
+        .features h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .features li {
+            padding: 10px 0;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .features li i {
+            color: #27ae60;
+            min-width: 25px;
+        }
+        
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            min-width: 200px;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            background: #219653;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #3498db;
+        }
+        
+        .btn-secondary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-tertiary {
+            background: #9b59b6;
+        }
+        
+        .btn-tertiary:hover {
+            background: #8e44ad;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+        
+        .offline-status {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .online-status {
+            background: #27ae60;
+            color: white;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #27ae60;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .footer a {
+            color: #27ae60;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+                color: #ecf0f1;
+            }
+            
+            .container {
+                background: rgba(44, 62, 80, 0.95);
+                color: #ecf0f1;
+            }
+            
+            .features {
+                background: #34495e;
+                color: #ecf0f1;
+            }
+            
+            .features li {
+                color: #ecf0f1;
+            }
+            
+            .footer {
+                border-top-color: #4a6278;
+                color: #bdc3c7;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-book-open"></i>
+        </div>
+        
+        <h1>Từ Điển Xơ Đăng</h1>
+        <div class="subtitle">Ứng dụng đang offline</div>
+        
+        <div class="offline-icon">
+            <i class="fas fa-wifi-slash"></i>
+        </div>
+        
+        <div class="message">
+            <p>Không có kết nối mạng. Vui lòng kiểm tra kết nối internet của bạn và thử lại.</p>
+            <p>Từ điển vẫn hoạt động với dữ liệu đã tải về trước đó.</p>
+        </div>
+        
+        <div id="statusIndicator" class="status-indicator offline-status">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Đang offline - Mất kết nối internet</span>
+        </div>
+        
+        <div id="onlineStatus" class="status-indicator online-status">
+            <i class="fas fa-check-circle"></i>
+            <span>Đã kết nối lại! Đang tải ứng dụng...</span>
+        </div>
+        
+        <div class="features">
+            <h3><i class="fas fa-check-circle"></i> Tính năng vẫn hoạt động khi offline:</h3>
+            <ul>
+                <li><i class="fas fa-search"></i> Tra cứu từ vựng đã lưu cache</li>
+                <li><i class="fas fa-book"></i> Xem trang giới thiệu và hướng dẫn</li>
+                <li><i class="fas fa-question-circle"></i> Làm bài trắc nghiệm đã tải</li>
+                <li><i class="fas fa-history"></i> Xem lịch sử tra cứu gần đây</li>
+                <li><i class="fas fa-microphone"></i> Thu âm từ vựng mới (lưu tạm)</li>
+                <li><i class="fas fa-language"></i> Xem các ví dụ đã tải về</li>
+            </ul>
+        </div>
+        
+        <div class="features">
+            <h3><i class="fas fa-sync-alt"></i> Cần kết nối mạng để:</h3>
+            <ul>
+                <li><i class="fas fa-cloud-download-alt"></i> Tải từ vựng và âm thanh mới</li>
+                <li><i class="fas fa-comments"></i> Sử dụng trợ lý chat AI</li>
+                <li><i class="fas fa-share-alt"></i> Đồng bộ dữ liệu đóng góp</li>
+                <li><i class="fas fa-database"></i> Cập nhật dữ liệu mới nhất</li>
+                <li><i class="fas fa-volume-up"></i> Nghe phát âm từ Google Drive</li>
+                <li><i class="fas fa-cloud-upload-alt"></i> Gửi từ vựng đã đóng góp</li>
+            </ul>
+        </div>
+        
+        <div class="actions">
+            <button class="btn" onclick="window.location.reload()">
+                <i class="fas fa-redo"></i> Thử lại kết nối
+            </button>
+            
+            <button class="btn btn-secondary" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i> Quay lại trang trước
+            </button>
+            
+            <button class="btn btn-tertiary" onclick="window.location.href = './'">
+                <i class="fas fa-home"></i> Về trang chủ offline
+            </button>
+        </div>
+        
+        <div class="footer">
+            <p><i class="fas fa-info-circle"></i> Ứng dụng Từ Điển Xơ Đăng được thiết kế để hoạt động tốt cả khi offline.</p>
+            <p>Dữ liệu sẽ tự động đồng bộ khi có kết nối mạng trở lại.</p>
+            <p style="margin-top: 10px;">
+                <i class="fas fa-heart" style="color: #e74c3c;"></i> 
+                Phi lợi nhuận vì mục đích cộng đồng | 
+                <a href="mailto:hvty.thcsbtdttstumorong@moet.edu.vn">Liên hệ hỗ trợ</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Kiểm tra và xử lý trạng thái mạng
+        const statusIndicator = document.getElementById('statusIndicator');
+        const onlineStatus = document.getElementById('onlineStatus');
+        
+        // Hàm kiểm tra trạng thái mạng
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                // Đã online
+                statusIndicator.style.display = 'none';
+                onlineStatus.style.display = 'flex';
+                
+                // Hiển thị spinner
+                const container = document.querySelector('.container');
+                const spinner = document.createElement('div');
+                spinner.className = 'spinner';
+                container.insertBefore(spinner, document.querySelector('.actions'));
+                
+                // Tự động reload sau 3 giây
+                setTimeout(() => {
+                    window.location.href = './';
+                }, 3000);
+                
+                // Thông báo
+                showNotification('Đã kết nối lại! Ứng dụng sẽ tự động tải lại...', 'success');
+            } else {
+                // Vẫn offline
+                statusIndicator.style.display = 'flex';
+                onlineStatus.style.display = 'none';
+            }
+        }
+        
+        // Lắng nghe sự kiện thay đổi trạng thái mạng
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        
+        // Kiểm tra ngay khi trang được tải
+        updateOnlineStatus();
+        
+        // Hàm hiển thị thông báo
+        function showNotification(message, type) {
+            // Tạo toast
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            toast.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Tự động xóa sau 3 giây
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+            
+            // Thêm animation CSS
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Thử kết nối lại sau mỗi 30 giây
+        setInterval(() => {
+            if (!navigator.onLine) {
+                // Thử fetch một request nhỏ để kiểm tra kết nối
+                fetch('./?ping=' + Date.now(), { 
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                }).then(() => {
+                    // Nếu thành công, cập nhật trạng thái
+                    updateOnlineStatus();
+                }).catch(() => {
+                    // Vẫn offline
+                    console.log('Vẫn offline...');
+                });
+            }
+        }, 30000);
+        
+        // Lưu ý cho người dùng về tính năng offline
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kiểm tra xem có phải lần đầu vào offline page không
+            const isFirstVisit = !sessionStorage.getItem('offlinePageVisited');
+            
+            if (isFirstVisit) {
+                sessionStorage.setItem('offlinePageVisited', 'true');
+                showNotification(
+                    '💡 Mẹo: Ứng dụng sẽ tự động đồng bộ khi online trở lại', 
+                    'info'
+                );
+            }
+            
+            // Thêm khả năng cài đặt PWA nếu chưa cài
+            if ('serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window) {
+                let deferredPrompt;
+                
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    
+                    // Hiển thị nút cài đặt
+                    const installBtn = document.createElement('button');
+                    installBtn.className = 'btn';
+                    installBtn.style.marginTop = '10px';
+                    installBtn.style.background = '#9b59b6';
+                    installBtn.innerHTML = '<i class="fas fa-download"></i> Cài đặt ứng dụng';
+                    installBtn.onclick = () => {
+                        installBtn.style.display = 'none';
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then((choiceResult) => {
+                            if (choiceResult.outcome === 'accepted') {
+                                showNotification('Ứng dụng đã được cài đặt!', 'success');
+                            }
+                            deferredPrompt = null;
+                        });
+                    };
+                    
+                    document.querySelector('.actions').appendChild(installBtn);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
