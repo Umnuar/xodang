@@ -1,7 +1,7 @@
 /**
  * Main Application Bootstrap
  * Mounts component templates, initializes controllers, registers Service Worker,
- * and maintains global interfaces for Phase A backwards compatibility.
+ * sets up Hash Routing, and activates Onboarding Modal.
  */
 
 import './styles/index.css';
@@ -10,22 +10,25 @@ import './styles/index.css';
 import navbarHtml from './components/navbar/navbar.html?raw';
 import footerHtml from './components/footer/footer.html?raw';
 import installModalHtml from './components/install-modal/install-modal.html?raw';
+import onboardingHtml from './features/onboarding/onboarding.html?raw';
 import chatHtml from './features/chat/chat.html?raw';
 import homeHtml from './features/home/home.html?raw';
 import contributeHtml from './features/contribute/contribute.html?raw';
 import quizHtml from './features/quiz/quiz.html?raw';
 import gamesHtml from './features/games/games.html?raw';
 
-// Controllers
+// Controllers & Services
 import { initNavbar, showSection } from './components/navbar/navbar';
 import { initFooter } from './components/footer/footer';
 import { initInstallModal, closeInstallModal } from './components/install-modal/install-modal';
 import { initOfflineIndicator } from './components/offline-indicator';
+import { initOnboarding, openOnboarding, closeOnboarding } from './features/onboarding/onboarding';
 import { initHome } from './features/home/home';
 import { initContribute } from './features/contribute/contribute';
 import { initQuiz } from './features/quiz/quiz';
 import { initChat } from './features/chat/chat';
 import { initGames, checkGameAvailable } from './features/games/games';
+import { router } from './router';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
 /**
@@ -37,6 +40,7 @@ function mountMarkup(): void {
     if (app) {
         app.innerHTML = `
             ${installModalHtml}
+            ${onboardingHtml}
             <div id="offlineIndicator" class="offline-indicator">
                 <i class="fas fa-wifi"></i> <span>Offline</span>
             </div>
@@ -87,9 +91,10 @@ function handleAppLoading(): void {
                 }, 300);
             }
         }, 30);
+    } else {
+        loadingScreen.style.display = 'none';
+        window.dispatchEvent(new Event('appLoadingComplete'));
     }
-
-    localStorage.setItem(STORAGE_KEYS.HAS_SEEN_INTRO, 'true');
 
     // Auto-dismiss safety timeout
     setTimeout(() => {
@@ -119,11 +124,17 @@ export async function bootstrap(): Promise<void> {
     initFooter();
     initInstallModal();
     initOfflineIndicator();
+    initOnboarding();
     initGames();
     initContribute();
     initQuiz();
     initChat();
     await initHome();
+
+    // Initialize Hash Routing
+    router.init((route) => {
+        showSection(route);
+    });
 
     handleAppLoading();
 
@@ -138,15 +149,19 @@ export async function bootstrap(): Promise<void> {
     }
 }
 
-// Global functions for Phase A backwards compatibility
+// Global functions for backwards compatibility
 (window as unknown as {
     showSection: typeof showSection;
     closeInstallModal: typeof closeInstallModal;
+    openOnboarding: typeof openOnboarding;
+    closeOnboarding: typeof closeOnboarding;
     skipLoading: typeof skipLoading;
     checkGameAvailable: typeof checkGameAvailable;
 }).showSection = showSection;
 
 (window as unknown as { closeInstallModal: typeof closeInstallModal }).closeInstallModal = closeInstallModal;
+(window as unknown as { openOnboarding: typeof openOnboarding }).openOnboarding = openOnboarding;
+(window as unknown as { closeOnboarding: typeof closeOnboarding }).closeOnboarding = closeOnboarding;
 (window as unknown as { skipLoading: typeof skipLoading }).skipLoading = skipLoading;
 (window as unknown as { checkGameAvailable: typeof checkGameAvailable }).checkGameAvailable = checkGameAvailable;
 

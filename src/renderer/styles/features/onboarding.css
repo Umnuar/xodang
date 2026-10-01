@@ -110,3 +110,202 @@ body.dark-mode .study-tip {
 body.dark-mode .study-tip p {
     color: #c8e6c9;
 }
+
+/* ===== ONBOARDING MODAL STYLES ===== */
+.onboarding-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.onboarding-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+}
+
+.onboarding-card {
+    position: relative;
+    z-index: 1;
+    background: var(--bg-card, #ffffff);
+    color: var(--text-primary, #2c3e50);
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 520px;
+    padding: 2rem;
+    text-align: center;
+    animation: modalPop 0.3s ease;
+}
+
+@keyframes modalPop {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.onboarding-close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--text-muted, #95a5a6);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.onboarding-close-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--text-primary, #333);
+}
+
+.onboarding-slide {
+    display: none;
+    animation: fadeInSlide 0.3s ease;
+}
+
+.onboarding-slide.active {
+    display: block;
+}
+
+@keyframes fadeInSlide {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.onboarding-icon-wrap {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.25rem;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+}
+
+.s1-theme { background: #e8f5e9; color: #2e7d32; }
+.s2-theme { background: #e1f5fe; color: #0288d1; }
+.s3-theme { background: #ede7f6; color: #512da8; }
+.s4-theme { background: #f3e5f5; color: #7b1fa2; }
+.s5-theme { background: #fff3e0; color: #e65100; }
+.s6-theme { background: #ffebee; color: #c62828; }
+
+.onboarding-slide h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.6rem;
+    font-weight: 700;
+}
+
+.onboarding-slide p {
+    font-size: 0.95rem;
+    color: var(--text-secondary, #666);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.onboarding-features {
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.onboarding-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.onboarding-btn-nav {
+    background: none;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary, #333);
+    transition: all 0.2s;
+}
+
+.onboarding-btn-nav:hover:not(:disabled) {
+    background: var(--color-primary, #27ae60);
+    border-color: var(--color-primary, #27ae60);
+    color: white;
+}
+
+.onboarding-btn-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.onboarding-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.onboarding-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.onboarding-dot.active {
+    width: 24px;
+    border-radius: 10px;
+    background: var(--color-primary, #27ae60);
+}
+
+.onboarding-start-btn {
+    width: 100%;
+    margin-top: 1.25rem;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 12px;
+    background: var(--color-primary, #27ae60);
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    transition: transform 0.2s;
+}
+
+.onboarding-start-btn:hover {
+    transform: translateY(-2px);
+}
+

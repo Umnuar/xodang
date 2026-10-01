@@ -5,6 +5,7 @@
 
 import { eventBus } from '../event-bus';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { router } from '@/renderer/router';
 
 export function showSection(sectionId: string): void {
     const targetSection = document.getElementById(sectionId);
@@ -42,7 +43,7 @@ export function initNavbar(): void {
             e.preventDefault();
             const sectionId = link.dataset.section || link.getAttribute('href')?.replace('#', '');
             if (sectionId) {
-                showSection(sectionId);
+                router.navigate(sectionId);
             }
         }
     });
