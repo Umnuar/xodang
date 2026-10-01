@@ -38,7 +38,16 @@ export default defineConfig(({ command }) => ({
       input: {
         main: path.resolve(__dirname, 'index.html'),
         game: path.resolve(__dirname, 'game.html'),
-        intro: path.resolve(__dirname, 'intro.html')
+        intro: path.resolve(__dirname, 'intro.html'),
+        sw: path.resolve(__dirname, 'src/renderer/service-worker.ts')
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          if (chunkInfo.name === 'sw') {
+            return 'service-worker.js';
+          }
+          return 'assets/[name]-[hash].js';
+        }
       }
     }
   },

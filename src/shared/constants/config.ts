@@ -13,3 +13,8 @@ export const APP_CONFIG = {
     APP_CACHE_NAME: 'tudien-10.0.3',
     REQUEST_TIMEOUT_MS: 8000
 } as const;
+
+export const GOOGLE_CONFIG = {
+    API_KEY: APP_CONFIG.GOOGLE_API_KEY,
+    SHEET_ID: APP_CONFIG.SHEET_ID
+} as const;

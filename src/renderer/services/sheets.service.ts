@@ -37,6 +37,22 @@ export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise
         }
     }
 
+    // Check if running inside Electron Desktop with IPC bridge
+    if (typeof window !== 'undefined' && window.electronAPI) {
+        try {
+            const res = await window.electronAPI.fetchSheetsData(range);
+            if (res && res.success && res.data && res.data.values) {
+                const values: string[][] = res.data.values;
+                if (useCache) {
+                    memoryCache.set(cacheKey, { timestamp: Date.now(), data: values });
+                }
+                return values;
+            }
+        } catch (ipcErr) {
+            console.warn('[SheetsService] Electron IPC fetch failed, falling back:', ipcErr);
+        }
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 

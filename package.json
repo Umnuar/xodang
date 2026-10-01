@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "snapshot": "node --loader ts-node/esm scripts/generate-snapshot.ts"
+    "snapshot": "node --loader ts-node/esm scripts/generate-snapshot.ts",
+    "electron:dev": "vite build && electron src/main/index.ts",
+    "electron:build": "vite build && electron-builder"
   },
   "devDependencies": {
     "happy-dom": "^17.1.0",
