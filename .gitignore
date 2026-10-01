@@ -26,3 +26,6 @@ Thumbs.db
 
 # Vitest / Coverage
 coverage/
+
+# Snapshots (Generated at build time)
+src/shared/data/snapshot/
