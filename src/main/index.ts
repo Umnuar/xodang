@@ -4,7 +4,7 @@
  * and manages desktop window lifecycle.
  */
 
-import { app, BrowserWindow, session } from 'electron';
+import { app, BrowserWindow, session, shell } from 'electron';
 import path from 'path';
 import { registerIpcFetcher } from './ipc-fetcher';
 
@@ -22,6 +22,30 @@ function createWindow(): void {
             contextIsolation: true,
             sandbox: true,
             preload: path.join(__dirname, '../preload/index.js')
+        }
+    });
+
+    // CODE-04: Prevent opening arbitrary internal windows; open external links in default OS browser
+    mainWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
+        if (url.startsWith('https:') || url.startsWith('http:')) {
+            shell.openExternal(url);
+        }
+        return { action: 'deny' };
+    });
+
+    // CODE-04: Guard in-window navigation against external URL hijacking
+    mainWindow.webContents.on('will-navigate', (event: any, navigationUrl: string) => {
+        try {
+            const parsedUrl = new URL(navigationUrl);
+            const isDevServer = parsedUrl.origin === 'http://localhost:3000';
+            const isFileProtocol = parsedUrl.protocol === 'file:';
+
+            if (!isDevServer && !isFileProtocol) {
+                event.preventDefault();
+                shell.openExternal(navigationUrl);
+            }
+        } catch {
+            event.preventDefault();
         }
     });
 

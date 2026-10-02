@@ -54,6 +54,10 @@ declare module 'electron' {
     export const contextBridge: {
         exposeInMainWorld(apiKey: string, api: any): void;
     };
+
+    export const shell: {
+        openExternal(url: string): Promise<void>;
+    };
 }
 
 declare module 'fs' {
