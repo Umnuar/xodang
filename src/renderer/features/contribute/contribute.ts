@@ -17,6 +17,22 @@ interface BatchQueueItem {
     audioUrl: string;
 }
 
+export const MAX_AUDIO_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const ALLOWED_AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.webm', '.aac', '.flac'];
+
+export function isValidAudioFile(file: { name: string; size: number; type?: string }): { valid: boolean; reason?: string } {
+    if (file.size > MAX_AUDIO_FILE_SIZE) {
+        return { valid: false, reason: `Dung lượng file "${file.name}" vượt quá 10MB (${(file.size / (1024 * 1024)).toFixed(1)}MB).` };
+    }
+    const isAudioMime = file.type ? file.type.startsWith('audio/') : false;
+    const lowerName = file.name.toLowerCase();
+    const hasAudioExt = ALLOWED_AUDIO_EXTENSIONS.some(ext => lowerName.endsWith(ext));
+    if (!isAudioMime && !hasAudioExt) {
+        return { valid: false, reason: `File "${file.name}" không phải là định dạng âm thanh hợp lệ.` };
+    }
+    return { valid: true };
+}
+
 export function initContribute(): void {
     const singleTab = document.getElementById('singleTab');
     const batchTab = document.getElementById('batchTab');
@@ -242,6 +258,13 @@ export function initContribute(): void {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (!file) return;
 
+            const check = isValidAudioFile(file);
+            if (!check.valid) {
+                showToast(check.reason || 'File không hợp lệ', 'error');
+                audioFileInput.value = '';
+                return;
+            }
+
             singleAudioBlob = file;
             if (singleAudioUrl) URL.revokeObjectURL(singleAudioUrl);
             singleAudioUrl = URL.createObjectURL(file);
@@ -365,7 +388,14 @@ export function initContribute(): void {
             const files = (e.target as HTMLInputElement).files;
             if (!files || files.length === 0) return;
 
+            let addedCount = 0;
             Array.from(files).forEach(file => {
+                const check = isValidAudioFile(file);
+                if (!check.valid) {
+                    showToast(check.reason || 'File không hợp lệ', 'error');
+                    return;
+                }
+
                 batchQueue.push({
                     name: file.name,
                     blob: file,
@@ -373,11 +403,14 @@ export function initContribute(): void {
                     type: 'upload',
                     audioUrl: URL.createObjectURL(file)
                 });
+                addedCount++;
             });
 
             updateBatchUI();
             batchAudioInput.value = '';
-            if (batchStatus) batchStatus.textContent = `Đã thêm ${files.length} file vào hàng đợi.`;
+            if (addedCount > 0 && batchStatus) {
+                batchStatus.textContent = `Đã thêm ${addedCount} file vào hàng đợi.`;
+            }
         });
     }
 
