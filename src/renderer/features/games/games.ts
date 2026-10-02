@@ -11,6 +11,8 @@ import { Game1Memory } from './game1-memory';
 import { Game2Catcher } from './game2-catcher';
 import { Game3Shooter } from './game3-shooter';
 import { Game4Farm } from './game4-farm';
+import { showCertificateModal } from './certificate';
+import { recordGameScore, showLeaderboardModal, showBadgesModal, showCertificatesModal } from './leaderboard';
 
 export type GameId = 'game1' | 'game2' | 'game3' | 'game4';
 
@@ -45,6 +47,11 @@ export function initGames(): void {
         });
     }
 
+    // Leaderboard, Badges, and Certificates Buttons
+    section.querySelector('#btnOpenLeaderboard')?.addEventListener('click', () => showLeaderboardModal());
+    section.querySelector('#btnOpenBadges')?.addEventListener('click', () => showBadgesModal());
+    section.querySelector('#btnOpenCertificates')?.addEventListener('click', () => showCertificatesModal());
+
     // Event delegation on Game Selection Grid
     section.addEventListener('click', (e: Event) => {
         const target = e.target as HTMLElement;
@@ -71,6 +78,25 @@ export function initGames(): void {
                 currentLevel++;
                 launchGame(currentGameId, currentLevel);
             }
+            return;
+        }
+
+        // Claim / View Certificate Button
+        if (target.closest('#btnGetCertificate')) {
+            const studentName = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Học sinh Xơ Đăng';
+            const gameTitles: Record<GameId, string> = {
+                game1: 'Lật Thẻ Trí Nhớ',
+                game2: 'Mưa Từ Vựng',
+                game3: 'Bảo Vệ Làng',
+                game4: 'Nông Trại Số'
+            };
+            const title = currentGameId ? gameTitles[currentGameId] : 'Trò chơi Xơ Đăng';
+            showCertificateModal({
+                studentName,
+                gameTitle: title,
+                score: currentScore,
+                level: currentLevel
+            });
             return;
         }
 
@@ -190,12 +216,17 @@ function updateScore(score: number): void {
 }
 
 function handleLevelComplete(level: number, score: number): void {
+    if (currentGameId) {
+        recordGameScore(currentGameId, score, level);
+    }
+
     const modal = document.getElementById('gameOverModal');
     const icon = document.getElementById('modalIcon');
     const title = document.getElementById('modalTitle');
     const desc = document.getElementById('modalDesc');
     const finalScore = document.getElementById('modalFinalScore');
     const nextBtn = document.getElementById('btnNextLevel');
+    const certBtn = document.getElementById('btnGetCertificate');
 
     if (!modal) return;
     if (icon) icon.textContent = '🎉';
@@ -203,17 +234,23 @@ function handleLevelComplete(level: number, score: number): void {
     if (desc) desc.textContent = 'Chúc mừng bạn đã xuất sắc vượt qua thử thách từ vựng.';
     if (finalScore) finalScore.textContent = String(score);
     if (nextBtn) nextBtn.style.display = 'inline-flex';
+    if (certBtn) certBtn.style.display = 'inline-flex';
 
     modal.style.display = 'flex';
 }
 
 function handleGameOver(score: number): void {
+    if (currentGameId) {
+        recordGameScore(currentGameId, score, currentLevel);
+    }
+
     const modal = document.getElementById('gameOverModal');
     const icon = document.getElementById('modalIcon');
     const title = document.getElementById('modalTitle');
     const desc = document.getElementById('modalDesc');
     const finalScore = document.getElementById('modalFinalScore');
     const nextBtn = document.getElementById('btnNextLevel');
+    const certBtn = document.getElementById('btnGetCertificate');
 
     if (!modal) return;
     if (icon) icon.textContent = '💔';
@@ -221,6 +258,7 @@ function handleGameOver(score: number): void {
     if (desc) desc.textContent = 'Đừng nản lòng, hãy thử lại để ghi nhớ từ vựng tốt hơn nhé.';
     if (finalScore) finalScore.textContent = String(score);
     if (nextBtn) nextBtn.style.display = 'none';
+    if (certBtn) certBtn.style.display = score >= 50 ? 'inline-flex' : 'none';
 
     modal.style.display = 'flex';
 }

@@ -615,3 +615,367 @@ body.dark-mode .farm-plot.harvested {
     background: #064e3b;
     border-color: #10b981;
 }
+
+/* Modal Overlay & Card Common */
+.game-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.cert-modal-card,
+.leaderboard-modal-card,
+.badges-modal-card,
+.certs-list-modal-card {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    box-sizing: border-box;
+    animation: modalPopIn 0.3s ease-out;
+}
+
+.cert-modal-card {
+    max-width: 840px;
+}
+
+@keyframes modalPopIn {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.cert-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 12px;
+}
+
+.cert-modal-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-close-modal {
+    background: transparent;
+    border: none;
+    font-size: 1.6rem;
+    color: #9ca3af;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: color 0.2s;
+}
+
+.btn-close-modal:hover {
+    color: #ef4444;
+}
+
+.cert-canvas-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.cert-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.modal-btn.btn-gold {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #ffffff;
+    border: none;
+}
+
+.modal-btn.btn-gold:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+/* Leaderboard */
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.15s;
+}
+
+.leaderboard-item:hover {
+    transform: translateY(-1px);
+    background: #f1f5f9;
+}
+
+.leaderboard-item.is-current-user {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.rank-col {
+    font-size: 1.3rem;
+    font-weight: 800;
+    min-width: 36px;
+    text-align: center;
+}
+
+.info-col {
+    flex: 1;
+}
+
+.player-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.you-badge {
+    font-size: 0.75rem;
+    background: #3b82f6;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.player-meta {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.score-col {
+    text-align: right;
+}
+
+.player-score {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #2563eb;
+}
+
+.score-label {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Badges */
+.badge-stats-summary {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.badges-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.badge-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    transition: all 0.2s;
+}
+
+.badge-card.unlocked {
+    background: linear-gradient(135deg, #f0fdf4, #ffffff);
+    border-color: #86efac;
+}
+
+.badge-card.locked {
+    opacity: 0.6;
+    filter: grayscale(80%);
+    background: #f8fafc;
+}
+
+.badge-icon {
+    font-size: 2rem;
+    min-width: 44px;
+    text-align: center;
+}
+
+.badge-info {
+    flex: 1;
+}
+
+.badge-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1e293b;
+}
+
+.badge-desc {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.badge-status-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-done {
+    color: #16a34a;
+}
+
+.status-locked {
+    color: #94a3b8;
+}
+
+/* Certs List */
+.certs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+.cert-card-item {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.cert-card-badge {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+}
+
+.cert-card-details h4 {
+    margin: 0 0 6px 0;
+    font-size: 1.05rem;
+    color: #92400e;
+}
+
+.cert-card-meta {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #b45309;
+}
+
+.cert-card-date {
+    font-size: 0.75rem;
+    color: #78350f;
+    margin-top: 4px;
+    margin-bottom: 12px;
+}
+
+/* Empty State */
+.empty-state-wrap {
+    text-align: center;
+    padding: 30px 10px;
+    color: #64748b;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.empty-sub {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+/* Dark mode for modals */
+body.dark-mode .cert-modal-card,
+body.dark-mode .leaderboard-modal-card,
+body.dark-mode .badges-modal-card,
+body.dark-mode .certs-list-modal-card {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+body.dark-mode .leaderboard-item {
+    background: #334155;
+    border-color: #475569;
+}
+
+body.dark-mode .leaderboard-item.is-current-user {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+}
+
+body.dark-mode .player-name {
+    color: #f8fafc;
+}
+
+body.dark-mode .badge-card {
+    background: #334155;
+    border-color: #475569;
+}
+
+body.dark-mode .badge-card.unlocked {
+    background: #064e3b;
+    border-color: #059669;
+}
+
+body.dark-mode .badge-name {
+    color: #f8fafc;
+}
+
+body.dark-mode .cert-card-item {
+    background: #78350f;
+    border-color: #b45309;
+    color: #fef3c7;
+}
+
+body.dark-mode .cert-card-details h4 {
+    color: #fef3c7;
+}
+
+body.dark-mode .cert-canvas-wrapper {
+    background: #0f172a;
+}
+
