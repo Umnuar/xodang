@@ -29,3 +29,6 @@ coverage/
 
 # Snapshots (Generated at build time)
 src/shared/data/snapshot/
+
+# Local analysis artifacts
+graphify-out/
