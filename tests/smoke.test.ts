@@ -22,4 +22,12 @@ describe('Tooling Smoke Test', () => {
     expect(ALLOWED_SHEET_RANGES.has('../../../etc/passwd')).toBe(false);
     expect(ALLOWED_SHEET_RANGES.has('')).toBe(false);
   });
+
+  it('SEC-01: ensures GOOGLE_API_KEY does not contain hardcoded secret fallback', async () => {
+    const { APP_CONFIG, GOOGLE_CONFIG } = await import('@/shared/constants/config');
+    expect(APP_CONFIG.GOOGLE_API_KEY).not.toBe('AIzaSyD757jS4SLR7-EzrPgrW9WrLQeD2DQExHw');
+    expect(GOOGLE_CONFIG.API_KEY).not.toBe('AIzaSyD757jS4SLR7-EzrPgrW9WrLQeD2DQExHw');
+    expect(typeof APP_CONFIG.GOOGLE_API_KEY).toBe('string');
+  });
 });
+
