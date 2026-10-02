@@ -36,13 +36,18 @@ export function searchDictionary(
     const rawKeyword = normalizeUnicodeNFC(term).toLowerCase().trim();
     const isVietToEthnic = direction === 'viet_to_ethnic';
     
-    if (!rawKeyword || rawKeyword.length === 0) {
+    if (!rawKeyword || rawKeyword.length === 0 || rawKeyword.length > 100) {
         return [];
     }
     
-    // Tạo regex an toàn để tìm từ chính xác
-    const safeKeyword = rawKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const strictRegex = new RegExp(`(^|[^a-zA-Z0-9À-ỹ])${safeKeyword}([^a-zA-Z0-9À-ỹ]|$)`, 'i');
+    let strictRegex: RegExp;
+    try {
+        // Tạo regex an toàn để tìm từ chính xác
+        const safeKeyword = rawKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        strictRegex = new RegExp(`(^|[^a-zA-Z0-9À-ỹ])${safeKeyword}([^a-zA-Z0-9À-ỹ]|$)`, 'i');
+    } catch {
+        return [];
+    }
     
     let exactMatches: DictionaryEntry[] = [];
     
@@ -102,7 +107,7 @@ export function getSuggestions(
     maxResults: number = 8
 ): string[] {
     const raw = normalizeUnicodeNFC(term).toLowerCase().trim();
-    if (!raw) return [];
+    if (!raw || raw.length > 100) return [];
     
     const isVietToEthnic = direction === 'viet_to_ethnic';
     const suggestions = new Set<string>();

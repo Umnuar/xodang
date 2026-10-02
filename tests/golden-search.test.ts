@@ -80,4 +80,18 @@ describe('Golden Test: legacySmartSearch vs searchDictionary', () => {
             }
         });
     });
+
+    it('CODE-08: safely handles long queries without throwing SyntaxError or crashing (ReDoS guard)', () => {
+        // Test with 150 characters (exceeds max length 100)
+        const longQuery = 'a'.repeat(150);
+        const results1 = searchDictionary(longQuery, 'viet_to_ethnic', dictionary);
+        expect(results1).toEqual([]);
+
+        // Test with 50,000 characters (exceeds V8 RegExp limit 32,767)
+        const hugeQuery = 'x'.repeat(50000);
+        expect(() => {
+            const results2 = searchDictionary(hugeQuery, 'viet_to_ethnic', dictionary);
+            expect(results2).toEqual([]);
+        }).not.toThrow();
+    });
 });
