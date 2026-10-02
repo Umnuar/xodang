@@ -117,13 +117,18 @@ export class Game2Catcher {
         this.container.innerHTML = `
             <div class="catcher-prompt">
                 <span>Từ cần tìm nghĩa:</span>
-                <strong id="catcherTargetWord" class="catcher-target-word">${this.currentQuestion?.question || ''}</strong>
+                <strong id="catcherTargetWord" class="catcher-target-word"></strong>
             </div>
             <div class="catcher-canvas-wrap">
                 <canvas id="catcherCanvas" width="600" height="420"></canvas>
             </div>
             <div class="catcher-hint">Di chuyển giỏ bằng chuột, chạm vuốt hoặc phím ← →</div>
         `;
+
+        const targetWordEl = this.container.querySelector('#catcherTargetWord');
+        if (targetWordEl) {
+            targetWordEl.textContent = this.currentQuestion?.question || '';
+        }
 
         this.canvas = this.container.querySelector('#catcherCanvas') as HTMLCanvasElement;
         if (!this.canvas) return;

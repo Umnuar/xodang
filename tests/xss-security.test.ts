@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createWordCard, renderWordCards } from '@/renderer/features/home/word-card';
 import { createSuggestionButton } from '@/renderer/features/chat/chat';
 import { showToast } from '@/renderer/components/toast';
+import { Game2Catcher } from '@/renderer/features/games/game2-catcher';
 import type { DictionaryEntry } from '@/renderer/services/dictionary.service';
 
 describe('XSS Security Tests (Rule 3 Compliance)', () => {
@@ -97,5 +98,31 @@ describe('XSS Security Tests (Rule 3 Compliance)', () => {
 
         // Verify text content preserved safely
         expect(toast?.textContent).toContain('<img src="invalid" onerror="window.pwnedToast=true"><script>alert(1)</script>');
+    });
+
+    it('renders Game 2 (Catcher) target word safely via textContent without executing XSS', () => {
+        const gameContainer = document.createElement('div');
+        document.body.appendChild(gameContainer);
+
+        const game = new Game2Catcher(gameContainer, {
+            onScoreChange: () => {},
+            onLivesChange: () => {},
+            onLevelComplete: () => {},
+            onGameOver: () => {}
+        });
+
+        // Mock malicious question
+        (game as unknown as { currentQuestion: { question: string } }).currentQuestion = {
+            question: '<img src="x" onerror="window.pwnedGame2=true"><script>alert(1)</script>'
+        };
+
+        // Call private render
+        (game as unknown as { render: () => void }).render();
+
+        const targetWord = gameContainer.querySelector('#catcherTargetWord');
+        expect(targetWord).not.toBeNull();
+        expect(gameContainer.querySelector('img')).toBeNull();
+        expect(gameContainer.querySelector('script')).toBeNull();
+        expect(targetWord?.textContent).toBe('<img src="x" onerror="window.pwnedGame2=true"><script>alert(1)</script>');
     });
 });
