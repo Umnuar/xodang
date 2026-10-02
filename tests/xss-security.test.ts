@@ -7,6 +7,7 @@ import { createSuggestionButton } from '@/renderer/features/chat/chat';
 import { showToast } from '@/renderer/components/toast';
 import { Game2Catcher } from '@/renderer/features/games/game2-catcher';
 import { Game3Shooter } from '@/renderer/features/games/game3-shooter';
+import { renderNoResult } from '@/renderer/features/home/home';
 import type { DictionaryEntry } from '@/renderer/services/dictionary.service';
 
 describe('XSS Security Tests (Rule 3 Compliance)', () => {
@@ -152,4 +153,23 @@ describe('XSS Security Tests (Rule 3 Compliance)', () => {
         expect(gameContainer.querySelector('script')).toBeNull();
         expect(targetWord?.textContent).toBe('<img src="x" onerror="window.pwnedGame3=true"><script>alert(1)</script>');
     });
+
+    it('renders search no-results state safely via textContent without executing XSS (CODE-03)', () => {
+        const resultContainer = document.createElement('div');
+        document.body.appendChild(resultContainer);
+
+        const maliciousKeyword = '<script>window.pwnedNoResult=true</script><img src="x" onerror="alert(1)">';
+        renderNoResult(resultContainer, maliciousKeyword);
+
+        // Verify no malicious script or image tags were created
+        expect(resultContainer.querySelector('script')).toBeNull();
+        expect(resultContainer.querySelector('img')).toBeNull();
+
+        // Verify the keyword is safely rendered inside <strong> via textContent
+        const strong = resultContainer.querySelector('strong');
+        expect(strong).not.toBeNull();
+        expect(strong?.textContent).toBe(maliciousKeyword);
+        expect(resultContainer.textContent).toContain(`Không tìm thấy kết quả phù hợp cho "${maliciousKeyword}"`);
+    });
 });
+

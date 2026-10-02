@@ -13,6 +13,32 @@ import { downloadOfflineAudio, getOfflineAudioStatus } from '@/renderer/services
 
 let dictionaryData: DictionaryEntry[] = [];
 
+export function renderNoResult(resultDiv: HTMLElement, keyword: string): void {
+    const noResultDiv = document.createElement('div');
+    noResultDiv.className = 'no-result';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-exclamation-circle';
+    icon.style.cssText = 'font-size: 2rem; margin-bottom: 1rem; color: #f39c12; display: block;';
+
+    const mainP = document.createElement('p');
+    mainP.append('Không tìm thấy kết quả phù hợp cho "');
+    const strong = document.createElement('strong');
+    strong.textContent = keyword;
+    mainP.append(strong);
+    mainP.append('"');
+
+    const subP = document.createElement('p');
+    subP.style.cssText = 'font-size: 0.9rem; margin-top: 0.5rem;';
+    subP.textContent = 'Thử đổi hướng dịch hoặc kiểm tra lại chính tả.';
+
+    noResultDiv.appendChild(icon);
+    noResultDiv.appendChild(mainP);
+    noResultDiv.appendChild(subP);
+
+    resultDiv.replaceChildren(noResultDiv);
+}
+
 export async function initHome(): Promise<void> {
     const searchForm = document.getElementById('searchForm') as HTMLFormElement | null;
     const wordInput = document.getElementById('word') as HTMLInputElement | null;
@@ -103,13 +129,7 @@ export async function initHome(): Promise<void> {
 
         if (results.length === 0) {
             if (searchStatus) searchStatus.textContent = `Không tìm thấy từ: "${trimmed}"`;
-            resultDiv.innerHTML = `
-                <div class="no-result">
-                    <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem; color: #f39c12; display: block;"></i>
-                    <p>Không tìm thấy kết quả phù hợp cho "<strong>${trimmed.replace(/</g, '&lt;')}</strong>"</p>
-                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Thử đổi hướng dịch hoặc kiểm tra lại chính tả.</p>
-                </div>
-            `;
+            renderNoResult(resultDiv, trimmed);
             return;
         }
 
