@@ -6,6 +6,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-padding-top: 5rem;
+}
+
 body {
     font-family: 'Plus Jakarta Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--background-gradient);

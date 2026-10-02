@@ -45,6 +45,7 @@
     padding: 1.8rem;
     max-width: 1200px;
     margin: 1.5rem auto;
+    scroll-margin-top: 5rem;
     backdrop-filter: blur(10px);
     display: none;
     opacity: 0;
@@ -190,3 +191,29 @@ body.dark-mode .footer {
         font-size: 0.9rem;
     }
 }
+
+@media (max-width: 600px) {
+    .navbar {
+        padding: 0.5rem 0.6rem;
+    }
+    .navbar ul {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        gap: 0.5rem;
+        padding: 0.2rem 0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .navbar ul::-webkit-scrollbar {
+        display: none;
+    }
+    .menu-link, .menu-button {
+        padding: 0.45rem 0.8rem;
+        font-size: 0.82rem;
+        flex-shrink: 0;
+    }
+}
+
