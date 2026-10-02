@@ -7,10 +7,18 @@
 import { ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import { GOOGLE_CONFIG } from '../shared/constants/config';
+import { GOOGLE_CONFIG, ALLOWED_SHEET_RANGES } from '../shared/constants/config';
 
 export function registerIpcFetcher(): void {
     ipcMain.handle('sheets:fetch', async (_event, range: string) => {
+        // CODE-05: Strict boundary validation on IPC input
+        if (typeof range !== 'string' || !ALLOWED_SHEET_RANGES.has(range)) {
+            return {
+                success: false,
+                error: 'Invalid or unauthorized sheet range requested'
+            };
+        }
+
         const apiKey = GOOGLE_CONFIG.API_KEY;
         const sheetId = GOOGLE_CONFIG.SHEET_ID;
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?key=${apiKey}`;

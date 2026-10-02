@@ -18,3 +18,12 @@ export const GOOGLE_CONFIG = {
     API_KEY: APP_CONFIG.GOOGLE_API_KEY,
     SHEET_ID: APP_CONFIG.SHEET_ID
 } as const;
+
+export const ALLOWED_SHEET_RANGES = new Set<string>([
+    APP_CONFIG.DICTIONARY_RANGE,
+    APP_CONFIG.CHAT_RANGE,
+    APP_CONFIG.QUIZ_RANGE,
+    'Tudien!A2:E',
+    'Tracnghiem!A2:G',
+    'Chat!A2:D'
+]);
