@@ -110,13 +110,18 @@ export class Game3Shooter {
         this.container.innerHTML = `
             <div class="shooter-prompt">
                 <span>Mục tiêu cần bắn: Nghĩa của từ </span>
-                <strong id="shooterTargetWord" class="shooter-target-word">${this.currentQuestion?.question || ''}</strong>
+                <strong id="shooterTargetWord" class="shooter-target-word"></strong>
             </div>
             <div class="shooter-canvas-wrap">
                 <canvas id="shooterCanvas" width="600" height="420"></canvas>
             </div>
             <div class="shooter-hint">Nhấp hoặc chạm vào bong bóng chứa nghĩa đúng để bắn!</div>
         `;
+
+        const targetWordEl = this.container.querySelector('#shooterTargetWord');
+        if (targetWordEl) {
+            targetWordEl.textContent = this.currentQuestion?.question || '';
+        }
 
         this.canvas = this.container.querySelector('#shooterCanvas') as HTMLCanvasElement;
         if (!this.canvas) return;

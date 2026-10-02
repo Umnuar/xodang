@@ -6,6 +6,7 @@ import { createWordCard, renderWordCards } from '@/renderer/features/home/word-c
 import { createSuggestionButton } from '@/renderer/features/chat/chat';
 import { showToast } from '@/renderer/components/toast';
 import { Game2Catcher } from '@/renderer/features/games/game2-catcher';
+import { Game3Shooter } from '@/renderer/features/games/game3-shooter';
 import type { DictionaryEntry } from '@/renderer/services/dictionary.service';
 
 describe('XSS Security Tests (Rule 3 Compliance)', () => {
@@ -124,5 +125,31 @@ describe('XSS Security Tests (Rule 3 Compliance)', () => {
         expect(gameContainer.querySelector('img')).toBeNull();
         expect(gameContainer.querySelector('script')).toBeNull();
         expect(targetWord?.textContent).toBe('<img src="x" onerror="window.pwnedGame2=true"><script>alert(1)</script>');
+    });
+
+    it('renders Game 3 (Shooter) target word safely via textContent without executing XSS', () => {
+        const gameContainer = document.createElement('div');
+        document.body.appendChild(gameContainer);
+
+        const game = new Game3Shooter(gameContainer, {
+            onScoreChange: () => {},
+            onLivesChange: () => {},
+            onLevelComplete: () => {},
+            onGameOver: () => {}
+        });
+
+        // Mock malicious question
+        (game as unknown as { currentQuestion: { question: string } }).currentQuestion = {
+            question: '<img src="x" onerror="window.pwnedGame3=true"><script>alert(1)</script>'
+        };
+
+        // Call private render
+        (game as unknown as { render: () => void }).render();
+
+        const targetWord = gameContainer.querySelector('#shooterTargetWord');
+        expect(targetWord).not.toBeNull();
+        expect(gameContainer.querySelector('img')).toBeNull();
+        expect(gameContainer.querySelector('script')).toBeNull();
+        expect(targetWord?.textContent).toBe('<img src="x" onerror="window.pwnedGame3=true"><script>alert(1)</script>');
     });
 });
