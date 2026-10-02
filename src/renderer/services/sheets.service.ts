@@ -19,6 +19,26 @@ export interface SheetFetchOptions {
 const memoryCache = new Map<string, { timestamp: number; data: string[][] }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+function getOfflineFallbackValues(range: string): string[][] | null {
+    if (range === APP_CONFIG.DICTIONARY_RANGE && snapshotFallback?.dictionary && snapshotFallback.dictionary.length > 0) {
+        return snapshotFallback.dictionary.map((entry: NonNullable<typeof snapshotFallback.dictionary>[number]) => [
+            entry.viet,
+            entry.ethnic,
+            entry.pronunciation || '',
+            entry.driveId || '',
+            entry.exampleViet || '',
+            entry.exampleEthnic || ''
+        ]);
+    }
+    if (range === APP_CONFIG.QUIZ_RANGE && snapshotFallback?.quiz && snapshotFallback.quiz.length > 0) {
+        return snapshotFallback.quiz;
+    }
+    if (range === APP_CONFIG.CHAT_RANGE && snapshotFallback?.chat && snapshotFallback.chat.length > 0) {
+        return snapshotFallback.chat;
+    }
+    return null;
+}
+
 /**
  * Fetches raw cell values from Google Sheets API v4.
  */
@@ -53,6 +73,17 @@ export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise
         }
     }
 
+    // If no API key configured, load offline snapshot immediately without network error
+    if (!apiKey || apiKey.trim() === '') {
+        const offlineData = getOfflineFallbackValues(range);
+        if (offlineData) {
+            if (useCache) {
+                memoryCache.set(cacheKey, { timestamp: Date.now(), data: offlineData });
+            }
+            return offlineData;
+        }
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -74,15 +105,9 @@ export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise
         return values;
     } catch (err: unknown) {
         // Fallback to offline snapshot if available
-        if (range === APP_CONFIG.DICTIONARY_RANGE && snapshotFallback && snapshotFallback.dictionary && snapshotFallback.dictionary.length > 0) {
-            return snapshotFallback.dictionary.map((entry: NonNullable<typeof snapshotFallback.dictionary>[number]) => [
-                entry.viet,
-                entry.ethnic,
-                entry.pronunciation || '',
-                entry.driveId || '',
-                entry.exampleViet || '',
-                entry.exampleEthnic || ''
-            ]);
+        const fallback = getOfflineFallbackValues(range);
+        if (fallback) {
+            return fallback;
         }
         throw err;
     } finally {
