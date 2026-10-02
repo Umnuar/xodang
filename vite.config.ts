@@ -15,7 +15,7 @@ export default defineConfig(({ command }) => ({
         // 1. Chỉ tiêm khi build production và Electron
         // 2. CHỈ TIÊM CHO index.html — bỏ qua intro.html và game.html trong Phase A để không chặn inline scripts & onclicks cũ
         if (command === 'build' && ctx.filename && path.basename(ctx.filename) === 'index.html') {
-          const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://sheets.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src 'none'; img-src 'self' data: https:;">`;
+          const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://sheets.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:;">`;
           // Sử dụng regex an toàn bảo toàn attributes trên thẻ head
           return html.replace(/<head(\s[^>]*)?>/i, (match) => `${match}\n    ${cspMeta}`);
         }
