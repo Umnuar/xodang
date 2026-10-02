@@ -29,5 +29,13 @@ describe('Tooling Smoke Test', () => {
     expect(GOOGLE_CONFIG.API_KEY).not.toBe('AIzaSyD757jS4SLR7-EzrPgrW9WrLQeD2DQExHw');
     expect(typeof APP_CONFIG.GOOGLE_API_KEY).toBe('string');
   });
+
+  it('CONF-02: verifies referrer policy meta tag exists in index.html', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const indexHtml = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8');
+    expect(indexHtml).toContain('<meta name="referrer" content="strict-origin-when-cross-origin">');
+  });
 });
+
 
