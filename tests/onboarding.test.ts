@@ -96,4 +96,46 @@ describe('OnboardingController', () => {
         controller.close();
         expect(controller.isOpen()).toBe(false);
     });
+
+    it('supports touch swipe navigation on mobile devices', () => {
+        controller.init();
+        expect(controller.getCurrentSlide()).toBe(0);
+
+        const modal = document.getElementById('onboardingModal')!;
+
+        // Swipe left (advance to slide 1)
+        const touchStart = new Event('touchstart');
+        Object.defineProperty(touchStart, 'changedTouches', {
+            value: [{ screenX: 200 }]
+        });
+        modal.dispatchEvent(touchStart);
+
+        const touchEndLeft = new Event('touchend');
+        Object.defineProperty(touchEndLeft, 'changedTouches', {
+            value: [{ screenX: 100 }] // diffX = 100 - 200 = -100 (< -50)
+        });
+        modal.dispatchEvent(touchEndLeft);
+
+        expect(controller.getCurrentSlide()).toBe(1);
+
+        // Swipe right (back to slide 0)
+        modal.dispatchEvent(touchStart); // screenX: 200
+        const touchEndRight = new Event('touchend');
+        Object.defineProperty(touchEndRight, 'changedTouches', {
+            value: [{ screenX: 300 }] // diffX = 300 - 200 = +100 (> 50)
+        });
+        modal.dispatchEvent(touchEndRight);
+
+        expect(controller.getCurrentSlide()).toBe(0);
+
+        // Minor swipe (< 50px) should not trigger navigation
+        modal.dispatchEvent(touchStart); // screenX: 200
+        const touchEndMinor = new Event('touchend');
+        Object.defineProperty(touchEndMinor, 'changedTouches', {
+            value: [{ screenX: 180 }] // diffX = -20
+        });
+        modal.dispatchEvent(touchEndMinor);
+
+        expect(controller.getCurrentSlide()).toBe(0);
+    });
 });

@@ -46,6 +46,32 @@ export class OnboardingController {
             if (e.key === 'Escape') this.complete();
         });
 
+        // Touch swipe gestures for mobile devices
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        this.modal.addEventListener('touchstart', (e: Event) => {
+            const touchEvent = e as TouchEvent;
+            if (touchEvent.changedTouches && touchEvent.changedTouches.length > 0) {
+                touchStartX = touchEvent.changedTouches[0].screenX;
+            }
+        }, { passive: true });
+
+        this.modal.addEventListener('touchend', (e: Event) => {
+            const touchEvent = e as TouchEvent;
+            if (touchEvent.changedTouches && touchEvent.changedTouches.length > 0) {
+                touchEndX = touchEvent.changedTouches[0].screenX;
+                const diffX = touchEndX - touchStartX;
+                if (Math.abs(diffX) > 50) {
+                    if (diffX < 0) {
+                        this.next();
+                    } else {
+                        this.prev();
+                    }
+                }
+            }
+        }, { passive: true });
+
         this.updateSlideUI();
 
         // Auto-show for first-time visitors
