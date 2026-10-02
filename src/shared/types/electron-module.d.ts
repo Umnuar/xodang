@@ -36,7 +36,7 @@ declare module 'electron' {
     export const session: {
         defaultSession: {
             setPermissionRequestHandler(
-                handler: (webContents: any, permission: string, callback: (permissionGranted: boolean) => void) => void
+                handler: (webContents: any, permission: string, callback: (permissionGranted: boolean) => void, details?: any) => void
             ): void;
         };
     };

@@ -49,10 +49,16 @@ function createWindow(): void {
         }
     });
 
-    // Automatically grant media/microphone permission for voice search & pronunciation recording
-    session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+    // CODE-06: Automatically grant media/microphone permission ONLY for trusted app origins
+    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
         if (permission === 'media') {
-            return callback(true);
+            const requestingUrl = (details && details.requestingUrl) || (webContents && webContents.getURL && webContents.getURL()) || '';
+            const isLocalDev = requestingUrl.startsWith('http://localhost:3000');
+            const isLocalFile = requestingUrl.startsWith('file:');
+
+            if (isLocalDev || isLocalFile) {
+                return callback(true);
+            }
         }
         callback(false);
     });
