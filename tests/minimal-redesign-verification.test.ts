@@ -54,15 +54,31 @@ describe('Design Direction A: "Ấn phẩm yên tĩnh" Integrity Verification', 
         };
 
         const tsFiles = getFiles(srcDir, ['.ts']);
-        // Exclude service worker precache list which will be purged upon user approval
-        const relevantTsFiles = tsFiles.filter(f => !f.endsWith('service-worker.ts'));
         const faRegex = /\b(fas fa-|far fa-|fab fa-|class=['"][^'"]*fa-[a-z0-9-]+)/g;
 
-        relevantTsFiles.forEach(file => {
+        tsFiles.forEach((file: string) => {
             const content = fs.readFileSync(file, 'utf-8');
             const matches = content.match(faRegex);
             expect(matches, `Found Font Awesome reference in ${file}: ${matches}`).toBeNull();
         });
+    });
+
+    it('verifies Font Awesome is completely purged from stylesheets, service-worker, and offline.html', () => {
+        const indexCss = fs.readFileSync(path.resolve(__dirname, '../src/renderer/styles/index.css'), 'utf-8');
+        expect(indexCss).not.toContain('fontawesome');
+
+        const swTs = fs.readFileSync(path.resolve(__dirname, '../src/renderer/service-worker.ts'), 'utf-8');
+        expect(swTs).not.toContain('fontawesome');
+
+        const offlineHtml = fs.readFileSync(path.resolve(__dirname, '../public/offline.html'), 'utf-8');
+        expect(offlineHtml).not.toContain('font-awesome');
+        expect(offlineHtml).not.toContain('fa-');
+
+        const faDirExists = fs.existsSync(path.resolve(__dirname, '../public/fonts/fontawesome'));
+        expect(faDirExists).toBe(false);
+
+        const webfontsDirExists = fs.existsSync(path.resolve(__dirname, '../public/fonts/webfonts'));
+        expect(webfontsDirExists).toBe(false);
     });
 
     it('verifies index.html initial loader uses inline SVG instead of Font Awesome spinner', () => {

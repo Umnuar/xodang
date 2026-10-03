@@ -13,7 +13,6 @@ const STATIC_PRECACHE = [
     './index.html',
     './offline.html',
     './manifest.json',
-    './fonts/fontawesome/all.min.css',
     './fonts/jakarta/plus-jakarta-sans-v8-latin-regular.woff2',
     './fonts/jakarta/plus-jakarta-sans-v8-latin-600.woff2',
     './fonts/jakarta/plus-jakarta-sans-v8-latin-700.woff2'
