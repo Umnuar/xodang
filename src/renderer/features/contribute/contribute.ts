@@ -7,6 +7,7 @@
 import { APP_CONFIG } from '@/shared/constants/config';
 import { showToast } from '@/renderer/components/toast';
 import { showLoading, hideLoading } from '@/renderer/components/loading-overlay';
+import { getLucideIcon } from '@/renderer/utils/icons';
 import { AudioWaveVisualizer } from './visualizer';
 
 interface BatchQueueItem {
@@ -190,14 +191,14 @@ export function initContribute(): void {
 
             if (isBatch) {
                 if (recordBatchBtn) {
-                    recordBatchBtn.innerHTML = '<i class="fas fa-stop"></i> Dừng thu';
+                    recordBatchBtn.innerHTML = `${getLucideIcon('square', 'lucide-icon', 18)}<span class="btn-text">Dừng thu</span>`;
                     recordBatchBtn.classList.add('recording');
                 }
                 batchVisualizer.startAnimation(false);
                 if (batchStatus) batchStatus.textContent = 'Đang thu âm... Nhấn "Dừng thu" khi hoàn tất.';
             } else {
                 if (recordAudioBtn) {
-                    recordAudioBtn.innerHTML = '<i class="fas fa-stop"></i> Dừng thu';
+                    recordAudioBtn.innerHTML = `${getLucideIcon('square', 'lucide-icon', 18)}<span class="btn-text">Dừng thu</span>`;
                     recordAudioBtn.classList.add('recording');
                 }
                 singleVisualizer.startAnimation(false);
@@ -220,11 +221,11 @@ export function initContribute(): void {
         isRecording = false;
 
         if (recordAudioBtn) {
-            recordAudioBtn.innerHTML = '<i class="fas fa-microphone"></i> Thu âm';
+            recordAudioBtn.innerHTML = `${getLucideIcon('mic', 'lucide-icon', 18)}<span class="btn-text">Thu âm</span>`;
             recordAudioBtn.classList.remove('recording');
         }
         if (recordBatchBtn) {
-            recordBatchBtn.innerHTML = '<i class="fas fa-microphone"></i> Bắt đầu thu';
+            recordBatchBtn.innerHTML = `${getLucideIcon('mic', 'lucide-icon', 18)}<span class="btn-text">Bắt đầu thu</span>`;
             recordBatchBtn.classList.remove('recording');
         }
         singleVisualizer.stopAnimation();
@@ -300,8 +301,35 @@ export function initContribute(): void {
         });
     }
 
-    if (singleDeleteAudioBtn) {
-        singleDeleteAudioBtn.addEventListener('click', () => {
+    // 1-Step Deletion Confirmation Modal Logic (Requirement: single confirmation step with button 'Xóa')
+    const deleteAudioModal = document.getElementById('deleteAudioConfirmModal') as HTMLElement | null;
+    const btnCancelDeleteAudio = document.getElementById('btnCancelDeleteAudio') as HTMLButtonElement | null;
+    const btnConfirmDeleteAudio = document.getElementById('btnConfirmDeleteAudio') as HTMLButtonElement | null;
+    let pendingDeleteType: 'single' | 'batch' | null = null;
+    let pendingDeleteIndex = -1;
+
+    function openDeleteConfirmation(type: 'single' | 'batch', index = -1): void {
+        pendingDeleteType = type;
+        pendingDeleteIndex = index;
+        if (deleteAudioModal) {
+            deleteAudioModal.style.display = 'flex';
+            btnConfirmDeleteAudio?.focus();
+        }
+    }
+
+    function closeDeleteConfirmation(): void {
+        pendingDeleteType = null;
+        pendingDeleteIndex = -1;
+        if (deleteAudioModal) deleteAudioModal.style.display = 'none';
+    }
+
+    btnCancelDeleteAudio?.addEventListener('click', closeDeleteConfirmation);
+    deleteAudioModal?.addEventListener('click', (e) => {
+        if (e.target === deleteAudioModal) closeDeleteConfirmation();
+    });
+
+    btnConfirmDeleteAudio?.addEventListener('click', () => {
+        if (pendingDeleteType === 'single') {
             singleAudioBlob = null;
             if (singleAudioUrl) {
                 URL.revokeObjectURL(singleAudioUrl);
@@ -310,6 +338,22 @@ export function initContribute(): void {
             if (singlePlaybackControls) singlePlaybackControls.style.display = 'none';
             if (audioStatus) audioStatus.textContent = '';
             singleVisualizer.stopAnimation();
+            showToast('Đã xóa bản thu âm', 'info');
+        } else if (pendingDeleteType === 'batch' && pendingDeleteIndex >= 0) {
+            if (currentBatchPlayingIndex === pendingDeleteIndex) {
+                stopBatchAudio();
+            }
+            const removed = batchQueue.splice(pendingDeleteIndex, 1)[0];
+            if (removed?.audioUrl) URL.revokeObjectURL(removed.audioUrl);
+            updateBatchUI();
+            showToast(`Đã xóa "${removed?.name || 'file'}" khỏi hàng đợi`, 'info');
+        }
+        closeDeleteConfirmation();
+    });
+
+    if (singleDeleteAudioBtn) {
+        singleDeleteAudioBtn.addEventListener('click', () => {
+            openDeleteConfirmation('single');
         });
     }
 
@@ -420,12 +464,12 @@ export function initContribute(): void {
         if (batchQueue.length === 0) {
             batchQueueList.style.display = 'none';
             batchQueueList.replaceChildren();
-            submitBatchBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Gửi tất cả';
+            submitBatchBtn.innerHTML = `${getLucideIcon('send', 'lucide-icon', 18)}<span>Gửi tất cả</span>`;
             return;
         }
 
         batchQueueList.style.display = 'block';
-        submitBatchBtn.innerHTML = `<i class="fas fa-paper-plane"></i> Gửi tất cả (${batchQueue.length})`;
+        submitBatchBtn.innerHTML = `${getLucideIcon('send', 'lucide-icon', 18)}<span>Gửi tất cả (${batchQueue.length})</span>`;
 
         // Build list items using DOM APIs (Anti-XSS) and Event Delegation data attributes
         const fragment = document.createDocumentFragment();
@@ -457,14 +501,14 @@ export function initContribute(): void {
             playBtn.dataset.action = 'play-queue';
             playBtn.dataset.index = String(index);
             playBtn.title = isPlaying ? 'Tạm dừng' : 'Nghe';
-            playBtn.innerHTML = `<i class="fas ${isPlaying ? 'fa-pause' : 'fa-play'}"></i>`;
+            playBtn.innerHTML = getLucideIcon(isPlaying ? 'pause' : 'play', 'lucide-icon', 16);
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'queue-delete-btn';
             deleteBtn.dataset.action = 'delete-queue';
             deleteBtn.dataset.index = String(index);
             deleteBtn.title = 'Xóa';
-            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.innerHTML = getLucideIcon('trash-2', 'lucide-icon', 16);
 
             actionsDiv.appendChild(playBtn);
             actionsDiv.appendChild(deleteBtn);
@@ -513,17 +557,7 @@ export function initContribute(): void {
     }
 
     function deleteQueueItem(index: number): void {
-        if (index < 0 || index >= batchQueue.length) return;
-
-        if (currentBatchPlayingIndex === index) {
-            stopBatchAudio();
-        }
-
-        const removed = batchQueue.splice(index, 1)[0];
-        if (removed.audioUrl) URL.revokeObjectURL(removed.audioUrl);
-
-        updateBatchUI();
-        showToast(`Đã xóa "${removed.name}" khỏi hàng đợi`, 'info');
+        openDeleteConfirmation('batch', index);
     }
 
     // Attach Event Delegation on batchQueueList
@@ -540,7 +574,7 @@ export function initContribute(): void {
             if (action === 'play-queue') {
                 playBatchQueueItem(index);
             } else if (action === 'delete-queue') {
-                deleteQueueItem(index);
+                openDeleteConfirmation('batch', index);
             }
         });
     }
