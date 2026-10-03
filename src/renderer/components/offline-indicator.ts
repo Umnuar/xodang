@@ -4,6 +4,7 @@
  */
 
 import { showToast } from './toast';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 export function initOfflineIndicator(): void {
     const indicator = document.getElementById('offlineIndicator');
@@ -15,7 +16,7 @@ export function initOfflineIndicator(): void {
         if (isOnline) {
             indicator.classList.add('online');
             indicator.classList.remove('show');
-            indicator.innerHTML = '<i class="fas fa-wifi"></i> <span>Đã kết nối lại</span>';
+            indicator.innerHTML = `${getLucideIcon('wifi', 'lucide-icon', 16)} <span>Đã kết nối lại</span>`;
             showToast('Đã kết nối lại mạng Internet', 'success');
 
             setTimeout(() => {
@@ -24,7 +25,7 @@ export function initOfflineIndicator(): void {
         } else {
             indicator.classList.remove('online');
             indicator.classList.add('show');
-            indicator.innerHTML = '<i class="fas fa-plane"></i> <span>Đang offline</span>';
+            indicator.innerHTML = `${getLucideIcon('wifi-off', 'lucide-icon', 16)} <span>Đang offline</span>`;
             showToast('Mất kết nối mạng. Ứng dụng chuyển sang chế độ Offline.', 'warning');
         }
     }

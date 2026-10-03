@@ -1,28 +1,35 @@
-<div id="installGuideModal" class="install-modal" style="display:none;">
+<div id="installGuideModal" class="install-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="installModalHeading">
     <div class="install-modal-overlay"></div>
     <div class="install-modal-card">
-        <button class="modal-close-btn" aria-label="Đóng"><i class="fas fa-times"></i></button>
+        <button class="modal-close-btn" aria-label="Đóng">
+            <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
+            </svg>
+        </button>
         
         <div id="iosInstallGuide" class="modal-content-section" style="display:none;">
             <div class="modal-header">
-                <div class="icon-circle ios"><i class="fab fa-apple"></i></div>
-                <h3>Cài đặt trên iPhone/iPad</h3>
+                <h3 id="installModalHeading">Cài đặt trên iPhone / iPad</h3>
             </div>
-            <p class="modal-desc">Thao tác đơn giản chỉ trong 3 bước:</p>
+            <p class="modal-desc">Thao tác đơn giản trong 3 bước:</p>
             <div class="ios-steps">
                 <div class="ios-step">
                     <span class="step-num">1</span>
-                    <div class="step-text">Nhấn nút <strong>Chia sẻ (Share)</strong> trên thanh công cụ</div>
-                    <i class="fas fa-share-square ios-icon-simulate"></i>
+                    <div class="step-text">Nhấn nút <strong>Chia sẻ (Share)</strong> trên thanh công cụ trình duyệt Safari</div>
+                    <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+                    </svg>
                 </div>
                 <div class="ios-step">
                     <span class="step-num">2</span>
-                    <div class="step-text">Kéo lên và chọn dòng <br><strong>Thêm vào MH chính</strong></div>
-                    <i class="fas fa-plus-square ios-icon-simulate"></i>
+                    <div class="step-text">Cuộn xuống và chọn dòng <strong>Thêm vào màn hình chính</strong></div>
+                    <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 10v6"/><path d="M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+                    </svg>
                 </div>
                 <div class="ios-step">
                     <span class="step-num">3</span>
-                    <div class="step-text">Nhấn <strong>Thêm (Add)</strong> ở góc trên cùng bên phải</div>
+                    <div class="step-text">Nhấn nút <strong>Thêm (Add)</strong> ở góc trên cùng bên phải</div>
                     <span class="ios-text-simulate">Thêm</span>
                 </div>
             </div>
@@ -30,24 +37,23 @@
 
         <div id="inAppBrowserWarning" class="modal-content-section" style="display:none;">
             <div class="modal-header">
-                <div class="icon-circle warning"><i class="fas fa-exclamation-triangle"></i></div>
-                <h3 id="warningTitle">Trình duyệt hạn chế</h3>
+                <h3 id="warningTitle">Mở bằng trình duyệt ngoài</h3>
             </div>
             
             <div class="warning-box">
-                <p id="warningText">Trình duyệt này không hỗ trợ cài đặt ứng dụng tốt nhất.</p>
+                <p id="warningText">Trình duyệt nhúng không hỗ trợ lưu dữ liệu ngoại tuyến và cài đặt ứng dụng.</p>
             </div>
 
             <div class="browser-suggestion">
-                <p>Vui lòng mở bằng trình duyệt mặc định:</p>
+                <p>Khuyên dùng trình duyệt tiêu chuẩn:</p>
                 <div class="browser-badges">
-                    <span class="badge chrome"><i class="fab fa-chrome"></i> Google Chrome</span>
-                    <span class="badge safari"><i class="fab fa-safari"></i> Safari</span>
+                    <span class="badge chrome">Google Chrome</span>
+                    <span class="badge safari">Safari / Edge</span>
                 </div>
             </div>
             
             <div class="zalo-guide-tip">
-                <i class="fas fa-hand-point-right"></i> Nhấn dấu <i class="fas fa-ellipsis-h"></i> ở góc màn hình & chọn <strong>"Mở bằng trình duyệt"</strong>
+                Nhấn biểu tượng <strong>dấu ba chấm (...)</strong> ở góc màn hình và chọn <strong>"Mở bằng trình duyệt"</strong>.
             </div>
         </div>
     </div>

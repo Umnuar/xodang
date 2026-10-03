@@ -1,117 +1,138 @@
-<div id="onboardingModal" class="onboarding-modal" style="display: none;">
+<div id="onboardingModal" class="onboarding-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="onboardingHeading">
     <div class="onboarding-overlay"></div>
     <div class="onboarding-card">
         <button id="closeOnboardingBtn" class="onboarding-close-btn" aria-label="Đóng hướng dẫn">
-            <i class="fas fa-times"></i>
+            <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 6 6 18"/><path d="M6 6l12 12"/>
+            </svg>
         </button>
 
         <div class="onboarding-slides-container">
             <!-- Slide 1 -->
             <div class="onboarding-slide active" data-slide="0">
-                <div class="onboarding-icon-wrap s1-theme">
-                    <i class="fas fa-database"></i>
+                <div class="onboarding-icon-wrap">
+                    <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    </svg>
                 </div>
-                <h3>Nguồn dữ liệu chuẩn hóa</h3>
-                <p>Dữ liệu được số hóa từ tài liệu dạy học chính thống, đảm bảo tính chính xác về ngữ nghĩa và phát âm Xơ Đăng chuẩn bản ngữ.</p>
-                <div class="onboarding-features s1-features">
-                    <div><i class="fas fa-search"></i> Tra cứu 2 chiều Tiếng Việt ↔ Xơ Đăng</div>
-                    <div><i class="fas fa-microphone"></i> Nhận diện giọng nói tra cứu thông minh</div>
-                    <div><i class="fas fa-headphones"></i> File âm thanh người bản địa phát âm</div>
-                </div>
+                <h3 id="onboardingHeading">Ngữ liệu Xơ Đăng chuẩn mực</h3>
+                <p>Kho từ vựng được số hóa trực tiếp từ tài liệu giáo dục chính thống, đảm bảo ngữ nghĩa và giọng đọc chuẩn bản địa Kon Tum.</p>
+                <ul class="onboarding-features">
+                    <li>Tra cứu hai chiều tiếng Việt ↔ tiếng Xơ Đăng kèm phiên âm</li>
+                    <li>Nghe phát âm bản ngữ rõ ràng từng từ</li>
+                    <li>Bàn phím ký tự Xơ Đăng hỗ trợ gõ nhanh trên điện thoại</li>
+                </ul>
             </div>
 
             <!-- Slide 2 -->
             <div class="onboarding-slide" data-slide="1">
-                <div class="onboarding-icon-wrap s2-theme">
-                    <i class="fas fa-lightbulb"></i>
+                <div class="onboarding-icon-wrap">
+                    <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>
+                    </svg>
                 </div>
-                <h3>Phương pháp học chủ động</h3>
-                <p>Hệ thống học tập khoa học giúp học sinh THCS ghi nhớ từ vựng dễ dàng, sinh động và hiệu quả lâu dài.</p>
-                <div class="onboarding-features s2-features">
-                    <div><i class="fas fa-layer-group"></i> Flashcard lật thẻ 3D ghi nhớ từ vựng</div>
-                    <div><i class="fas fa-clipboard-check"></i> Trắc nghiệm kiểm tra tính điểm tự động</div>
-                    <div><i class="fas fa-gamepad"></i> 4 Trò chơi giáo dục giải trí vui nhộn</div>
-                </div>
+                <h3>Tự học & Luyện tập có hệ thống</h3>
+                <p>Phương pháp củng cố từ vựng khoa học, dễ tiếp thu, giúp học sinh THCS mở rộng vốn từ tự nhiên qua từng chủ đề.</p>
+                <ul class="onboarding-features">
+                    <li>Thẻ từ vựng (Flashcard) lật mở trực quan</li>
+                    <li>Bài trắc nghiệm ngắn chấm điểm tự động</li>
+                    <li>4 trò chơi luyện phản xạ và trí nhớ từ ngữ</li>
+                </ul>
             </div>
 
             <!-- Slide 3 -->
             <div class="onboarding-slide" data-slide="2">
-                <div class="onboarding-icon-wrap s3-theme">
-                    <i class="fas fa-robot"></i>
+                <div class="onboarding-icon-wrap">
+                    <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
                 </div>
-                <h3>Trợ lý ảo thông minh</h3>
-                <p>Chatbot thông minh đồng hành cùng học sinh 24/7, giải đáp từ vựng và câu hỏi ngôn ngữ Xơ Đăng tức thì.</p>
-                <div class="onboarding-features s3-features">
-                    <div><i class="fas fa-comments"></i> Hỏi đáp từ vựng và câu đàm thoại</div>
-                    <div><i class="fas fa-lightbulb"></i> Gợi ý câu hỏi tự động và tiện lợi</div>
-                    <div><i class="fas fa-clock"></i> Hoạt động liên tục mọi lúc mọi nơi</div>
-                </div>
+                <h3>Trợ lý giải đáp từ vựng</h3>
+                <p>Khung hỏi đáp nhanh giúp giải thích nghĩa từ, câu đàm thoại thông dụng và các thắc mắc ngôn ngữ thường gặp.</p>
+                <ul class="onboarding-features">
+                    <li>Hỏi đáp từ vựng và mẫu câu giao tiếp căn bản</li>
+                    <li>Gợi ý nhanh câu hỏi phổ biến theo ngữ cảnh</li>
+                    <li>Khung chat dạng trượt thuận tiện trên điện thoại</li>
+                </ul>
             </div>
 
             <!-- Slide 4 -->
             <div class="onboarding-slide" data-slide="3">
-                <div class="onboarding-icon-wrap s4-theme">
-                    <i class="fas fa-users"></i>
+                <div class="onboarding-icon-wrap">
+                    <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.18 0l1.71 1.71"/>
+                    </svg>
                 </div>
-                <h3>Cộng đồng đóng góp từ vựng</h3>
-                <p>Chung tay bảo tồn ngôn ngữ bằng cách đóng góp từ mới và thu âm phát âm tiếng bản địa trực tiếp.</p>
-                <div class="onboarding-features s4-features">
-                    <div><i class="fas fa-upload"></i> Đóng góp từ đơn kèm thu âm</div>
-                    <div><i class="fas fa-microphone-alt"></i> Thu âm hàng loạt nhanh chóng</div>
-                    <div><i class="fas fa-shield-alt"></i> Quy trình kiểm duyệt minh bạch</div>
-                </div>
+                <h3>Chung tay làm giàu vốn từ</h3>
+                <p>Mỗi người học đều có thể đóng góp từ mới và bản thu âm giọng đọc bản địa để cùng gìn giữ bản sắc văn hóa.</p>
+                <ul class="onboarding-features">
+                    <li>Gửi từ vựng mới kèm tệp âm thanh minh họa</li>
+                    <li>Thu âm hàng loạt nhanh chóng và tiện lợi</li>
+                    <li>Dễ dàng quản lý và xóa bản ghi với 1 bước xác nhận</li>
+                </ul>
             </div>
 
             <!-- Slide 5 -->
             <div class="onboarding-slide" data-slide="4">
-                <div class="onboarding-icon-wrap s5-theme">
-                    <i class="fas fa-rocket"></i>
+                <div class="onboarding-icon-wrap">
+                    <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+                    </svg>
                 </div>
-                <h3>Công nghệ PWA hiện đại</h3>
-                <p>Ứng dụng web tiến bộ hỗ trợ cài đặt trên điện thoại và máy tính, hoạt động mượt mà khi mất kết nối mạng.</p>
-                <div class="onboarding-features s5-features">
-                    <div><i class="fas fa-wifi"></i> Tải sẵn âm thanh để học Offline 100%</div>
-                    <div><i class="fas fa-mobile-alt"></i> Cài đặt như ứng dụng gốc qua App Store / Chrome</div>
-                    <div><i class="fas fa-sync-alt"></i> Tự động cập nhật phiên bản mới nhất</div>
-                </div>
+                <h3>Sử dụng ổn định Ngoại tuyến (Offline)</h3>
+                <p>Toàn bộ từ điển và âm thanh có thể tải sẵn về máy để sử dụng mượt mà ngay cả khi không có kết nối Internet.</p>
+                <ul class="onboarding-features">
+                    <li>Học tập không gián đoạn trong phòng học hoặc vùng sâu</li>
+                    <li>Cài đặt trực tiếp lên màn hình chính điện thoại</li>
+                    <li>Tự động đồng bộ khi có kết nối trở lại</li>
+                </ul>
             </div>
 
             <!-- Slide 6 -->
             <div class="onboarding-slide" data-slide="5">
-                <div class="onboarding-icon-wrap s6-theme">
-                    <i class="fas fa-exclamation-triangle"></i>
+                <div class="onboarding-icon-wrap">
+                    <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+                    </svg>
                 </div>
-                <h3>Lưu ý khi sử dụng</h3>
-                <p>Để trải nghiệm học tập tốt nhất, vui lòng mở ứng dụng bằng Google Chrome hoặc Safari và cấp quyền microphone.</p>
-                <div class="onboarding-features s6-features">
-                    <div><i class="fab fa-chrome"></i> Khuyên dùng Google Chrome hoặc Safari</div>
-                    <div><i class="fas fa-ban"></i> Không nên dùng trình duyệt nhúng trong Zalo/Facebook</div>
-                    <div><i class="fas fa-microphone"></i> Cho phép microphone khi thu âm luyện nói</div>
-                </div>
+                <h3>Lưu ý để có trải nghiệm tốt nhất</h3>
+                <p>Ứng dụng tối ưu cho các trình duyệt tiêu chuẩn và bảo mật dữ liệu an toàn ngay trên thiết bị của bạn.</p>
+                <ul class="onboarding-features">
+                    <li>Khuyên dùng trình duyệt Google Chrome hoặc Safari</li>
+                    <li>Cấp quyền microphone khi dùng tính năng thu âm</li>
+                    <li>Dữ liệu tiến độ học tập được lưu cục bộ trên máy bạn</li>
+                </ul>
             </div>
         </div>
 
         <div class="onboarding-controls">
             <button id="onboardingPrevBtn" class="onboarding-btn-nav" disabled aria-label="Slide trước">
-                <i class="fas fa-arrow-left"></i>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
             </button>
 
             <div class="onboarding-dots" role="tablist" aria-label="Chọn slide">
-                <span class="onboarding-dot active" data-slide="0" role="tab" aria-selected="true"></span>
-                <span class="onboarding-dot" data-slide="1" role="tab"></span>
-                <span class="onboarding-dot" data-slide="2" role="tab"></span>
-                <span class="onboarding-dot" data-slide="3" role="tab"></span>
-                <span class="onboarding-dot" data-slide="4" role="tab"></span>
-                <span class="onboarding-dot" data-slide="5" role="tab"></span>
+                <span class="onboarding-dot active" data-slide="0" role="tab" aria-selected="true" aria-label="Trang 1"></span>
+                <span class="onboarding-dot" data-slide="1" role="tab" aria-selected="false" aria-label="Trang 2"></span>
+                <span class="onboarding-dot" data-slide="2" role="tab" aria-selected="false" aria-label="Trang 3"></span>
+                <span class="onboarding-dot" data-slide="3" role="tab" aria-selected="false" aria-label="Trang 4"></span>
+                <span class="onboarding-dot" data-slide="4" role="tab" aria-selected="false" aria-label="Trang 5"></span>
+                <span class="onboarding-dot" data-slide="5" role="tab" aria-selected="false" aria-label="Trang 6"></span>
             </div>
 
             <button id="onboardingNextBtn" class="onboarding-btn-nav" aria-label="Slide tiếp">
-                <i class="fas fa-arrow-right"></i>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6"/>
+                </svg>
             </button>
         </div>
 
-        <button id="onboardingStartBtn" class="onboarding-start-btn">
-            <i class="fas fa-rocket"></i> Bắt đầu học ngay
+        <button id="onboardingStartBtn" class="onboarding-start-btn" type="button">
+            <span>Bắt đầu học ngay</span>
+            <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+            </svg>
         </button>
     </div>
 </div>

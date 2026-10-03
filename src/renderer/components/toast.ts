@@ -3,13 +3,15 @@
  * Safe DOM creation with textContent (Anti-XSS).
  */
 
+import { createLucideIconElement } from '@/renderer/utils/icons';
+
 export type ToastType = 'info' | 'success' | 'error' | 'warning';
 
 const ICON_MAP: Record<ToastType, string> = {
-    info: 'fa-info-circle',
-    success: 'fa-check-circle',
-    error: 'fa-exclamation-circle',
-    warning: 'fa-exclamation-triangle'
+    info: 'info',
+    success: 'check-circle',
+    error: 'alert-circle',
+    warning: 'alert-circle'
 };
 
 export function showToast(message: string, type: ToastType = 'info'): void {
@@ -24,8 +26,7 @@ export function showToast(message: string, type: ToastType = 'info'): void {
     flexWrapper.style.alignItems = 'center';
     flexWrapper.style.gap = '10px';
 
-    const icon = document.createElement('i');
-    icon.className = `fas ${ICON_MAP[type] || 'fa-info-circle'}`;
+    const icon = createLucideIconElement(ICON_MAP[type] || 'info', 'lucide-icon', 18);
 
     const textSpan = document.createElement('span');
     textSpan.textContent = message; // Safe against XSS

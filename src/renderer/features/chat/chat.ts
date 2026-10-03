@@ -10,6 +10,7 @@ import {
     pickRandomFaqSuggestions,
     type BotFAQ
 } from '@/renderer/services/faq.service';
+import { getLucideIcon } from '@/renderer/utils/icons';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
 export function createSuggestionButton(questionText: string, onClick: (q: string) => void): HTMLButtonElement {
@@ -136,7 +137,7 @@ export function initChat(): void {
         suggestionsBox.className = 'welcome-message';
 
         const header = document.createElement('h4');
-        header.innerHTML = '<i class="fas fa-lightbulb"></i> Gợi ý câu hỏi:';
+        header.innerHTML = `${getLucideIcon('lightbulb', 'lucide-icon', 16)} <span>Gợi ý câu hỏi:</span>`;
         suggestionsBox.appendChild(header);
 
         const buttonsContainer = document.createElement('div');
