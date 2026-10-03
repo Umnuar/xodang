@@ -339,10 +339,11 @@ body.dark-mode .welcome-message {
     }
 
     .chat-window {
-        width: calc(100vw - 32px);
-        max-width: 360px;
+        width: min(340px, calc(100vw - 32px));
+        max-width: 340px;
         height: 440px;
         bottom: 68px;
         right: 0;
+        box-sizing: border-box;
     }
 }

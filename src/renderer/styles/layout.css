@@ -18,12 +18,14 @@
 
 .navbar-container {
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 0.6rem 1.2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
+    box-sizing: border-box;
 }
 
 /* Brand Logo */
@@ -333,10 +335,12 @@ body.dark-mode .hashtag:hover {
     }
 
     .container {
-        padding: 1.4rem 1.1rem;
+        padding: 1.4rem 1rem;
         margin: 1rem auto;
-        width: 96%;
+        width: 100%;
+        max-width: 100%;
         border-radius: var(--radius-lg);
+        box-sizing: border-box;
         /* Add bottom clearance for mobile bottom bar */
         padding-bottom: 5.5rem;
     }
@@ -358,6 +362,7 @@ body.dark-mode .hashtag:hover {
         padding-bottom: env(safe-area-inset-bottom, 0px);
         justify-content: space-around;
         align-items: center;
+        box-sizing: border-box;
     }
 
     body.dark-mode .mobile-bottom-nav {
@@ -434,7 +439,9 @@ body.dark-mode .hashtag:hover {
     }
 
     .container {
-        padding: 1.2rem 0.8rem 5.5rem 0.8rem;
-        width: 98%;
+        padding: 1.1rem 0.75rem 5.5rem 0.75rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 }

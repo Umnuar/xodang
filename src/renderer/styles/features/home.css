@@ -227,16 +227,24 @@
    ========================================================================== */
 #searchForm {
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 1rem;
     align-items: end;
     margin-bottom: 1rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .input-group {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .form-label {
@@ -251,16 +259,21 @@
     align-items: center;
     gap: 0.5rem;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .search-input-container input[type="text"] {
     flex: 1;
     width: 100%;
+    min-width: 0;
     min-height: var(--tap-target-min);
     padding: 0.75rem 1.1rem;
     font-size: 1rem;
     border: 2px solid var(--border-subtle);
     border-radius: var(--radius-md);
+    box-sizing: border-box;
 }
 
 .search-input-container input[type="text"]:focus {
@@ -311,8 +324,13 @@
     gap: 0.5rem;
     margin-top: 0.4rem;
     overflow-x: auto;
-    padding: 0.3rem 0;
+    padding: 0.35rem 0.1rem;
     scrollbar-width: thin;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
 }
 
 .diacritics-label {
@@ -323,11 +341,13 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .diacritics-buttons {
     display: flex;
     gap: 0.35rem;
+    flex-shrink: 0;
 }
 
 .diacritic-btn {
@@ -346,6 +366,8 @@
     justify-content: center;
     cursor: pointer;
     transition: all var(--transition-fast);
+    flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 .diacritic-btn:hover {
@@ -374,6 +396,7 @@ select#direction {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    box-sizing: border-box;
 }
 
 /* Search Submit Button */
@@ -641,35 +664,75 @@ select#direction {
    ========================================================================== */
 @media (max-width: 900px) {
     .features-list {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 768px) {
+    .intro-content {
+        padding: 1.2rem 1rem;
+    }
+
     .dictionary-stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.75rem;
     }
 
     #searchForm {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.85rem;
     }
 
     .btn-download-offline, .search-button {
         width: 100%;
         max-width: none;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     select#direction {
-        min-width: 100%;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .features-list {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .diacritics-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.45rem;
+        overflow-x: visible;
+        width: 100%;
+    }
+
+    .diacritics-label {
+        width: 100%;
+        font-size: 0.82rem;
+    }
+
+    .diacritics-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        width: 100%;
+    }
+
+    .diacritic-btn {
+        flex: 1 0 calc(20% - 0.35rem);
+        min-width: 44px;
+        max-width: 58px;
     }
 }
 
 @media (max-width: 400px) {
+    .intro-content {
+        padding: 1rem 0.75rem;
+    }
+
     .stat-number {
         font-size: 1.4rem;
     }
@@ -690,5 +753,11 @@ select#direction {
 
     .word-text {
         font-size: 1.05rem;
+    }
+
+    .diacritic-btn {
+        font-size: 0.95rem;
+        height: 42px;
+        min-height: 42px;
     }
 }
