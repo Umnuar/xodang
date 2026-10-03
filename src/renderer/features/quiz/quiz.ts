@@ -15,6 +15,7 @@ import { FlashcardManager } from './flashcard';
 import { showToast } from '@/renderer/components/toast';
 import { showLoading, hideLoading } from '@/renderer/components/loading-overlay';
 import { eventBus } from '@/renderer/components/event-bus';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 let allQuestions: QuizQuestion[] = [];
 let topicsMap = new Map<string, QuizQuestion[]>();
@@ -84,7 +85,7 @@ export async function initQuiz(): Promise<void> {
 
             const iconDiv = document.createElement('div');
             iconDiv.className = 'topic-icon';
-            iconDiv.innerHTML = '<i class="fas fa-book-reader"></i>';
+            iconDiv.innerHTML = getLucideIcon('book-open', 'lucide-icon', 22);
 
             const title = document.createElement('h3');
             title.textContent = topicName;

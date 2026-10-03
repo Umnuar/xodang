@@ -1,20 +1,26 @@
-<section id="quiz" class="container">
-    <div class="quiz-badge"><i class="fas fa-graduation-cap"></i> Không gian học tập & khảo thí</div>
-    <h1>Học và Kiểm Tra Tiếng Xơ Đăng</h1>
-    
-    <div class="intro-content">
-        <p>Học từ vựng tiếng Xơ Đăng qua hệ thống flashcard thông minh, sau đó kiểm tra kiến thức bằng bài trắc nghiệm. Phương pháp học tập khoa học giúp bạn ghi nhớ lâu hơn.</p>
-        <div class="study-progress-bar">
+<section id="quiz" class="container" aria-label="Học và kiểm tra kiến thức tiếng Xơ Đăng">
+    <!-- Quiz Header (Clean, left-aligned, no AI slop badge) -->
+    <header class="quiz-header-top">
+        <h1>Học và Kiểm Tra Tiếng Xơ Đăng</h1>
+        <p class="quiz-subtitle">Ôn tập từ vựng Xơ Đăng theo chủ đề qua thẻ flashcard, sau đó kiểm tra nhanh qua bài trắc nghiệm 5 câu.</p>
+        <div class="study-progress-bar" role="progressbar" aria-label="Tiến độ học tập tổng thể" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <div class="study-progress-fill" id="studyProgressFill" style="width: 0%"></div>
         </div>
-    </div>
+    </header>
     
     <!-- Bước 1: Chọn chủ đề -->
     <div id="studyQuizTopicSelection" class="study-quiz-topic-selection">
-        <h2><i class="fas fa-folder-open"></i> Chọn Chủ Đề Học Tập</h2>
-        <p>Chọn một chủ đề để bắt đầu học và kiểm tra kiến thức của bạn:</p>
+        <div class="section-title-wrap">
+            <h2>
+                <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/>
+                </svg>
+                <span>Chọn chủ đề ôn tập</span>
+            </h2>
+            <p class="section-desc">Chọn một chủ đề để mở bộ thẻ từ vựng và bài kiểm tra trắc nghiệm:</p>
+        </div>
         <div class="study-quiz-topics-grid" id="studyQuizTopicsGrid">
-            <!-- Các chủ đề sẽ được load từ API -->
+            <!-- Các chủ đề được nạp từ sheets -->
         </div>
     </div>
     
@@ -29,77 +35,74 @@
             </div>
             
             <div class="study-stats">
-                <i class="fas fa-chart-line"></i> <span id="studyCompletion">0% đã học</span>
+                <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" x2="18" y1="20" y2="10"/>
+                    <line x1="12" x2="12" y1="20" y2="4"/>
+                    <line x1="6" x2="6" y1="20" y2="14"/>
+                </svg>
+                <span id="studyCompletion">0% đã học</span>
             </div>
         </div>
         
-        <!-- Hướng dẫn học tập -->
+        <!-- Hướng dẫn ngắn gọn -->
         <div class="study-guide">
-            <h3><i class="fas fa-graduation-cap"></i> Hướng Dẫn Học Tập</h3>
             <div class="guide-steps">
                 <div class="guide-step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h4>Xem câu hỏi</h4>
-                        <p>Đọc câu hỏi trên mặt trước của thẻ. Cố gắng nhớ câu trả lời trước khi lật thẻ.</p>
-                    </div>
+                    <span class="step-num">1</span>
+                    <span>Đọc câu hỏi / từ vựng ở mặt trước</span>
                 </div>
                 <div class="guide-step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h4>Lật thẻ</h4>
-                        <p>Nhấn vào thẻ hoặc nút "Lật thẻ" để xem đáp án. Khi bạn lật thẻ, dấu tick xanh sẽ xuất hiện để đánh dấu bạn đã học thẻ này.</p>
-                    </div>
+                    <span class="step-num">2</span>
+                    <span>Chạm thẻ để lật xem đáp án tiếng Việt</span>
                 </div>
                 <div class="guide-step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h4>Ôn tập</h4>
-                        <p>Sử dụng nút "Câu trước" và "Câu tiếp theo" để xem lại các thẻ đã học hoặc chuyển sang thẻ mới.</p>
-                    </div>
+                    <span class="step-num">3</span>
+                    <span>Chuyển thẻ trước / sau để ôn tiếp</span>
                 </div>
                 <div class="guide-step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h4>Kiểm tra</h4>
-                        <p>Sau khi học ít nhất 70% số thẻ, nút "Bắt đầu kiểm tra" sẽ mở khóa. Nhấn vào để làm bài trắc nghiệm.</p>
-                    </div>
+                    <span class="step-num">4</span>
+                    <span>Học đạt từ 70% số thẻ để mở bài thi</span>
                 </div>
-            </div>
-            <div class="study-tip">
-                <p><i class="fas fa-lightbulb"></i> Mẹo: Học ít nhất 70% số thẻ để đảm bảo bạn đã nắm vững kiến thức trước khi làm bài kiểm tra!</p>
             </div>
         </div>
         
         <div class="flashcard-container">
-            <div class="flashcard" id="flashcard">
+            <div class="flashcard" id="flashcard" role="button" tabindex="0" aria-label="Thẻ từ vựng, nhấn để lật">
                 <!-- Hiệu ứng hoàn thành -->
                 <div class="card-completion-effect" id="cardCompletionEffect"></div>
                 
                 <!-- Mặt trước -->
                 <div class="flashcard-front" id="flashcardFront">
                     <div class="flashcard-number" id="frontCardNumber">1/10</div>
-                    <div class="flashcard-tick" id="frontTick"><i class="fas fa-check"></i></div>
+                    <div class="flashcard-tick" id="frontTick" title="Đã học">
+                        <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
                     <div class="flashcard-question" id="flashcardQuestion">
-                        <!-- Câu hỏi sẽ được hiển thị ở đây -->
+                        <!-- Câu hỏi / Từ Xơ Đăng -->
                     </div>
                     <div class="flashcard-instruction">
-                        <i class="fas fa-hand-point-up"></i> Nhấn vào thẻ để xem đáp án
+                        <span>Chạm thẻ để lật xem đáp án</span>
                     </div>
                 </div>
                 
                 <!-- Mặt sau -->
                 <div class="flashcard-back" id="flashcardBack">
                     <div class="flashcard-number" id="backCardNumber">1/10</div>
-                    <div class="flashcard-tick" id="backTick"><i class="fas fa-check"></i></div>
+                    <div class="flashcard-tick" id="backTick" title="Đã học">
+                        <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
                     <div class="flashcard-question-full" id="flashcardQuestionFull">
-                        <!-- Câu hỏi đầy đủ sẽ được hiển thị ở đây -->
+                        <!-- Câu hỏi đầy đủ -->
                     </div>
                     <div class="flashcard-answer" id="flashcardAnswer">
-                        <!-- Đáp án sẽ được hiển thị ở đây -->
+                        <!-- Nghĩa tiếng Việt -->
                     </div>
                     <div class="flashcard-instruction">
-                        <i class="fas fa-hand-point-up"></i> Nhấn vào thẻ để quay lại
+                        <span>Chạm thẻ để quay lại</span>
                     </div>
                 </div>
             </div>
@@ -107,59 +110,90 @@
         
         <div class="flashcard-controls">
             <button id="prevCardBtn" class="flashcard-nav-btn" disabled aria-label="Thẻ trước">
-                <i class="fas fa-chevron-left"></i>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+                <span>Trước</span>
             </button>
             <button id="flipCardBtn" class="flashcard-flip-btn" aria-label="Lật thẻ">
-                <i class="fas fa-sync-alt"></i> Lật thẻ
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+                    <path d="M21 3v5h-5"/>
+                </svg>
+                <span>Lật thẻ</span>
             </button>
             <button id="nextCardBtn" class="flashcard-nav-btn" aria-label="Thẻ tiếp theo">
-                <i class="fas fa-chevron-right"></i>
+                <span>Sau</span>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6"/>
+                </svg>
             </button>
         </div>
         
-        <div class="study-progress-bar">
+        <div class="study-progress-bar" role="progressbar" aria-label="Tiến độ bài học hiện tại" aria-valuemin="0" aria-valuemax="100">
             <div class="study-progress-fill" id="studySessionProgressFill" style="width: 0%"></div>
         </div>
         
-        <button id="startQuizBtn" class="start-quiz-btn" disabled>
-            <i class="fas fa-play-circle"></i> Bắt đầu kiểm tra
-        </button>
+        <div class="start-quiz-wrap">
+            <button id="startQuizBtn" class="start-quiz-btn" disabled>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polygon points="6 3 20 12 6 21 6 3"/>
+                </svg>
+                <span>Bắt đầu kiểm tra (cần học thêm 70%)</span>
+            </button>
+        </div>
     </div>
     
-    <!-- Bước 3: Giao diện làm bài trắc nghiệm -->
+    <!-- Bước 3: Giao diện trắc nghiệm -->
     <div id="quizInterface" class="quiz-interface" style="display: none;">
         <div class="quiz-header">
             <div class="quiz-info">
                 <h2 id="currentQuizTopicTitle">Chủ đề: </h2>
-                <div class="quiz-progress">
-                    <span id="currentQuestionNumber">1</span>/5
+                <div class="quiz-progress-badge">
+                    <span>Câu </span><span id="currentQuestionNumber">1</span>/5
                 </div>
             </div>
             
             <div class="quiz-timer">
-                <i class="fas fa-clock"></i> Thời gian: <span id="quizTimer">00:00</span>
+                <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>Thời gian: <strong id="quizTimer">00:00</strong></span>
             </div>
         </div>
         
         <div class="question-container">
             <div class="question-text" id="questionText">
-                <!-- Câu hỏi sẽ được hiển thị ở đây -->
+                <!-- Nội dung câu hỏi -->
             </div>
             
-            <div class="options-container" id="optionsContainer">
-                <!-- Các lựa chọn sẽ được hiển thị ở đây -->
+            <div class="options-container" id="optionsContainer" role="radiogroup" aria-label="Các phương án trả lời">
+                <!-- 4 lựa chọn A, B, C, D -->
             </div>
         </div>
         
         <div class="quiz-controls">
-            <button id="prevQuestionBtn" class="quiz-control-btn">
-                <i class="fas fa-arrow-left"></i> Câu trước
+            <button id="prevQuestionBtn" class="quiz-control-btn btn-secondary">
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                <span>Câu trước</span>
             </button>
-            <button id="nextQuestionBtn" class="quiz-control-btn">
-                Câu tiếp theo <i class="fas fa-arrow-right"></i>
+            <button id="nextQuestionBtn" class="quiz-control-btn btn-secondary">
+                <span>Câu tiếp theo</span>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14"/>
+                    <path d="m12 5 7 7-7 7"/>
+                </svg>
             </button>
-            <button id="submitQuizBtn" class="quiz-control-btn submit-btn">
-                <i class="fas fa-paper-plane"></i> Nộp bài
+            <button id="submitQuizBtn" class="quiz-control-btn submit-btn" disabled>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="22" x2="11" y1="2" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                <span>Nộp bài</span>
             </button>
         </div>
     </div>
@@ -167,14 +201,21 @@
     <!-- Bước 4: Kết quả -->
     <div id="quizResult" class="quiz-result" style="display: none;">
         <div class="result-header">
-            <h2><i class="fas fa-trophy"></i> Kết Quả Kiểm Tra</h2>
+            <h2>
+                <svg class="lucide-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                </svg>
+                <span>Kết Quả Bài Kiểm Tra</span>
+            </h2>
             <p id="resultTopic">Chủ đề: </p>
         </div>
         
         <div class="score-container">
-            <div class="score-circle">
-                <span id="finalScore">0</span>
-                <small>/5</small>
+            <div class="score-box">
+                <div class="score-value">
+                    <span id="finalScore">0</span>
+                    <span class="score-max">/5</span>
+                </div>
             </div>
             <div class="score-text">
                 <h3 id="resultTitle">Kết quả</h3>
@@ -183,7 +224,14 @@
         </div>
         
         <div class="result-details">
-            <h3><i class="fas fa-chart-bar"></i> Chi tiết</h3>
+            <h3>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" x2="18" y1="20" y2="10"/>
+                    <line x1="12" x2="12" y1="20" y2="4"/>
+                    <line x1="6" x2="6" y1="20" y2="14"/>
+                </svg>
+                <span>Chi tiết từng câu hỏi</span>
+            </h3>
             <div class="details-grid" id="resultDetails">
                 <!-- Chi tiết từng câu hỏi -->
             </div>
@@ -191,13 +239,23 @@
         
         <div class="result-actions">
             <button id="retryQuizBtn" class="result-action-btn">
-                <i class="fas fa-redo"></i> Làm lại
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                    <path d="M3 3v5h5"/>
+                </svg>
+                <span>Làm lại bài</span>
             </button>
-            <button id="newTopicBtn" class="result-action-btn">
-                <i class="fas fa-folder-plus"></i> Chủ đề mới
+            <button id="newTopicBtn" class="result-action-btn btn-secondary">
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 10v6"/><path d="M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+                </svg>
+                <span>Chủ đề khác</span>
             </button>
-            <button id="shareResultBtn" class="result-action-btn">
-                <i class="fas fa-share"></i> Chia sẻ
+            <button id="shareResultBtn" class="result-action-btn btn-secondary">
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+                </svg>
+                <span>Chia sẻ</span>
             </button>
         </div>
     </div>

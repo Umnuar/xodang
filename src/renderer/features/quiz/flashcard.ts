@@ -5,6 +5,7 @@
 
 import type { QuizQuestion } from '@/renderer/services/quiz.service';
 import { loadStudyProgress, saveStudyProgress } from '@/renderer/services/storage.service';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 export interface StudyCard {
     index: number;
@@ -162,9 +163,9 @@ export class FlashcardManager {
         if (startQuizBtn) {
             startQuizBtn.disabled = !isReady;
             if (isReady) {
-                startQuizBtn.innerHTML = '<i class="fas fa-play-circle"></i> Bắt đầu kiểm tra';
+                startQuizBtn.innerHTML = `${getLucideIcon('play', 'lucide-icon', 18)} <span>Bắt đầu kiểm tra</span>`;
             } else {
-                startQuizBtn.innerHTML = `<i class="fas fa-play-circle"></i> Bắt đầu kiểm tra (cần học thêm ${70 - percent}%)`;
+                startQuizBtn.innerHTML = `${getLucideIcon('play', 'lucide-icon', 18)} <span>Bắt đầu kiểm tra (cần học thêm ${70 - percent}%)</span>`;
             }
         }
 
