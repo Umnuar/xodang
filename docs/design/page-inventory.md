@@ -1,138 +1,142 @@
-# BẢN KIỂM KÊ TRANG & MÀN HÌNH (PAGE INVENTORY)
-*Dự án: Ứng dụng số hóa hỗ trợ tự học và bảo tồn ngôn ngữ Xơ Đăng cho học sinh THCS*  
-*Phiên bản: 10.0.3 | Ngày kiểm kê: 2026-10-03*
+# KIỂM KÊ MÀN HÌNH VÀ THÀNH PHẦN GIAO DIỆN (PAGE INVENTORY)
+*Dự án: Xơ Đăng Lingua — Phiên bản 10.0.3*
+*Ngày lập: 03/10/2026 — Kiểm kê thực tế trực tiếp từ source code (HTML, TS, CSS)*
 
 ---
 
-## 1. Danh Sách Màn Hình / Tuyến Trang
-
-Dự án là ứng dụng Single Page Application (PWA) định tuyến bằng URL hash (`router.ts`), kết hợp một trang cứu trợ ngoại tuyến độc lập (`offline.html`).
-
-| STT | Màn hình | URL / Tuyến | Template / File Nguồn | Mục đích chính |
-| :--- | :--- | :--- | :--- | :--- |
-| **01** | **Trang Chủ (Từ Điển)** | `/#home` (hoặc `/`) | `src/renderer/features/home/home.html` | Tra cứu 2 chiều Xơ Đăng ↔ Việt, thống kê số liệu, tải audio offline, tìm kiếm giọng nói, hiển thị chi tiết từ vựng và câu ví dụ |
-| **02** | **Đóng Góp Từ Vựng** | `/#contribute` | `src/renderer/features/contribute/contribute.html` | Thu thập từ mới và bản thu âm giọng đọc bản địa từ cộng đồng học sinh/giáo viên (hỗ trợ đóng góp đơn và thu âm hàng loạt) |
-| **03** | **Học & Kiểm Tra (Quiz/Flashcard)** | `/#quiz` | `src/renderer/features/quiz/quiz.html` | Chọn chủ đề bài học, lật flashcard 3D học từ vựng, làm bài trắc nghiệm tính điểm, xem kết quả và giải thích |
-| **04** | **Game Giáo Dục** | `/#game` | `src/renderer/features/games/games.html` | Hub 4 trò chơi học tập (Lật thẻ trí nhớ, Mưa từ vựng, Bảo vệ làng, Nông trại số), bảng xếp hạng, huy hiệu, chứng nhận tốt nghiệp |
-| **05** | **Hướng Dẫn Sử Dụng (Onboarding Modal)** | Khởi chạy qua modal `#onboardingModal` | `src/renderer/features/onboarding/onboarding.html` | Giới thiệu 4 trụ cột tính năng cho người mới: Dữ liệu chuẩn, Phương pháp học, Trợ lý ảo, Cộng đồng |
-| **06** | **Trang Báo Ngoại Tuyến (Offline Fallback)** | `/offline.html` | `public/offline.html` | Trang dự phòng khi mất kết nối hoàn toàn và chưa kịp cache tài nguyên ứng dụng |
+## 1. Bản Đồ Điều Hướng & Router (src/renderer/router.ts)
+Hệ thống sử dụng Hash Router không framework (`#home`, `#quiz`, `#game`, `#contribute`), tự động chuyển đổi active section giữa các container và đồng bộ hóa trạng thái active trên Desktop Navigation / Mobile Bottom Navigation.
 
 ---
 
-## 2. Chi Tiết Thành Phần Giao Diện Theo Từng Màn Hình
+## 2. Danh Mục Chi Tiết Từng Trang & Thành Phần
 
-### 2.1 Trang Chủ (Từ Điển - `/#home`)
-- **Header & Hero Section**:
-  - Tiêu đề chính `h1`: "Tra Cứu Tiếng Xơ Đăng - Tiếng Việt"
-  - Mô tả tóm tắt mục tiêu dự án
-  - Thẻ lưới thống kê 4 cột (`.dictionary-stats`): Số lượng Từ vựng (1000+), File âm thanh (1000+), Ví dụ (2000+), Câu hỏi ôn tập (100+)
-- **Thẻ Tải Âm Thanh Ngoại Tuyến (`.offline-download-card`)**:
-  - Icon wifi, tiêu đề trạng thái, thanh tiến trình download (`.download-progress-bar`), nút hành động "Tải âm thanh offline (~40MB)"
-- **Lưới Tính Năng Nổi Bật (`.features-list`)**:
-  - 10 thẻ item biểu tượng icon + văn bản giới thiệu các tính năng cốt lõi
-- **Form Tra Cứu (`#searchForm`)**:
-  - Ô input tìm kiếm `#word` tích hợp autocomplete suggestions (`#suggestions`)
-  - Nút nhận diện giọng nói `#speechButton` (icon micro, hiệu ứng pulse khi đang nghe)
-  - Dropdown chọn hướng dịch `#direction` (Việt → Xơ Đăng / Xơ Đăng → Việt)
-  - Nút bấm `#search-button` "Tra cứu"
-- **Khu Vực Kết Quả Tra Cứu (`#resultContainer`)**:
-  - Trạng thái ban đầu: Empty state gợi ý nhập từ
-  - Trạng thái kết quả: Thẻ từ (`.word-card`), bao gồm từ gốc, từ dịch, nút phát âm thanh (`.audio-btn`), câu ví dụ minh họa và nghĩa tiếng Việt
-
-### 2.2 Đóng Góp Từ Vựng (`/#contribute`)
-- **Tiêu đề & Hướng dẫn**: Giới thiệu mục đích và 2 hình thức đóng góp
-- **Bộ Chuyển Tab (`.contribute-tabs`)**: Nút tab "Từ đơn" (`#singleTab`) và "Thu hàng loạt" (`#batchTab`)
-- **Form Tab "Từ Đơn"**:
-  - Input từ tiếng Việt (`#vietnameseWord`)
-  - Input nghĩa tiếng Xơ Đăng (`#xodangWord`)
-  - Khu vực âm thanh: Nút "Thu âm" (`#recordAudioBtn`), Nút "Tải lên" (`#uploadAudioBtn`), Input file ẩn
-  - Bộ visualizer sóng âm (`#audioVisualizer` / `#audioWave`)
-  - Bảng điều khiển phát lại bản thu (`#singlePlaybackControls`): Nút Play, Stop, Delete, Tên file
-  - Nút gửi đóng góp (`#submitSingleBtn`)
-- **Form Tab "Thu Hàng Loạt"**:
-  - Thống kê tiến độ danh sách từ cần thu
-  - Thẻ từ vựng hiện tại cần đọc to
-  - Bộ nút điều hướng: Bỏ qua, Thu lại, Tiếp tục
-
-### 2.3 Học & Kiểm Tra (`/#quiz`)
-- **Tiêu đề & Thanh Tiến Trình Học Tập**: `.study-progress-bar`
-- **Màn Hình 1 - Chọn Chủ Đề (`#studyQuizTopicSelection`)**:
-  - Lưới card các chủ đề bài học (`#studyQuizTopicsGrid`): Gia đình, Trường học, Thiên nhiên, Động vật, v.v. Kèm số lượng thẻ và tiến độ %
-- **Màn Hình 2 - Flashcard Học Tập (`#studyInterface`)**:
-  - Tiêu đề chủ đề, bộ đếm số thẻ (`#currentStudyCardNumber` / `#totalStudyCards`), tỷ lệ % hoàn thành
-  - Khối hướng dẫn 4 bước học tập
-  - Thẻ Flashcard 3D lật 2 mặt (`#flashcard`):
-    - Mặt trước: Câu hỏi / Từ vựng, badge số thứ tự, nút âm thanh
-    - Mặt sau: Đáp án, nghĩa chi tiết, câu mẫu minh họa
-  - Thanh điều khiển: Nút "Thẻ trước", Nút "Lật thẻ", Nút "Thẻ sau"
-  - Nút mở khóa "Bắt đầu làm bài trắc nghiệm" (kích hoạt khi học ≥ 70%)
-- **Màn Hình 3 - Trắc Nghiệm Tính Điểm (`#quizInterface`)**:
-  - Thanh đếm giờ / tiến độ câu hỏi
-  - Câu hỏi và 4 lựa chọn đáp án A, B, C, D
-  - Màn hình kết quả tổng kết: Điểm số, xếp loại, nút làm lại hoặc chọn chủ đề khác
-
-### 2.4 Game Giáo Dục (`/#game`)
-- **Game Hub (Màn hình chọn game - `#gameHubView`)**:
-  - Thanh người dùng: Tên học sinh, Bộ 4 nút tiện ích (Bảng vàng `#btnOpenLeaderboard`, Huy hiệu `#btnOpenBadges`, Chứng nhận `#btnOpenCertificates`, Bật/tắt âm thanh SFX `#toggleGameSfx`)
-  - Lưới 4 Game Cards:
-    1. Game 1: Lật Thẻ Trí Nhớ (Memory Match)
-    2. Game 2: Mưa Từ Vựng (Word Catcher)
-    3. Game 3: Bảo Vệ Làng (Word Shooter)
-    4. Game 4: Nông Trại Số (Word Farm)
-- **Game Active View (`#gameActiveView`)**:
-  - Header trò chơi: Nút quay lại Hub, Điểm số, Mạng/Thời gian, Tên game
-  - Khu vực canvas / bàn chơi tương tác theo từng trò chơi
-  - Modal Game Over / Chiến thắng kèm bảng xếp hạng cục bộ
-
-### 2.5 Hướng Dẫn Sử Dụng (Onboarding Modal - `#onboardingModal`)
-- Modal cố định toàn màn hình với nền mờ (`.onboarding-overlay`)
-- Nút đóng `x` góc trên bên phải
-- Carousel 4 slide:
-  - Slide 1: Nguồn dữ liệu chuẩn hóa
-  - Slide 2: Phương pháp học chủ động
-  - Slide 3: Trợ lý ảo thông minh
-  - Slide 4: Cộng đồng đóng góp từ vựng
-- Dots chỉ số slide và 2 nút điều hướng (Slide trước / Slide tiếp / Bắt đầu trải nghiệm)
-
-### 2.6 Trang Báo Ngoại Tuyến (`public/offline.html`)
-- Biểu tượng ngoại tuyến động pulse
-- Tiêu đề thông báo mất mạng
-- Danh sách các tính năng vẫn dùng được khi offline (tra từ đã lưu, nghe phát âm đã tải)
-- Nút "Thử kết nối lại" và nút "Về trang chủ khi có mạng"
+### 2.1. Khung Giao Diện Dùng Chung (Shell / Global Layout)
+- **File**: `index.html`, `src/renderer/components/navbar/navbar.html`, `src/renderer/components/footer/footer.html`, `src/renderer/styles/layout.css`
+- **Thành phần**:
+  - `navbar`: Logo thương hiệu (icon + tiêu đề + phụ đề), menu liên kết desktop (`.desktop-menu`), nút chuyển Dark Mode (`#themeToggleBtn`), nút cài đặt PWA (`#pwaInstallBtn`).
+  - `mobile-bottom-nav`: Thanh tab cố định đáy màn hình trên thiết bị di động (Tra từ `#home`, Học tập `#quiz`, Trò chơi `#game`, Đóng góp `#contribute`).
+  - `footer`: Bản quyền, giới thiệu dự án bảo tồn ngôn ngữ, liên kết chính sách.
+  - `offline-indicator`: Thông báo trạng thái mạng khi chuyển sang chế độ ngoại tuyến.
+- **Các trạng thái cần hỗ trợ**:
+  - Bình thường (Online, Light/Dark)
+  - Ngoại tuyến (Offline indicator hiển thị nhãn "Chế độ Ngoại tuyến")
+  - Mobile (Bottom Nav hiển thị, Desktop Menu ẩn)
+- **Mức ưu tiên**: **P0**
 
 ---
 
-## 3. Các Trạng Thái Giao Diện (State Matrix)
-
-| Trạng thái | Biểu hiện trên UI hiện tại | Điểm hạn chế cần khắc phục |
-| :--- | :--- | :--- |
-| **Bình thường (Default/Normal)** | Render nội dung cơ bản, màu nền gradient xám xanh | Đơn điệu, độ tương phản một số nhãn mờ, khoảng cách chưa có nhịp điệu (rhythm) |
-| **Trống (Empty State)** | Biểu tượng kính lúp màu xám nhạt `#ccc` và văn bản 2 dòng | Thiếu call-to-action (CTA) trực quan, thiếu từ khóa mẫu gợi ý |
-| **Đang tải (Loading State)** | Spinner tròn cổ điển, overlay `#loadingOverlay` màu tối `rgba(0,0,0,0.7)` | Gây chặn hoàn toàn tương tác của người dùng, thiếu skeleton loading ở các card |
-| **Báo lỗi (Error State)** | Hộp viền đỏ nhạt `.error` với background `#fdeded`, chữ đỏ | Đơn điệu, thông báo kỹ thuật khô khan, không có nút hành động thử lại (Retry) |
-| **Ngoại tuyến (Offline State)** | Thẻ badge góc phải `#offlineIndicator` màu cam/xanh | Kích thước badge quá nhỏ trên mobile (0.65rem), dễ bị che khuất hoặc bỏ qua |
+### 2.2. Trang Chủ — Tra Cứu Từ Điển (`#home`)
+- **File**: `src/renderer/features/home/home.html`, `src/renderer/features/home/home.ts`, `src/renderer/styles/features/home.css`
+- **Thành phần**:
+  - **Khối giới thiệu / Hero**: Mô tả ứng dụng, bộ thống kê Bento Stats (Tổng từ, Phát âm, Ví dụ, Trắc nghiệm), thẻ tải dữ liệu ngoại tuyến (`.offline-download-card`), danh sách tính năng (`.features-list`).
+  - **Biểu mẫu tìm kiếm (`#searchForm`)**:
+    - Ô nhập từ (`#word`) kèm nút mic nhận diện giọng nói (`#speechButton`).
+    - Bàn phím ký tự đặc biệt Xơ Đăng (`.diacritics-bar` với 10 nút: Ŏ, Ŭ, Ĕ, Ă, Â, Õ, Ě, Ĭ, Ơ̆, Ư̆).
+    - Dropdown chọn hướng dịch (`#direction`: Việt ⇄ Xơ Đăng).
+    - Nút thực hiện tra cứu (`.search-button`).
+  - **Gợi ý tra cứu nhanh (`.suggestions-chips-container`)**: Các chip từ khóa phổ biến ("xin chào", "cảm ơn", "nhà rông", "uống nước", "rừng").
+  - **Khung kết quả tra cứu (`#result`)**:
+    - Trạng thái rỗng ban đầu: Minh họa kính lúp + hướng dẫn tra cứu.
+    - Trạng thái đang tải (Loading spinner / skeleton).
+    - Trạng thái có kết quả: Thẻ từ vựng chi tiết (`.word-card`), từ in đậm, phiên âm, nhãn loại từ, trình phát âm thanh mẫu (`.audio-player-container`), ví dụ song ngữ.
+    - Trạng thái không tìm thấy (No result state): Thông báo lịch sự kèm nút chuyển hướng đóng góp từ mới.
+- **Các trạng thái cần hỗ trợ**: Bình thường, Rỗng, Đang tra cứu (Loading), Tìm thấy kết quả, Không tìm thấy (Empty/Not found), Ngoại tuyến (Tra từ điển offline).
+- **Mức ưu tiên**: **P0**
 
 ---
 
-## 4. Hệ Thống Màu Sắc, Font Chữ & Spacing Hiện Tại
+### 2.3. Trang Học Tập & Thi Trắc Nghiệm (`#quiz`)
+- **File**: `src/renderer/features/quiz/quiz.html`, `src/renderer/features/quiz/quiz.ts`, `src/renderer/styles/features/quiz.css`
+- **Thành phần**:
+  - **Chọn chủ đề (`#quizTopicSelection`)**: Lưới thẻ chủ đề học tập (Gia đình, Động vật, Số đếm, Thiên nhiên...) kèm nhãn số lượng từ và tiến độ học.
+  - **Chế độ Luyện tập Flashcard (`#flashcardContainer`)**:
+    - Thẻ từ vựng lật 2 mặt (Mặt trước: tiếng Xơ Đăng + audio; Mặt sau: tiếng Việt + ví dụ).
+    - Nút điều hướng Trước / Sau, nút Lật thẻ, nút phát âm.
+  - **Chế độ Thi Trắc nghiệm (`#quizQuestionContainer`)**:
+    - Thanh tiến trình câu hỏi (Câu X / Y).
+    - Câu hỏi trắc nghiệm (Dịch từ, chọn từ đúng, nghe âm thanh chọn từ).
+    - Lưới 4 đáp án lựa chọn (`.quiz-option-btn`).
+    - Phản hồi đúng/sai tức thì kèm giải thích.
+  - **Màn hình Kết quả & Đánh giá (`#quizResultContainer`)**:
+    - Tổng điểm, tỷ lệ chính xác, số sao đạt được.
+    - Nhận xét động và nút "Làm lại" / "Chọn chủ đề khác".
+- **Các trạng thái cần hỗ trợ**: Chọn chủ đề (Default), Rỗng (Chưa chọn), Đang làm bài (Active quiz), Xem kết quả (Result), Lưu tiến độ localStorage (`studyProgressByTopic`).
+- **Mức ưu tiên**: **P0**
 
-### 4.1 Bảng màu (Tokens hiện có trong `tokens.css`)
-- Light mode:
-  - Primary: `#2c3e50` (Slate navy)
-  - Secondary: `#27ae60` (Green)
-  - Accent / Error: `#e74c3c` (Red)
-  - Text: `#000000` (Pure black - gây gắt mắt)
-  - Background: `linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)`
-- Dark mode:
-  - Primary / Text: `#ecf0f1` (Off white)
-  - Background: `linear-gradient(135deg, #34495e 0%, #2c3e50 100%)`
-  - Error: `#e74c3c` (Dùng nền đỏ chữ trắng gây chói)
+---
 
-### 4.2 Typography
-- Font stack chính: `'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`
-- Footer có chen font ngoài: `'Plus Jakarta Sans', sans-serif` (chưa nạp @font-face đầy đủ)
-- Cỡ chữ: Hardcoded rải rác (`0.65rem`, `0.7rem`, `0.8rem`, `0.95rem`, `1.1rem`, `1.4rem`, `1.8rem`, `2.5rem`) thiếu scale modular chuẩn.
+### 2.4. Trang Trò Chơi Giáo Dục (`#game`)
+- **File**: `src/renderer/features/games/games.html`, `src/renderer/features/games/games.ts`, `src/renderer/styles/features/games.css`
+- **Thành phần**:
+  - **Hub trò chơi (`#gameHubView`)**:
+    - Thẻ hồ sơ người học (`.game-user-bar`): Tên người học (`#gameCurrentUserName`), 4 nút chức năng: Bảng vàng thành tích (`#btnOpenLeaderboard`), Huy hiệu (`#btnOpenBadges`), Chứng nhận tốt nghiệp (`#btnOpenCertificates`), Bật/tắt âm thanh SFX (`#toggleGameSfx`).
+    - Lưới 4 thẻ game:
+      1. Game 1: **Lật Thẻ Trí Nhớ** (`data-game="game1"`).
+      2. Game 2: **Mưa Từ Vựng** (`data-game="game2"`).
+      3. Game 3: **Bảo Vệ Làng** (`data-game="game3"`).
+      4. Game 4: **Nông Trại Số** (`data-game="game4"`).
+  - **Giao diện trong trò chơi (`#gameActiveView`)**:
+    - Thanh điều khiển trên cùng (Top bar): Nút "Menu trò chơi" (`#btnExitGame`), Tên trò chơi (`#activeGameTitle`), Cấp độ (`#activeGameLevel`), Điểm (`#activeGameScore`), Số mạng sống (`#activeGameLives`).
+    - Sân khấu trò chơi (`#gameStage`): Khung canvas / DOM game động.
+    - Modal hoàn thành màn chơi / Game over (`#gameOverModal`).
+  - **Các Modal bổ trợ**:
+    - Modal Bảng vàng (`#leaderboardModal`).
+    - Modal Bộ sưu tập huy hiệu (`#badgesModal`).
+    - Modal Chứng nhận tốt nghiệp (`#certsModal`).
+- **Các trạng thái cần hỗ trợ**: Hub danh mục (Default), Đang chơi game (Active game view), Modal thông báo (Over/Win/Badge), Lưu điểm cao (`xedang_game_*`).
+- **Mức ưu tiên**: **P1**
 
-### 4.3 Spacing & Layout
-- Grid & Flexbox dùng khoảng cách ad-hoc: `5px`, `10px`, `15px`, `20px`, `1rem`, `1.5rem`, `2rem`.
-- Breakpoints: Đang dùng `768px` và `480px`. Chưa tối ưu tốt cho chuẩn 360px (mobile chuẩn) và 1280px (desktop rộng).
+---
+
+### 2.5. Trang Đóng Góp Từ Ngữ & Thu Âm (`#contribute`)
+- **File**: `src/renderer/features/contribute/contribute.html`, `src/renderer/features/contribute/contribute.ts`, `src/renderer/styles/features/contribute.css`
+- **Thành phần**:
+  - **Biểu mẫu đóng góp từ vựng (`#contributeForm`)**:
+    - Nhập từ Xơ Đăng, nghĩa tiếng Việt, loại từ (Danh từ, Động từ, Tính từ...).
+    - Câu ví dụ minh họa và nghĩa tiếng Việt của câu.
+    - Chọn vùng phương ngữ (Đăk Tô, Tu Mơ Rông, Kon Plông...).
+  - **Khu vực thu âm phát âm chuẩn (`#audioRecorder`)**:
+    - Nút bắt đầu thu âm (`#startRecordBtn`), nút dừng thu (`#stopRecordBtn`).
+    - Đồng hồ đếm thời gian thu âm.
+    - Khung phát nghe lại bản thu (`#audioPlayback`).
+  - **Danh sách hàng đợi đóng góp (`#contributionQueue`)**:
+    - Hiển thị danh sách các từ đã gửi hoặc đang lưu tạm trong máy khi mất mạng.
+    - Nút gửi đồng bộ khi có kết nối trở lại.
+- **Các trạng thái cần hỗ trợ**: Form trống (Default), Đang thu âm (Recording state), Đã có bản thu (Recorded state), Hàng đợi rỗng (Empty queue), Hàng đợi có dữ liệu offline (Pending queue), Gửi thành công (Success toast/feedback).
+- **Mức ưu tiên**: **P1**
+
+---
+
+### 2.6. Trợ Lý AI Chatbot (`#chatWindow` & `#chatToggleBtn`)
+- **File**: `src/renderer/features/chat/chat.html`, `src/renderer/features/chat/chat.ts`, `src/renderer/styles/features/chat.css`
+- **Thành phần**:
+  - Nút tròn nổi kích hoạt chatbot (`#chatToggleBtn`) ở góc dưới phải.
+  - Cửa sổ hộp thoại (`#chatWindow`):
+    - Tiêu đề chatbot + nút đóng (`#closeChatBtn`).
+    - Danh sách tin nhắn (`#chatMessages`): Tin nhắn chào mừng, tin bot trả lời, tin người dùng, nhãn thời gian, hiệu ứng typing indicator khi đang suy nghĩ.
+    - Khung nhập tin nhắn (`#chatInput`) + Nút gửi (`#sendChatBtn`).
+    - Các chip câu hỏi gợi ý nhanh (`.hashtag`).
+- **Các trạng thái cần hỗ trợ**: Ẩn (Default), Mở (Active popup/drawer), Đang gõ tin nhắn (Typing indicator), Mất mạng (Offline AI notice).
+- **Mức ưu tiên**: **P2**
+
+---
+
+### 2.7. Hướng Dẫn Ban Đầu (Onboarding Guide)
+- **File**: `src/renderer/features/onboarding/onboarding.html`, `src/renderer/features/onboarding/onboarding.ts`, `src/renderer/styles/features/onboarding.css`
+- **Thành phần**:
+  - Modal toàn màn hình nhẹ (`#onboardingModal`).
+  - Các bước giới thiệu tính năng: 1) Tra cứu từ điển, 2) Học Flashcard & Quiz, 3) Chơi game bảo tồn ngôn ngữ, 4) Tải ứng dụng offline.
+  - Nút chuyển bước kế tiếp (`#onboardingNext`), nút bỏ qua (`#onboardingSkip`).
+- **Các trạng thái cần hỗ trợ**: Hiển thị lần đầu (chưa có key `hasSeenIntro`), Đã hoàn thành (ẩn hoàn toàn).
+- **Mức ưu tiên**: **P2**
+
+---
+
+### 2.8. Modal Cài Đặt Ứng Dụng PWA (`#installModal`)
+- **File**: `src/renderer/components/install-modal/install-modal.html`, `src/renderer/components/install-modal/install-modal.ts`
+- **Thành phần**:
+  - Hộp thoại hướng dẫn cài đặt web app lên màn hình chính (Chrome, Safari, Edge, Mobile).
+  - Nút "Cài đặt ngay" (`#confirmInstallBtn`), nút đóng modal (`#closeInstallModalBtn`).
+- **Các trạng thái cần hỗ trợ**: Ẩn, Mở khi nhấn nút `#pwaInstallBtn` trên navbar hoặc kích hoạt từ banner PWA.
+- **Mức ưu tiên**: **P2**
