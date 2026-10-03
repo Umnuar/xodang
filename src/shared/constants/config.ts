@@ -4,7 +4,7 @@
 
 export const APP_CONFIG = {
     GOOGLE_API_KEY: (import.meta.env?.VITE_GOOGLE_API_KEY as string | undefined) || '',
-    SHEET_ID: '1Z59pDBu_tGwlYqUeS1-VJLpcHozp7LbxnC_-qhT3iHs',
+    SHEET_ID: (import.meta.env?.VITE_SHEET_ID as string | undefined) || '1Z59pDBu_tGwlYqUeS1-VJLpcHozp7LbxnC_-qhT3iHs',
     DICTIONARY_RANGE: 'Tu_Dien!A2:F',
     CHAT_RANGE: 'Data_Chat!A2:B',
     QUIZ_RANGE: 'Data_Tracnghiem!A2:H',
