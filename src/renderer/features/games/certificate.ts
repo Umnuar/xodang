@@ -6,6 +6,7 @@
 
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import { soundEffects } from './sound-effects';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 export interface CertificateRecord {
     id: string;
@@ -275,13 +276,13 @@ export function showCertificateModal(options: {
         modal.innerHTML = `
             <div class="game-modal-card cert-modal-card">
                 <div class="cert-modal-header">
-                    <h3><i class="fas fa-award"></i> Giấy Chứng Nhận Tốt Nghiệp</h3>
+                    <h3>${getLucideIcon('award', 'lucide-icon', 20)} Giấy Chứng Nhận Tốt Nghiệp</h3>
                     <button id="btnCloseCertModal" class="btn-close-modal" aria-label="Đóng">&times;</button>
                 </div>
                 <div class="cert-canvas-wrapper" id="certCanvasContainer"></div>
                 <div class="cert-modal-actions">
                     <button id="btnDownloadCertPng" class="modal-btn btn-primary">
-                        <i class="fas fa-download"></i> Tải ảnh chứng nhận (.PNG)
+                        ${getLucideIcon('download', 'lucide-icon', 16)} Tải ảnh chứng nhận (.PNG)
                     </button>
                     <button id="btnCloseCertAction" class="modal-btn btn-secondary">
                         Đóng

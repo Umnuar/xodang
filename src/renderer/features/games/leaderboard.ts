@@ -7,6 +7,7 @@
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import { soundEffects } from './sound-effects';
 import { getSavedCertificates, showCertificateModal } from './certificate';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 export interface LeaderboardEntry {
     name: string;
@@ -226,7 +227,7 @@ export function showLeaderboardModal(): void {
     modal.innerHTML = `
         <div class="game-modal-card leaderboard-modal-card">
             <div class="cert-modal-header">
-                <h3><i class="fas fa-trophy" style="color: #f59e0b;"></i> Bảng Vàng Thành Tích</h3>
+                <h3>${getLucideIcon('trophy', 'lucide-icon', 20)} Bảng Vàng Thành Tích</h3>
                 <button class="btn-close-modal" aria-label="Đóng">&times;</button>
             </div>
             <div class="leaderboard-body">
@@ -292,7 +293,7 @@ export function showBadgesModal(): void {
         <div class="game-modal-card badges-modal-card">
             <div class="cert-modal-header">
                 <div>
-                    <h3><i class="fas fa-medal" style="color: #ec4899;"></i> Bộ Sưu Tập Huy Hiệu</h3>
+                    <h3>${getLucideIcon('award', 'lucide-icon', 20)} Bộ Sưu Tập Huy Hiệu</h3>
                     <span class="badge-stats-summary">Đã mở khóa: ${unlockedCount}/${badges.length}</span>
                 </div>
                 <button class="btn-close-modal" aria-label="Đóng">&times;</button>
@@ -343,7 +344,7 @@ export function showCertificatesModal(): void {
     modal.innerHTML = `
         <div class="game-modal-card certs-list-modal-card">
             <div class="cert-modal-header">
-                <h3><i class="fas fa-certificate" style="color: #f59e0b;"></i> Kho Giấy Chứng Nhận Của Bạn</h3>
+                <h3>${getLucideIcon('award', 'lucide-icon', 20)} Kho Giấy Chứng Nhận Của Bạn</h3>
                 <button class="btn-close-modal" aria-label="Đóng">&times;</button>
             </div>
             <div class="certs-list-body">
@@ -364,7 +365,7 @@ export function showCertificatesModal(): void {
                                     <div class="cert-card-date">Ngày cấp: ${c.date}</div>
                                 </div>
                                 <button class="btn-view-cert modal-btn btn-primary" data-cert-id="${c.id}">
-                                    <i class="fas fa-eye"></i> Xem & Tải
+                                    ${getLucideIcon('eye', 'lucide-icon', 16)} Xem & Tải
                                 </button>
                             </div>
                         `).join('')}

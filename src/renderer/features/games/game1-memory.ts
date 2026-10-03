@@ -6,6 +6,7 @@
 
 import { getMemoryCardPairs } from './game-data';
 import { soundEffects } from './sound-effects';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 export interface Game1Callbacks {
     onScoreChange: (score: number) => void;
@@ -67,7 +68,7 @@ export class Game1Memory {
 
             const cardFront = document.createElement('div');
             cardFront.className = 'memory-card-front';
-            cardFront.innerHTML = '<i class="fas fa-question-circle"></i>';
+            cardFront.innerHTML = getLucideIcon('help-circle', 'lucide-icon', 24);
 
             const cardBack = document.createElement('div');
             cardBack.className = 'memory-card-back';
