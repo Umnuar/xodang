@@ -1,9 +1,46 @@
-<nav class="navbar">
-    <ul>
-        <li><a href="#home" class="menu-link active" data-section="home"><i class="fas fa-home"></i> Trang chủ</a></li>
-        <li><a href="#contribute" class="menu-link" data-section="contribute"><i class="fas fa-microphone-alt"></i> Đóng góp từ vựng</a></li>
-        <li><a href="#quiz" class="menu-link" data-section="quiz"><i class="fas fa-book"></i> Học và kiểm tra</a></li>
-        <li><a href="#game" class="menu-link" data-section="game"><i class="fas fa-gamepad"></i> Game học tập</a></li>
-        <li><button id="darkModeToggle" class="menu-button"><i class="fas fa-moon"></i> Dark Mode</button></li>
-    </ul>
+<nav class="navbar" aria-label="Thanh điều hướng chính">
+    <div class="navbar-container">
+        <a href="#home" class="brand-logo menu-link" data-section="home" aria-label="Xơ Đăng Lingua Trang chủ">
+            <span class="brand-icon"><i class="fas fa-book-open"></i></span>
+            <div class="brand-text">
+                <span class="brand-title">Xơ Đăng Lingua</span>
+                <span class="brand-subtitle">Bảo tồn ngôn ngữ THCS</span>
+            </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <ul class="desktop-menu" role="menubar">
+            <li role="none"><a href="#home" class="menu-link active" data-section="home" role="menuitem"><i class="fas fa-home"></i> <span>Trang chủ</span></a></li>
+            <li role="none"><a href="#quiz" class="menu-link" data-section="quiz" role="menuitem"><i class="fas fa-graduation-cap"></i> <span>Học & Thi</span></a></li>
+            <li role="none"><a href="#game" class="menu-link" data-section="game" role="menuitem"><i class="fas fa-gamepad"></i> <span>Trò chơi</span></a></li>
+            <li role="none"><a href="#contribute" class="menu-link" data-section="contribute" role="menuitem"><i class="fas fa-microphone-alt"></i> <span>Đóng góp</span></a></li>
+        </ul>
+
+        <!-- Action Controls -->
+        <div class="navbar-actions">
+            <button id="darkModeToggle" class="theme-toggle-btn" aria-label="Chuyển chế độ sáng tối" title="Chuyển chế độ giao diện">
+                <i class="fas fa-moon"></i> <span class="theme-label">Dark Mode</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar (Thumb Zone) -->
+    <div class="mobile-bottom-nav" role="navigation" aria-label="Điều hướng nhanh di động">
+        <a href="#home" class="menu-link active" data-section="home" aria-label="Trang chủ">
+            <i class="fas fa-home"></i>
+            <span>Trang chủ</span>
+        </a>
+        <a href="#quiz" class="menu-link" data-section="quiz" aria-label="Học và kiểm tra">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Học & Thi</span>
+        </a>
+        <a href="#game" class="menu-link" data-section="game" aria-label="Trò chơi giáo dục">
+            <i class="fas fa-gamepad"></i>
+            <span>Trò chơi</span>
+        </a>
+        <a href="#contribute" class="menu-link" data-section="contribute" aria-label="Đóng góp từ vựng">
+            <i class="fas fa-microphone-alt"></i>
+            <span>Đóng góp</span>
+        </a>
+    </div>
 </nav>

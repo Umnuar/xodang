@@ -161,14 +161,14 @@ body.dark-mode .study-tip p {
     background: none;
     border: none;
     font-size: 1.25rem;
-    color: var(--text-muted, #95a5a6);
+    color: var(--text-tertiary, #95a5a6);
     cursor: pointer;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    max-width: 44px;
-    max-height: 44px;
+    width: var(--tap-target-min, 48px);
+    height: var(--tap-target-min, 48px);
+    min-width: var(--tap-target-min, 48px);
+    min-height: var(--tap-target-min, 48px);
+    max-width: 48px;
+    max-height: 48px;
     margin: 0;
     flex-shrink: 0;
     border-radius: 50%;
@@ -250,8 +250,10 @@ body.dark-mode .study-tip p {
 .onboarding-btn-nav {
     background: none;
     border: 1px solid rgba(0, 0, 0, 0.15);
-    width: 42px;
-    height: 42px;
+    width: var(--tap-target-min, 48px);
+    height: var(--tap-target-min, 48px);
+    min-width: var(--tap-target-min, 48px);
+    min-height: var(--tap-target-min, 48px);
     border-radius: 50%;
     cursor: pointer;
     display: flex;
@@ -313,5 +315,31 @@ body.dark-mode .study-tip p {
 
 .onboarding-start-btn:hover {
     transform: translateY(-2px);
+}
+
+body.dark-mode .onboarding-card {
+    background: var(--bg-surface, #1e293b);
+    color: var(--text-primary, #f8fafc);
+    border: 1px solid var(--border-subtle, #334155);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .onboarding-features {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary, #cbd5e1);
+}
+
+body.dark-mode .onboarding-btn-nav {
+    border-color: var(--border-default, #475569);
+    color: var(--text-primary, #f8fafc);
+}
+
+body.dark-mode .onboarding-close-btn {
+    color: var(--text-tertiary, #94a3b8);
+}
+
+body.dark-mode .onboarding-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
 }
 

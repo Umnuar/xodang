@@ -1,20 +1,132 @@
 :root {
-    --primary-color: #2c3e50;
-    --secondary-color: #27ae60;
-    --accent-color: #e74c3c;
-    --example-color: #c0392b;
-    --text-color: #000000;
-    --background-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    --transition-speed: 0.3s;
-    --chat-primary: #27ae60;
-    --chat-secondary: #2ecc71;
+    /* Brand & Heritage Colors (Central Highlands Palette) */
+    --color-primary: #1e7e48;
+    --color-primary-hover: #17653a;
+    --color-primary-light: #e8f5e9;
+    --color-primary-glow: rgba(30, 126, 72, 0.25);
+
+    --color-secondary: #c05621;
+    --color-secondary-hover: #9c4215;
+    --color-secondary-light: #feebc8;
+
+    --color-tertiary: #2c5282;
+    --color-tertiary-hover: #2a4365;
+    --color-tertiary-light: #ebf8ff;
+
+    /* Semantic & Surface Colors - Light */
+    --bg-canvas: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #ffffff;
+    --bg-surface-hover: #f1f5f9;
+    --bg-surface-subtle: #f8f9fa;
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #64748b;
+    --text-inverse: #ffffff;
+
+    --border-subtle: #e2e8f0;
+    --border-default: #cbd5e1;
+    --border-strong: #94a3b8;
+    --border-focus: #1e7e48;
+
+    /* Feedback */
+    --color-success: #16a34a;
+    --color-warning: #d97706;
+    --color-danger: #dc2626;
+    --color-info: #0284c7;
+
+    /* Shadows & Elevation */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    --shadow-glow: 0 0 15px rgba(30, 126, 72, 0.35);
+
+    /* Radii */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* Spacing Units */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Tap Target Standard (WCAG 2.5.5 / 2.5.8) */
+    --tap-target-min: 48px;
+
+    /* Backward Compatible Aliases */
+    --primary-color: #1e7e48;
+    --secondary-color: #1e7e48;
+    --accent-color: #c05621;
+    --example-color: #2c5282;
+    --text-color: var(--text-primary);
+    --background-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --transition-speed: 0.25s;
+    --chat-primary: #1e7e48;
+    --chat-secondary: #27ae60;
 }
 
 body.dark-mode {
-    --primary-color: #ecf0f1;
-    --secondary-color: #27ae60;
-    --accent-color: #e74c3c;
-    --example-color: #e74c3c;
-    --text-color: #ecf0f1;
-    --background-gradient: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+    /* Brand & Heritage Colors - Dark Mode */
+    --color-primary: #4ade80;
+    --color-primary-hover: #86efac;
+    --color-primary-light: #064e3b;
+    --color-primary-glow: rgba(74, 222, 128, 0.3);
+
+    --color-secondary: #fb923c;
+    --color-secondary-hover: #fdba74;
+    --color-secondary-light: #7c2d12;
+
+    --color-tertiary: #60a5fa;
+    --color-tertiary-hover: #93c5fd;
+    --color-tertiary-light: #1e3a8a;
+
+    /* Semantic & Surface Colors - Dark */
+    --bg-canvas: #0b1120;
+    --bg-surface: #1e293b;
+    --bg-surface-elevated: #243248;
+    --bg-surface-hover: #334155;
+    --bg-surface-subtle: #162032;
+
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-inverse: #0f172a;
+
+    --border-subtle: #293548;
+    --border-default: #3b4c68;
+    --border-strong: #64748b;
+    --border-focus: #4ade80;
+
+    /* Shadows - Dark */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 0 20px rgba(74, 222, 128, 0.4);
+
+    /* Backward Compatible Aliases - Dark */
+    --primary-color: #4ade80;
+    --secondary-color: #4ade80;
+    --accent-color: #fb923c;
+    --example-color: #60a5fa;
+    --text-color: #f8fafc;
+    --background-gradient: linear-gradient(135deg, #0b1120 0%, #1e293b 100%);
+    --chat-primary: #22c55e;
+    --chat-secondary: #4ade80;
 }

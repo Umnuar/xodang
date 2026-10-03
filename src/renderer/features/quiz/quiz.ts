@@ -80,7 +80,7 @@ export async function initQuiz(): Promise<void> {
         const fragment = document.createDocumentFragment();
         topicsMap.forEach((questions, topicName) => {
             const card = document.createElement('div');
-            card.className = 'topic-card';
+            card.className = 'topic-card study-quiz-topic-card';
 
             const iconDiv = document.createElement('div');
             iconDiv.className = 'topic-icon';

@@ -156,6 +156,33 @@ export async function initHome(): Promise<void> {
                 }
             }, 300);
         });
+
+        // Diacritics shortcut buttons
+        const diacriticBtns = document.querySelectorAll('.diacritic-btn');
+        diacriticBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const char = (btn as HTMLElement).dataset.char || btn.textContent || '';
+                const start = wordInput.selectionStart ?? wordInput.value.length;
+                const end = wordInput.selectionEnd ?? wordInput.value.length;
+                const val = wordInput.value;
+                wordInput.value = val.substring(0, start) + char + val.substring(end);
+                wordInput.focus();
+                const newPos = start + char.length;
+                wordInput.setSelectionRange(newPos, newPos);
+                wordInput.dispatchEvent(new Event('input'));
+            });
+        });
+
+        // Quick Suggestion Chips
+        const suggestChips = document.querySelectorAll('.suggest-chip');
+        suggestChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const query = (chip as HTMLElement).dataset.query || chip.textContent || '';
+                wordInput.value = query;
+                wordInput.focus();
+                executeSearch(query, directionSelect.value as SearchDirection);
+            });
+        });
     }
 
     // Speech Recognition Button
