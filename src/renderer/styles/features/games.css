@@ -3,40 +3,44 @@
 .game-hub {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 1.5rem 1rem;
+    padding: 0.75rem 1rem 1.5rem;
 }
 
 .game-hub-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .game-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 14px;
+    padding: 5px 14px;
     border-radius: 20px;
     background: rgba(30, 126, 72, 0.12);
     color: var(--color-primary, #1e7e48);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 700;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.5rem;
 }
 
 .game-hub-header h2 {
     font-size: 1.85rem;
     font-weight: 800;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
     color: var(--color-text-primary, #1e293b);
+    border-bottom: none;
+    padding-bottom: 0;
+    text-wrap: balance;
 }
 
 .game-hub-header p {
     color: var(--color-text-secondary, #64748b);
     font-size: 0.95rem;
-    max-width: 600px;
-    margin: 0 auto 1.25rem;
+    max-width: 620px;
+    margin: 0 auto 1.1rem;
     line-height: 1.5;
+    text-wrap: balance;
 }
 
 .game-user-bar {
