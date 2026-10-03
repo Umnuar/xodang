@@ -10,6 +10,7 @@ import { showToast } from '@/renderer/components/toast';
 import { showLoading, hideLoading } from '@/renderer/components/loading-overlay';
 import { isSpeechRecognitionSupported, startSpeechRecognition } from '@/renderer/services/speech.service';
 import { downloadOfflineAudio, getOfflineAudioStatus } from '@/renderer/services/offline-sync.service';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 let dictionaryData: DictionaryEntry[] = [];
 
@@ -17,9 +18,10 @@ export function renderNoResult(resultDiv: HTMLElement, keyword: string): void {
     const noResultDiv = document.createElement('div');
     noResultDiv.className = 'no-result';
 
-    const icon = document.createElement('i');
-    icon.className = 'fas fa-exclamation-circle';
-    icon.style.cssText = 'font-size: 2rem; margin-bottom: 1rem; color: #f39c12; display: block;';
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'no-result-icon';
+    iconDiv.innerHTML = getLucideIcon('alert-circle', 'lucide-icon', 32);
+    iconDiv.style.cssText = 'margin-bottom: 0.75rem; color: var(--color-warning); display: flex; justify-content: center;';
 
     const mainP = document.createElement('p');
     mainP.append('Không tìm thấy kết quả phù hợp cho "');
@@ -29,10 +31,10 @@ export function renderNoResult(resultDiv: HTMLElement, keyword: string): void {
     mainP.append('"');
 
     const subP = document.createElement('p');
-    subP.style.cssText = 'font-size: 0.9rem; margin-top: 0.5rem;';
+    subP.style.cssText = 'font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-secondary);';
     subP.textContent = 'Thử đổi hướng dịch hoặc kiểm tra lại chính tả.';
 
-    noResultDiv.appendChild(icon);
+    noResultDiv.appendChild(iconDiv);
     noResultDiv.appendChild(mainP);
     noResultDiv.appendChild(subP);
 
@@ -117,9 +119,11 @@ export async function initHome(): Promise<void> {
             if (searchStatus) searchStatus.textContent = '';
             resultDiv.innerHTML = `
                 <div class="no-result">
-                    <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 1rem; color: #ccc; display: block;"></i>
+                    <div class="no-result-icon" style="margin-bottom: 0.75rem; color: var(--text-tertiary); display: flex; justify-content: center;">
+                        ${getLucideIcon('search', 'lucide-icon', 32)}
+                    </div>
                     <p>Nhập từ cần tra cứu và nhấn nút "Tra cứu"</p>
-                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Hoặc sử dụng tính năng nhận diện giọng nói</p>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-secondary);">Hoặc sử dụng tính năng nhận diện giọng nói qua micro</p>
                 </div>
             `;
             return;
@@ -216,14 +220,14 @@ export async function initHome(): Promise<void> {
         const status = await getOfflineAudioStatus(driveIds);
 
         if (status.total > 0 && status.cached >= status.total) {
-            btnDownload.innerHTML = '<i class="fas fa-check-circle"></i> Đã tải offline thành công';
-            btnDownload.style.background = '#27ae60';
+            btnDownload.innerHTML = `${getLucideIcon('check-circle', 'lucide-icon', 18)} <span>Đã tải offline thành công</span>`;
+            btnDownload.style.background = 'var(--color-primary)';
             btnDownload.disabled = true;
             downloadStatus.textContent = `Đã lưu sẵn ${status.cached}/${status.total} file âm thanh. Sẵn sàng học offline 100%!`;
             const card = document.querySelector('.offline-download-card') as HTMLElement | null;
             if (card) card.style.display = 'none';
         } else if (status.cached > 0) {
-            btnDownload.innerHTML = `<i class="fas fa-download"></i> Tiếp tục tải offline (${status.cached}/${status.total})`;
+            btnDownload.innerHTML = `${getLucideIcon('download', 'lucide-icon', 18)} <span>Tiếp tục tải offline (${status.cached}/${status.total})</span>`;
             downloadStatus.textContent = `Đã tải được ${status.cached}/${status.total} file âm thanh.`;
         }
     }
@@ -232,7 +236,7 @@ export async function initHome(): Promise<void> {
         btnDownload.addEventListener('click', async () => {
             btnDownload.disabled = true;
             btnDownload.style.opacity = '0.7';
-            btnDownload.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang chuẩn bị dữ liệu...';
+            btnDownload.innerHTML = `${getLucideIcon('rotate-ccw', 'lucide-icon', 18)} <span>Đang chuẩn bị dữ liệu...</span>`;
             progressContainer.style.display = 'block';
 
             const driveIds = dictionaryData.map(d => d.driveId).filter((id): id is string => Boolean(id && id.trim() !== ''));
@@ -242,8 +246,8 @@ export async function initHome(): Promise<void> {
                 progressText.textContent = `Đang tải: ${loaded}/${total} (${percent}%)`;
             });
 
-            btnDownload.innerHTML = '<i class="fas fa-check-circle"></i> Đã tải offline thành công';
-            btnDownload.style.background = '#27ae60';
+            btnDownload.innerHTML = `${getLucideIcon('check-circle', 'lucide-icon', 18)} <span>Đã tải offline thành công</span>`;
+            btnDownload.style.background = 'var(--color-primary)';
             btnDownload.disabled = true;
             downloadStatus.textContent = 'Tải hoàn tất! Bạn có thể nghe phát âm khi không có mạng.';
             showToast('Tải thành công âm thanh offline!', 'success');

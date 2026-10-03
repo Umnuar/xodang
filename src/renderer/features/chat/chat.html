@@ -1,13 +1,18 @@
 <div class="chat-widget-container">
     <button class="chat-toggle-btn" id="chatToggleBtn" aria-label="Mở trợ lý chat">
-        <i class="fas fa-comments"></i>
+        <svg class="lucide-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
         <span class="notification-badge" id="chatNotification" style="display: none;">1</span>
     </button>
     <div class="chat-window" id="chatWindow">
         <div class="chat-header">
-            <h3><i class="fas fa-robot"></i> Trợ lý Xơ Đăng</h3>
+            <h3>Trợ lý Xơ Đăng</h3>
             <button class="close-chat-btn" id="closeChatBtn" aria-label="Đóng chat">
-                <i class="fas fa-times"></i>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18"/>
+                    <path d="M6 6l12 12"/>
+                </svg>
             </button>
         </div>
         <div class="chat-messages" id="chatMessages">
@@ -16,7 +21,10 @@
         <div class="chat-input-container">
             <input type="text" class="chat-input" id="chatInput" maxlength="100" placeholder="Nhập câu hỏi của bạn..." aria-label="Nhập câu hỏi">
             <button class="send-btn" id="sendChatBtn" aria-label="Gửi tin nhắn">
-                <i class="fas fa-paper-plane"></i>
+                <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
             </button>
         </div>
     </div>

@@ -12,10 +12,10 @@ html {
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--background-gradient);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-canvas);
     line-height: 1.6;
-    color: var(--text-color);
+    color: var(--text-primary);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -29,58 +29,51 @@ main {
     width: 100%;
 }
 
-/* Accessibility Focus Ring (WCAG 2.4.7) */
+/* Accessibility Focus Ring (WCAG 2.4.7 / 2.4.11) */
 :focus-visible {
     outline: 2px solid var(--border-focus);
     outline-offset: 2px;
 }
 
+/* Typographic Hierarchy (Direction A: Clean, Authoritative, Left-aligned) */
 h1, h2, h3, h4 {
     color: var(--text-primary);
     font-weight: 700;
-}
-
-h1, h2 {
-    text-align: center;
-    margin-bottom: 1.2rem;
+    line-height: 1.3;
 }
 
 h1 {
-    font-size: 2rem;
-    color: var(--color-primary);
-    position: relative;
-    padding-bottom: 0.8rem;
-    letter-spacing: -0.01em;
-}
-
-h1:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 64px;
-    height: 4px;
-    background: var(--color-primary);
-    border-radius: var(--radius-full);
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
 }
 
 h2 {
-    font-size: 1.5rem;
-    color: var(--color-primary);
-    border-bottom: 2px solid var(--border-subtle);
-    padding-bottom: 0.5rem;
-    font-weight: 700;
+    font-size: 1.35rem;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Placeholder Contrast Enhancement (WCAG 1.4.3 AA) */
+::placeholder {
+    color: var(--text-tertiary);
+    opacity: 1;
 }
 
 /* Standard Inputs & Selects */
 input[type="text"], input[type="search"], select, textarea {
-    padding: 0.75rem 1rem;
-    border: 1.5px solid var(--border-subtle);
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-family: inherit;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
     color: var(--text-primary);
     background: var(--bg-surface);
     min-height: var(--tap-target-min);
@@ -88,7 +81,6 @@ input[type="text"], input[type="search"], select, textarea {
 
 input[type="text"]:focus, input[type="search"]:focus, select:focus, textarea:focus {
     border-color: var(--border-focus);
-    box-shadow: 0 0 0 3px var(--color-primary-glow);
     outline: none;
 }
 
@@ -96,13 +88,28 @@ input[type="text"]:focus, input[type="search"]:focus, select:focus, textarea:foc
 button {
     font-family: inherit;
     cursor: pointer;
-    border: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
     transition: all var(--transition-fast);
     touch-action: manipulation;
 }
 
 button:active {
     transform: scale(0.98);
+}
+
+/* Lucide Vector Icon Standard */
+.lucide-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: currentColor;
+    stroke-width: 2px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
 }
 
 /* Screen Reader Only Utility */
@@ -129,9 +136,9 @@ img[loading="lazy"] {
 
 @media (max-width: 768px) {
     h1 {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
     }
     h2 {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
     }
 }

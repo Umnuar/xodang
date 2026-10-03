@@ -4,6 +4,7 @@
  */
 
 import type { DictionaryEntry, SearchDirection } from '@/renderer/services/dictionary.service';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 export function createWordCard(entry: DictionaryEntry, direction: SearchDirection): HTMLElement {
     const isVietToEthnic = direction === 'viet_to_ethnic';
@@ -25,7 +26,7 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
 
     const sourceLabelDiv = document.createElement('div');
     sourceLabelDiv.className = 'word-display-label';
-    sourceLabelDiv.innerHTML = '<i class="fas fa-language"></i> ';
+    sourceLabelDiv.innerHTML = `${getLucideIcon('book-open', 'lucide-icon', 16)} `;
     const sourceLabelText = document.createTextNode(`${sourceLabel}: `);
     sourceLabelDiv.appendChild(sourceLabelText);
 
@@ -51,7 +52,7 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
 
     const targetLabelDiv = document.createElement('div');
     targetLabelDiv.className = 'word-display-label';
-    targetLabelDiv.innerHTML = '<i class="fas fa-flag"></i> ';
+    targetLabelDiv.innerHTML = `${getLucideIcon('globe', 'lucide-icon', 16)} `;
     targetLabelDiv.appendChild(document.createTextNode(`${targetLabel}:`));
 
     const targetValueDiv = document.createElement('div');
@@ -72,7 +73,7 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
 
         const pronLabelDiv = document.createElement('div');
         pronLabelDiv.className = 'word-display-label';
-        pronLabelDiv.innerHTML = '<i class="fas fa-volume-up"></i> ';
+        pronLabelDiv.innerHTML = `${getLucideIcon('volume-2', 'lucide-icon', 16)} `;
         pronLabelDiv.appendChild(document.createTextNode('Phiên âm (Xơ Đăng):'));
 
         const pronValueDiv = document.createElement('div');
@@ -129,7 +130,7 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
 
         const exampleTitle = document.createElement('div');
         exampleTitle.className = 'example-title';
-        exampleTitle.innerHTML = '<i class="fas fa-comment-alt"></i> Ví dụ minh họa:';
+        exampleTitle.innerHTML = `${getLucideIcon('sparkles', 'lucide-icon', 16)} Ví dụ minh họa:`;
         exampleSec.appendChild(exampleTitle);
 
         const exampleContent = document.createElement('div');

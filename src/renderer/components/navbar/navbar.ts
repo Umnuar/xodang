@@ -6,6 +6,7 @@
 import { eventBus } from '../event-bus';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import { router } from '@/renderer/router';
+import { getLucideIcon } from '@/renderer/utils/icons';
 
 export function showSection(sectionId: string): void {
     const targetSection = document.getElementById(sectionId);
@@ -55,7 +56,7 @@ export function initNavbar(): void {
         const isDark = localStorage.getItem(STORAGE_KEYS.DARK_MODE) === 'true';
         if (isDark) {
             document.body.classList.add('dark-mode');
-            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+            darkModeToggle.innerHTML = `${getLucideIcon('sun', 'lucide-icon theme-icon', 16)} <span class="theme-label">Giao diện</span>`;
         }
 
         darkModeToggle.addEventListener('click', () => {
@@ -63,8 +64,8 @@ export function initNavbar(): void {
             const currentDark = document.body.classList.contains('dark-mode');
             localStorage.setItem(STORAGE_KEYS.DARK_MODE, String(currentDark));
             darkModeToggle.innerHTML = currentDark
-                ? '<i class="fas fa-sun"></i> Light Mode'
-                : '<i class="fas fa-moon"></i> Dark Mode';
+                ? `${getLucideIcon('sun', 'lucide-icon theme-icon', 16)} <span class="theme-label">Giao diện</span>`
+                : `${getLucideIcon('moon', 'lucide-icon theme-icon', 16)} <span class="theme-label">Giao diện</span>`;
         });
     }
 

@@ -2,170 +2,165 @@
   <div itemprop="name" content="Ứng dụng số hóa hỗ trợ tự học và bảo tồn ngôn ngữ Xơ Đăng cho học sinh THCS trên nền tảng PWA" style="display:none;"></div>
   <div itemprop="description" content="Ứng dụng PWA học tiếng Xơ Đăng miễn phí với từ điển tương tác" style="display:none;"></div>
   
-  <div class="home-hero">
-    <h1>Tra Cứu Tiếng Xơ Đăng - Tiếng Việt</h1>
-    <p class="hero-description">Hệ thống hỗ trợ học tiếng Xơ đăng (Xê đăng) trên nền tảng PWA cho học sinh THCS với <span id="dictionary-count">1000+ từ vựng chuẩn</span> và các mẫu câu ví dụ minh họa cụ thể, hỗ trợ phát âm và dịch thuật chính xác.</p>
-  </div>
+  <!-- HOME HEADER (Clean, dignified, left-aligned) -->
+  <header class="home-header">
+    <h1>Tra Cứu Từ Điển Xơ Đăng</h1>
+    <p class="home-subtitle">Từ điển học đường số hóa hỗ trợ học sinh THCS và cộng đồng tự học ngôn ngữ bản địa Xơ Đăng – Tiếng Việt.</p>
+  </header>
 
-  <div class="intro-content">
-    <!-- BENTO STATS GRID -->
-    <div class="dictionary-stats" role="region" aria-label="Thống kê dữ liệu từ điển">
-        <div class="stat-item">
-            <div class="stat-icon stat-icon-words"><i class="fas fa-book"></i></div>
-            <div class="stat-number" id="stat-words">1000+</div>
-            <div class="stat-label">Từ vựng chuẩn</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-icon stat-icon-audio"><i class="fas fa-headphones"></i></div>
-            <div class="stat-number" id="stat-audio">1000+</div>
-            <div class="stat-label">File âm thanh</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-icon stat-icon-examples"><i class="fas fa-comment-dots"></i></div>
-            <div class="stat-number" id="stat-examples">2000+</div>
-            <div class="stat-label">Câu ví dụ minh họa</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-icon stat-icon-quiz"><i class="fas fa-award"></i></div>
-            <div class="stat-number" id="stat-questions">100+</div>
-            <div class="stat-label">Câu hỏi ôn tập</div>
-        </div>
-    </div>
-
-    <!-- OFFLINE AUDIO DOWNLOAD CARD -->
-    <div class="offline-download-card">
-        <div class="offline-card-header">
-            <div class="offline-card-icon" aria-hidden="true">
-                <i class="fas fa-cloud-download-alt"></i>
-            </div>
-            <div class="offline-card-info">
-                <strong class="offline-card-title">Học ngoại tuyến 100% (Offline Audio Pack)</strong>
-                <span class="offline-card-desc" id="download-status">Tải toàn bộ âm thanh giọng đọc bản địa về máy để nghe khi không có kết nối internet.</span>
-            </div>
-        </div>
-        
-        <!-- Progress Bar (Ẩn mặc định, hiện khi tải) -->
-        <div class="download-progress-container" id="download-progress-container" style="display: none;" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-            <div class="download-progress-header">
-                <span id="download-progress-text">Đang tải: 0/0 (0%)</span>
-                <span>Vui lòng không tắt ứng dụng...</span>
-            </div>
-            <div class="download-progress-track">
-                <div class="download-progress-bar" id="download-progress-bar"></div>
-            </div>
-        </div>
-        
-        <button id="btn-download-offline" class="btn-download-offline" aria-label="Tải âm thanh offline">
-            <i class="fas fa-download"></i> Tải âm thanh offline (~40MB)
+  <!-- SEARCH FORM (Above-the-fold, instant access) -->
+  <form id="searchForm" class="search-form-clean" role="search" aria-label="Tra cứu từ điển Xơ Đăng">
+    <div class="search-main-row">
+      <div class="search-input-wrap">
+        <label for="word" class="sr-only">Nhập từ cần tra</label>
+        <input type="text" id="word" maxlength="100" placeholder="Nhập từ cần tra (ví dụ: rừng, bri, nhà rông, đi học...)" autocomplete="off" list="suggestions" aria-label="Nhập từ cần tra cứu">
+        <button type="button" id="speechButton" class="speech-button" title="Nhấn để đọc từ cần tra" aria-label="Nhận diện giọng nói để tìm từ vựng">
+          <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" x2="12" y1="19" y2="22"/>
+          </svg>
         </button>
-    </div>
-
-    <!-- FEATURES HIGHLIGHT GRID -->
-    <div class="features-list" role="list">
-        <div class="feature-item" role="listitem">
-            <i class="fas fa-check-circle" aria-hidden="true"></i>
-            <span>Từ vựng chuẩn theo tài liệu dạy học tiếng Xơ Đăng</span>
-        </div>
-        <div class="feature-item" role="listitem">
-            <i class="fas fa-volume-up" aria-hidden="true"></i>
-            <span>Phát âm chuẩn người bản địa Đăk Tô & Tu Mơ Rông</span>
-        </div>
-        <div class="feature-item" role="listitem">
-            <i class="fas fa-exchange-alt" aria-hidden="true"></i>
-            <span>Dịch thuật song ngữ hai chiều Việt ⇄ Xơ Đăng</span>
-        </div>
-        <div class="feature-item" role="listitem">
-            <i class="fas fa-microphone" aria-hidden="true"></i>
-            <span>Hỗ trợ tìm kiếm thông minh bằng giọng nói</span>
-        </div>
-        <div class="feature-item" role="listitem">
-            <i class="fas fa-brain" aria-hidden="true"></i>
-            <span>Học từ vựng qua Flashcard 3D và 4 trò chơi</span>
-        </div>
-        <div class="feature-item" role="listitem">
-            <i class="fas fa-wifi" aria-hidden="true"></i>
-            <span>Ứng dụng PWA hoạt động ngoại tuyến khi mất mạng</span>
-        </div>
-    </div>
-  </div>
-  
-  <!-- SEARCH FORM -->
-  <form id="searchForm" role="search" aria-label="Tra cứu từ điển Xơ Đăng">
-      <div class="input-group">
-          <label for="word" class="form-label">Nhập từ cần tra</label>
-          <div class="search-input-container">
-              <input type="text" id="word" maxlength="100" placeholder="Ví dụ: đi học, rừng, bri, nhà rông..." autocomplete="off" list="suggestions" aria-label="Nhập từ cần tra cứu">
-              <button type="button" id="speechButton" class="speech-button" title="Nhấn để đọc từ cần tra" aria-label="Nhận diện giọng nói để tìm từ vựng">
-                  <i class="fas fa-microphone"></i>
-              </button>
-          </div>
-          <datalist id="suggestions"></datalist>
-
-          <!-- XE DANG SPECIAL DIACRITICS BAR -->
-          <div class="diacritics-bar" role="toolbar" aria-label="Bàn phím ký tự đặc biệt Xơ Đăng">
-              <span class="diacritics-label"><i class="fas fa-keyboard"></i> Ký tự Xơ Đăng:</span>
-              <div class="diacritics-buttons">
-                  <button type="button" class="diacritic-btn" data-char="Ŏ" aria-label="Chèn chữ Ŏ">Ŏ</button>
-                  <button type="button" class="diacritic-btn" data-char="Ŭ" aria-label="Chèn chữ Ŭ">Ŭ</button>
-                  <button type="button" class="diacritic-btn" data-char="Ĕ" aria-label="Chèn chữ Ĕ">Ĕ</button>
-                  <button type="button" class="diacritic-btn" data-char="Ă" aria-label="Chèn chữ Ă">Ă</button>
-                  <button type="button" class="diacritic-btn" data-char="Â" aria-label="Chèn chữ Â">Â</button>
-                  <button type="button" class="diacritic-btn" data-char="Õ" aria-label="Chèn chữ Õ">Õ</button>
-                  <button type="button" class="diacritic-btn" data-char="Ě" aria-label="Chèn chữ Ě">Ě</button>
-                  <button type="button" class="diacritic-btn" data-char="Ĭ" aria-label="Chèn chữ Ĭ">Ĭ</button>
-                  <button type="button" class="diacritic-btn" data-char="Ơ̆" aria-label="Chèn chữ Ơ̆">Ơ̆</button>
-                  <button type="button" class="diacritic-btn" data-char="Ư̆" aria-label="Chèn chữ Ư̆">Ư̆</button>
-              </div>
-          </div>
       </div>
 
-      <div class="input-group">
-          <label for="direction" class="form-label">Hướng dịch</label>
+      <div class="search-controls-wrap">
+        <div class="direction-select-wrap">
+          <label for="direction" class="sr-only">Hướng dịch</label>
           <select id="direction" aria-label="Chọn hướng dịch">
-              <option value="viet_to_ethnic">Tiếng Việt → Tiếng Xơ Đăng</option>
-              <option value="ethnic_to_viet">Tiếng Xơ Đăng → Tiếng Việt</option>
+            <option value="viet_to_ethnic">Việt → Xơ Đăng</option>
+            <option value="ethnic_to_viet">Xơ Đăng → Việt</option>
           </select>
+        </div>
+        <button type="submit" class="search-button" aria-label="Tra cứu từ điển">
+          <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+          </svg>
+          <span>Tra cứu</span>
+        </button>
       </div>
+    </div>
+    <datalist id="suggestions"></datalist>
 
-      <button type="submit" class="search-button" aria-label="Tra cứu từ điển">
-          <i class="fas fa-search"></i> <span>Tra cứu</span>
-      </button>
+    <!-- XE DANG SPECIAL DIACRITICS BAR (WCAG 2.2 AA Target Size >= 44px) -->
+    <div class="diacritics-bar" role="toolbar" aria-label="Bàn phím ký tự đặc biệt Xơ Đăng">
+      <span class="diacritics-label">
+        <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect width="20" height="16" x="2" y="4" rx="2"/>
+          <path d="M6 8h.001"/><path d="M10 8h.001"/><path d="M14 8h.001"/><path d="M18 8h.001"/>
+          <path d="M8 12h.001"/><path d="M12 12h.001"/><path d="M16 12h.001"/><path d="M7 16h10"/>
+        </svg>
+        <span>Ký tự Xơ Đăng:</span>
+      </span>
+      <div class="diacritics-buttons">
+        <button type="button" class="diacritic-btn" data-char="Ŏ" aria-label="Chèn chữ Ŏ">Ŏ</button>
+        <button type="button" class="diacritic-btn" data-char="Ŭ" aria-label="Chèn chữ Ŭ">Ŭ</button>
+        <button type="button" class="diacritic-btn" data-char="Ĕ" aria-label="Chèn chữ Ĕ">Ĕ</button>
+        <button type="button" class="diacritic-btn" data-char="Ă" aria-label="Chèn chữ Ă">Ă</button>
+        <button type="button" class="diacritic-btn" data-char="Â" aria-label="Chèn chữ Â">Â</button>
+        <button type="button" class="diacritic-btn" data-char="Õ" aria-label="Chèn chữ Õ">Õ</button>
+        <button type="button" class="diacritic-btn" data-char="Ě" aria-label="Chèn chữ Ě">Ě</button>
+        <button type="button" class="diacritic-btn" data-char="Ĭ" aria-label="Chèn chữ Ĭ">Ĭ</button>
+        <button type="button" class="diacritic-btn" data-char="Ơ̆" aria-label="Chèn chữ Ơ̆">Ơ̆</button>
+        <button type="button" class="diacritic-btn" data-char="Ư̆" aria-label="Chèn chữ Ư̆">Ư̆</button>
+      </div>
+    </div>
   </form>
+
+  <!-- ONE-LINE LEXICAL SUMMARY (Replaces bloated Bento cards without losing any data) -->
+  <div class="lexical-summary-bar" role="region" aria-label="Thống kê dữ liệu từ điển">
+    <span class="summary-item"><strong id="stat-words">1000+</strong> từ chuẩn</span>
+    <span class="summary-dot" aria-hidden="true">•</span>
+    <span class="summary-item"><strong id="stat-audio">1000+</strong> phát âm bản địa</span>
+    <span class="summary-dot" aria-hidden="true">•</span>
+    <span class="summary-item"><strong id="stat-examples">2000+</strong> ví dụ song ngữ</span>
+    <span class="summary-dot" aria-hidden="true">•</span>
+    <span class="summary-item"><strong id="stat-questions">100+</strong> câu ôn tập</span>
+    <span id="dictionary-count" style="display:none;">1000+ từ vựng chuẩn</span>
+  </div>
 
   <!-- QUICK SUGGESTIONS CHIPS -->
   <div class="suggestions-chips-container" aria-label="Gợi ý tra cứu nhanh">
-      <span class="chips-label"><i class="fas fa-lightbulb"></i> Gợi ý tra cứu phổ biến:</span>
-      <div class="chips-list">
-          <button type="button" class="suggest-chip" data-query="xin chào">Xin chào</button>
-          <button type="button" class="suggest-chip" data-query="cảm ơn">Cảm ơn</button>
-          <button type="button" class="suggest-chip" data-query="nhà">Nhà</button>
-          <button type="button" class="suggest-chip" data-query="rừng">Rừng già</button>
-          <button type="button" class="suggest-chip" data-query="nước">Nước</button>
-          <button type="button" class="suggest-chip" data-query="cơm">Cơm</button>
-          <button type="button" class="suggest-chip" data-query="mẹ">Mẹ</button>
-      </div>
+    <span class="chips-label">
+      <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+      </svg>
+      <span>Gợi ý:</span>
+    </span>
+    <div class="chips-list">
+      <button type="button" class="suggest-chip" data-query="xin chào">Xin chào</button>
+      <button type="button" class="suggest-chip" data-query="cảm ơn">Cảm ơn</button>
+      <button type="button" class="suggest-chip" data-query="nhà">Nhà</button>
+      <button type="button" class="suggest-chip" data-query="rừng">Rừng già</button>
+      <button type="button" class="suggest-chip" data-query="nước">Nước</button>
+      <button type="button" class="suggest-chip" data-query="cơm">Cơm</button>
+      <button type="button" class="suggest-chip" data-query="mẹ">Mẹ</button>
+    </div>
   </div>
   
   <div class="search-status" id="searchStatus" aria-live="polite"></div>
   
   <div class="loading" id="loading" style="display:none" role="status">
-      <i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu từ điển...
+    <svg class="lucide-icon spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+    </svg>
+    <span>Đang tải dữ liệu từ điển...</span>
   </div>
   
   <!-- RESULT SECTION -->
   <section aria-live="polite">
-      <div class="result-container" id="resultContainer">
-          <div id="result">
-              <div class="no-result">
-                  <div class="no-result-icon">
-                      <i class="fas fa-search"></i>
-                  </div>
-                  <h3>Sẵn sàng tra cứu từ vựng</h3>
-                  <p>Nhập từ tiếng Việt hoặc Xơ Đăng vào ô tìm kiếm, hoặc sử dụng tính năng nhận diện giọng nói qua microphone.</p>
-                  <p class="no-result-hint"><i class="fas fa-hand-point-up"></i> Bạn cũng có thể bấm vào các gợi ý từ vựng phổ biến ở trên để tra cứu ngay.</p>
-              </div>
+    <div class="result-container" id="resultContainer">
+      <div id="result">
+        <div class="no-result">
+          <div class="no-result-icon">
+            <svg class="lucide-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.3-4.3"/>
+            </svg>
           </div>
-          <div id="error" class="error" role="alert" hidden></div>
+          <h3>Sẵn sàng tra cứu từ vựng</h3>
+          <p>Nhập từ tiếng Việt hoặc Xơ Đăng vào ô tìm kiếm, hoặc sử dụng tính năng nhận diện giọng nói qua microphone.</p>
+          <p class="no-result-hint">Bạn cũng có thể bấm vào các từ khóa gợi ý ở trên để tra cứu tức thì.</p>
+        </div>
       </div>
+      <div id="error" class="error" role="alert" hidden></div>
+    </div>
   </section>
+
+  <!-- OFFLINE AUDIO DOWNLOAD CARD (Compact utility card placed cleanly below primary search flow) -->
+  <div class="offline-download-card">
+    <div class="offline-card-header">
+      <div class="offline-card-icon" aria-hidden="true">
+        <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" x2="12" y1="15" y2="3"/>
+        </svg>
+      </div>
+      <div class="offline-card-info">
+        <strong class="offline-card-title">Gói phát âm ngoại tuyến (Offline Audio Pack)</strong>
+        <span class="offline-card-desc" id="download-status">Tải toàn bộ âm thanh giọng đọc bản địa về máy để tra cứu khi mất mạng internet.</span>
+      </div>
+    </div>
+    
+    <!-- Progress Bar (Hiện khi tải) -->
+    <div class="download-progress-container" id="download-progress-container" style="display: none;" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+      <div class="download-progress-header">
+        <span id="download-progress-text">Đang tải: 0/0 (0%)</span>
+        <span>Vui lòng không đóng trang web...</span>
+      </div>
+      <div class="download-progress-track">
+        <div class="download-progress-bar" id="download-progress-bar"></div>
+      </div>
+    </div>
+    
+    <button id="btn-download-offline" class="btn-download-offline" aria-label="Tải âm thanh offline">
+      <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" x2="12" y1="15" y2="3"/>
+      </svg>
+      <span>Tải âm thanh offline (~40MB)</span>
+    </button>
+  </div>
 </section>

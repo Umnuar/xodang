@@ -14,27 +14,25 @@
 }
 
 .chat-toggle-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-full);
     background: var(--chat-primary);
     color: white;
-    border: none;
+    border: 1px solid var(--chat-secondary);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    box-shadow: 0 6px 20px rgba(30, 126, 72, 0.35);
-    transition: all 0.25s ease;
+    font-size: 1.3rem;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-fast);
     position: relative;
-    animation: float 3s ease-in-out infinite;
 }
 
 .chat-toggle-btn:hover {
     background: var(--chat-secondary);
-    transform: scale(1.08);
-    box-shadow: 0 8px 25px rgba(30, 126, 72, 0.45);
+    box-shadow: var(--shadow-lg);
 }
 
 .chat-toggle-btn .notification-badge {
@@ -334,7 +332,7 @@ body.dark-mode .welcome-message {
 /* Mobile Responsiveness & Bottom Nav Clearance */
 @media (max-width: 768px) {
     .chat-widget-container {
-        bottom: 74px; /* Clearance above the 64px Mobile Bottom Navigation Bar */
+        bottom: 76px; /* Clearance above the 64px Mobile Bottom Navigation Bar */
         right: 16px;
     }
 
