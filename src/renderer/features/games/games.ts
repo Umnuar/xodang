@@ -6,6 +6,7 @@
 
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import { eventBus } from '@/renderer/components/event-bus';
+import { getLucideIcon } from '@/renderer/utils/icons';
 import { soundEffects } from './sound-effects';
 import { Game1Memory } from './game1-memory';
 import { Game2Catcher } from './game2-catcher';
@@ -120,7 +121,12 @@ export function initGames(): void {
 
 function updateSfxButtonUI(btn: HTMLButtonElement): void {
     const isEnabled = soundEffects.isEnabled();
-    btn.innerHTML = isEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+    const icon = isEnabled
+        ? getLucideIcon('volume-2', 'lucide-icon', 16)
+        : getLucideIcon('volume-x', 'lucide-icon', 16);
+    btn.innerHTML = `${icon}<span>${isEnabled ? 'Âm thanh: Bật' : 'Âm thanh: Tắt'}</span>`;
+    btn.setAttribute('title', isEnabled ? 'Tắt hiệu ứng âm thanh' : 'Bật hiệu ứng âm thanh');
+    btn.setAttribute('aria-label', isEnabled ? 'Tắt hiệu ứng âm thanh' : 'Bật hiệu ứng âm thanh');
     btn.classList.toggle('muted', !isEnabled);
 }
 

@@ -102,6 +102,54 @@ describe('Native Canvas Games & Lifecycle Tests (Rule 11 Compliance)', () => {
         expect(plots.length).toBe(4);
     });
 
+    it('renders Direction A Game Hub with labeled chips and semantic Lucide SVGs', () => {
+        // Labeled chips exist
+        const chips = document.querySelectorAll('.game-chip-btn');
+        expect(chips.length).toBe(4);
+        
+        const leaderboardBtn = document.getElementById('btnOpenLeaderboard');
+        expect(leaderboardBtn?.textContent).toContain('Bảng vàng');
+        expect(leaderboardBtn?.querySelector('svg')).not.toBeNull();
+
+        const badgesBtn = document.getElementById('btnOpenBadges');
+        expect(badgesBtn?.textContent).toContain('Huy hiệu');
+        expect(badgesBtn?.querySelector('svg')).not.toBeNull();
+
+        const certsBtn = document.getElementById('btnOpenCertificates');
+        expect(certsBtn?.textContent).toContain('Chứng nhận');
+        expect(certsBtn?.querySelector('svg')).not.toBeNull();
+
+        const sfxBtn = document.getElementById('toggleGameSfx') as HTMLButtonElement;
+        expect(sfxBtn?.textContent).toContain('Âm thanh: Bật');
+        expect(sfxBtn?.querySelector('svg')).not.toBeNull();
+
+        // No emojis in cards or .game-badge
+        expect(document.querySelector('.game-badge')).toBeNull();
+        const cards = document.querySelectorAll('.game-select-card');
+        expect(cards.length).toBe(4);
+        cards.forEach(card => {
+            const iconSvg = card.querySelector('.game-card-icon svg');
+            expect(iconSvg).not.toBeNull();
+            const playBtn = card.querySelector('.game-play-btn');
+            expect(playBtn).not.toBeNull();
+            expect(playBtn?.textContent).toContain('Chơi ngay');
+            expect(playBtn?.querySelector('svg')).not.toBeNull();
+        });
+    });
+
+    it('toggles SFX button state, label, and icon on click', () => {
+        const sfxBtn = document.getElementById('toggleGameSfx') as HTMLButtonElement;
+        expect(sfxBtn.textContent).toContain('Âm thanh: Bật');
+        
+        sfxBtn.click();
+        expect(sfxBtn.textContent).toContain('Âm thanh: Tắt');
+        expect(sfxBtn.classList.contains('muted')).toBe(true);
+
+        sfxBtn.click();
+        expect(sfxBtn.textContent).toContain('Âm thanh: Bật');
+        expect(sfxBtn.classList.contains('muted')).toBe(false);
+    });
+
     it('RULE 11: calls destroy() and cancels requestAnimationFrame when exiting to menu', () => {
         const cancelRafSpy = vi.spyOn(window, 'cancelAnimationFrame');
 
@@ -129,3 +177,4 @@ describe('Native Canvas Games & Lifecycle Tests (Rule 11 Compliance)', () => {
         expect(cancelRafSpy).toHaveBeenCalled();
     });
 });
+
