@@ -288,29 +288,32 @@
 }
 
 /* ==========================================================================
-   DARK MODE OVERRIDES
+   DARK MODE OVERRIDES (GRAPHITE)
    ========================================================================== */
 body.dark-mode .navbar {
-    background: rgba(11, 17, 32, 0.92);
+    background: rgba(23, 24, 27, 0.95);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 body.dark-mode .desktop-menu .menu-link:hover {
-    background: rgba(74, 222, 128, 0.15);
+    background: rgba(52, 211, 153, 0.12);
+    color: var(--color-primary);
 }
 
 body.dark-mode .desktop-menu .menu-link.active {
     background: var(--color-primary);
-    color: #052e16;
+    color: #0f1012;
 }
 
 body.dark-mode .hashtag {
-    background: rgba(74, 222, 128, 0.12);
-    border-color: rgba(74, 222, 128, 0.2);
+    background: rgba(52, 211, 153, 0.12);
+    border-color: rgba(52, 211, 153, 0.25);
+    color: var(--color-primary);
 }
 
 body.dark-mode .hashtag:hover {
     background: var(--color-primary);
-    color: #052e16;
+    color: #0f1012;
 }
 
 /* ==========================================================================

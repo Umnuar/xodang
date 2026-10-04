@@ -638,32 +638,34 @@
     background: rgba(0, 0, 0, 0.04);
 }
 
-/* Dark mode adjustments */
+/* Dark mode adjustments (Graphite) */
 body.dark-mode .game-select-card,
 body.dark-mode .game-active-topbar,
 body.dark-mode .game-stage,
 body.dark-mode .game-user-bar,
 body.dark-mode .game-modal-card,
 body.dark-mode .farm-modal-card {
-    background: var(--bg-card-dark, #1e293b);
-    color: #f1f5f9;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .game-btn-back,
 body.dark-mode .farm-answer-btn,
 body.dark-mode .modal-btn.btn-secondary {
-    background: rgba(255, 255, 255, 0.1);
-    color: #f1f5f9;
+    background: var(--bg-surface-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
 }
 
 body.dark-mode .farm-plot {
-    background: #334155;
-    border-color: #64748b;
+    background: var(--bg-surface-elevated);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .farm-plot.harvested {
-    background: #064e3b;
-    border-color: #10b981;
+    background: rgba(52, 211, 153, 0.15);
+    border-color: var(--color-primary);
 }
 
 /* Modal Overlay & Card Common */
@@ -978,115 +980,117 @@ body.dark-mode .farm-plot.harvested {
     margin-top: 4px;
 }
 
-/* Dark mode for modals */
+/* Dark mode for modals & components (Graphite) */
 body.dark-mode .cert-modal-card,
 body.dark-mode .leaderboard-modal-card,
 body.dark-mode .badges-modal-card,
 body.dark-mode .certs-list-modal-card {
-    background: #1e293b;
-    color: #f1f5f9;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
 }
 
 body.dark-mode .leaderboard-item {
-    background: #334155;
-    border-color: #475569;
+    background: var(--bg-surface-elevated);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .leaderboard-item.is-current-user {
-    background: #1e3a8a;
-    border-color: #3b82f6;
+    background: rgba(52, 211, 153, 0.15);
+    border-color: var(--color-primary);
 }
 
 body.dark-mode .player-name {
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 body.dark-mode .badge-card {
-    background: #334155;
-    border-color: #475569;
+    background: var(--bg-surface-elevated);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .badge-card.unlocked {
-    background: #064e3b;
-    border-color: #059669;
+    background: rgba(52, 211, 153, 0.15);
+    border-color: var(--color-primary);
 }
 
 body.dark-mode .badge-name {
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 body.dark-mode .cert-card-item {
-    background: #78350f;
-    border-color: #b45309;
-    color: #fef3c7;
+    background: var(--bg-surface-elevated);
+    border-color: rgba(251, 191, 36, 0.3);
+    color: var(--color-secondary);
 }
 
 body.dark-mode .cert-card-details h4 {
-    color: #fef3c7;
+    color: var(--color-secondary);
 }
 
 body.dark-mode .cert-canvas-wrapper {
-    background: #0f172a;
+    background: var(--bg-canvas);
 }
 
 body.dark-mode .game-hub-header h2 {
-    color: var(--color-text-primary, #f8fafc);
+    color: var(--text-primary);
 }
 
 body.dark-mode .game-hub-header p {
-    color: var(--color-text-secondary, #94a3b8);
+    color: var(--text-secondary);
 }
 
 body.dark-mode .game-user-bar {
-    background: var(--color-surface, #1e293b);
-    border-color: var(--color-border, #334155);
+    background: var(--bg-surface);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .game-user-info {
-    color: var(--color-text-primary, #f8fafc);
+    color: var(--text-primary);
 }
 
 body.dark-mode .game-icon-btn {
-    border-color: var(--color-border, #475569);
-    color: var(--color-primary-light, #4ade80);
+    border-color: var(--border-default);
+    color: var(--color-primary);
 }
 
 body.dark-mode .game-select-card {
-    background: var(--color-surface, #1e293b);
-    border-color: var(--color-border, #334155);
+    background: var(--bg-surface);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .game-select-card h3 {
-    color: var(--color-text-primary, #f8fafc);
+    color: var(--text-primary);
 }
 
 body.dark-mode .game-select-card p {
-    color: var(--color-text-secondary, #94a3b8);
+    color: var(--text-secondary);
 }
 
 body.dark-mode .game-active-topbar {
-    background: var(--color-surface, #1e293b);
-    border-color: var(--color-border, #334155);
+    background: var(--bg-surface);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .game-active-title-wrap h3 {
-    color: var(--color-text-primary, #f8fafc);
+    color: var(--text-primary);
 }
 
 body.dark-mode .game-btn-back {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-text-primary, #f8fafc);
+    background: var(--bg-surface-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
 }
 
 body.dark-mode .game-stage {
-    background: var(--color-surface, #1e293b);
-    border: 1px solid var(--color-border, #334155);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
 }
 
 body.dark-mode .game-modal-card {
-    background: var(--color-surface, #1e293b);
-    border-color: var(--color-border, #334155);
-    color: var(--color-text-primary, #f8fafc);
+    background: var(--bg-surface);
+    border-color: var(--border-subtle);
+    color: var(--text-primary);
 }
 
 /* ==========================================================================

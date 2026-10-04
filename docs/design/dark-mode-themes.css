@@ -1,0 +1,177 @@
+/* ==========================================================================
+   Xơ Đăng Lingua - Dark Mode Design System Themes
+   Calibrated for WCAG 2.2 AA Contrast & Diacritical Typography
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Phuong an A: Rung dem (Forest Midnight)
+   Nen den pha xanh la nhe (#0b100e), dong nhat voi mau thuong hieu #27ae60
+   -------------------------------------------------------------------------- */
+:root[data-theme="forest-midnight"],
+:root[data-theme="dark-a"],
+.theme-forest-midnight {
+  /* Surfaces & Elevation */
+  --color-bg-canvas: #0b100e;
+  --color-bg-card: #111815;
+  --color-bg-raised: #17201c;
+  --color-bg-overlay: rgba(11, 16, 14, 0.85);
+
+  /* Hairline Borders */
+  --color-border-hairline: rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.12);
+  --color-border-focus: #34d399;
+
+  /* Typography Colors */
+  --color-text-primary: #e8efe9;           /* 15.41:1 vs card (AAA) */
+  --color-text-secondary: #9db0a4;         /* 7.88:1 vs card (AAA) */
+  --color-text-muted: #6d8075;             /* 4.29:1 vs card (danh cho icon / text >= 18pt) */
+  --color-text-muted-calibrated: #75897e;  /* 4.84:1 vs card (dat WCAG AA cho body text < 18pt) */
+  --color-text-on-accent: #0b100e;         /* 9.98:1 tren nut xanh la #34d399 (AAA) */
+
+  /* Accent (Goc #27ae60 -> Desaturated Light Emerald #34d399) */
+  --color-accent: #34d399;
+  --color-accent-hover: #10b981;
+  --color-accent-subtle: rgba(52, 211, 153, 0.12);
+  --color-accent-ring: rgba(52, 211, 153, 0.25);
+
+  /* Semantic Colors */
+  --color-semantic-error: #f87171;
+  --color-semantic-error-subtle: rgba(248, 113, 113, 0.12);
+  --color-semantic-warning: #fbbf24;
+  --color-semantic-warning-subtle: rgba(251, 191, 36, 0.12);
+  --color-semantic-info: #60a5fa;
+  --color-semantic-info-subtle: rgba(96, 165, 250, 0.12);
+
+  /* Elevation Shadows (Khong dung shadow dam, chu yeu phu thuoc vao surface lightness) */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Phuong an B: Graphite (Trung tinh / Neutral Dark)
+   Nen den than chi trung tinh (#0f1012), khong am mau, diem nhan xanh la
+   -------------------------------------------------------------------------- */
+:root[data-theme="graphite"],
+:root[data-theme="dark-b"],
+.theme-graphite {
+  /* Surfaces & Elevation */
+  --color-bg-canvas: #0f1012;
+  --color-bg-card: #17181b;
+  --color-bg-raised: #1f2124;
+  --color-bg-overlay: rgba(15, 16, 18, 0.85);
+
+  /* Hairline Borders */
+  --color-border-hairline: rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.12);
+  --color-border-focus: #34d399;
+
+  /* Typography Colors */
+  --color-text-primary: #e8e8ea;           /* 14.51:1 vs card (AAA) */
+  --color-text-secondary: #a0a3a8;         /* 7.02:1 vs card (AAA) */
+  --color-text-muted: #6b6e75;             /* 3.48:1 vs card (icon / large text) */
+  --color-text-muted-calibrated: #7f838c;  /* 4.72:1 vs card (dat WCAG AA cho body text) */
+  --color-text-on-accent: #0f1012;         /* 9.90:1 tren nut xanh la #34d399 (AAA) */
+
+  /* Accent (Xanh la thuong hieu) */
+  --color-accent: #34d399;
+  --color-accent-hover: #10b981;
+  --color-accent-subtle: rgba(52, 211, 153, 0.12);
+  --color-accent-ring: rgba(52, 211, 153, 0.25);
+
+  /* Semantic Colors */
+  --color-semantic-error: #f87171;
+  --color-semantic-error-subtle: rgba(248, 113, 113, 0.12);
+  --color-semantic-warning: #fbbf24;
+  --color-semantic-warning-subtle: rgba(251, 191, 36, 0.12);
+  --color-semantic-info: #60a5fa;
+  --color-semantic-info-subtle: rgba(96, 165, 250, 0.12);
+
+  /* Elevation Shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Quy tac hien thi typographic & Accessibility chung cho Dark Mode
+   -------------------------------------------------------------------------- */
+body[data-theme="forest-midnight"],
+body[data-theme="graphite"],
+body[data-theme="dark-a"],
+body[data-theme="dark-b"] {
+  background-color: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dam bao phong chu du line-height khong bi cat dau am tiet tieng Xo Dang & Tieng Viet */
+.xd-headword,
+.xd-text,
+.xd-phonetics {
+  line-height: 1.6;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Nut bam Primary Button: Bat buoc dung chu mau toi de dat do tuong phan 9.9:1 */
+.btn-primary-dark {
+  background-color: var(--color-accent);
+  color: var(--color-text-on-accent) !important;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary-dark:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.btn-primary-dark:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+/* Vong Focus Ring WCAG 2.2 AA cho toan bo interactive elements */
+:focus-visible {
+  outline: 2px solid var(--color-border-focus) !important;
+  outline-offset: 2px !important;
+}
+
+/* Hop the card noi */
+.dark-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Hop nhap lieu input */
+.dark-input {
+  background-color: var(--color-bg-raised);
+  border: 1px solid var(--color-border-hairline);
+  color: var(--color-text-primary);
+  border-radius: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+}
+
+.dark-input::placeholder {
+  color: var(--color-text-muted-calibrated);
+}
+
+.dark-input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
+  outline: none;
+}

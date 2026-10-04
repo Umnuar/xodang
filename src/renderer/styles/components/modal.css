@@ -289,46 +289,48 @@
 }
 
 body.dark-mode .pwa-status-card {
-    background: #1e293b;
-    border-color: #334155;
-    color: #cbd5e1;
+    background: var(--bg-surface-elevated);
+    border-color: var(--border-subtle);
+    color: var(--text-secondary);
 }
 
 body.dark-mode .pwa-status-card.good {
-    background: #064e3b;
+    background: rgba(52, 211, 153, 0.15);
     border-color: #34d399;
-    color: #d1fae5;
+    color: #34d399;
 }
 
 body.dark-mode .pwa-status-card.warning {
-    background: #451a03;
+    background: rgba(251, 191, 36, 0.15);
     border-color: #fbbf24;
-    color: #fef3c7;
+    color: #fbbf24;
 }
 
 body.dark-mode .pwa-status-card.error {
-    background: #450a0a;
+    background: rgba(248, 113, 113, 0.15);
     border-color: #f87171;
-    color: #fee2e2;
+    color: #f87171;
 }
 
 body.dark-mode .install-modal-card {
-    background: #1e293b;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
 }
 
 body.dark-mode .modal-header h3 {
-    color: #f1f5f9;
+    color: var(--text-primary);
 }
 
 body.dark-mode .modal-close-btn {
-    background: #334155;
+    background: var(--bg-surface-elevated);
+    color: var(--text-secondary);
 }
 
 body.dark-mode .ios-step {
-    background: #0f172a;
-    border-color: #334155;
+    background: var(--bg-surface-elevated);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .step-text {
-    color: #cbd5e1;
+    color: var(--text-secondary);
 }

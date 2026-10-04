@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Xơ Đăng Lingua Dark Mode Design Tokens",
+  "version": "1.0.0",
+  "description": "Design tokens and WCAG AA calibrated specifications for Xơ Đăng Lingua Dark Mode options: Phương án A (Rừng đêm) & Phương án B (Graphite)",
+  "metadata": {
+    "targetAudience": "Học sinh THCS (11-15 tuổi) và người tự học tiếng Xơ Đăng",
+    "brandAnchor": "#27ae60",
+    "fontFamily": "Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    "elevationPrinciple": "Surface lightness elevation (canvas < card < raised/popover), zero background gradients, zero pure black (#000000), zero pure white text (#ffffff)",
+    "contrastStandard": "WCAG 2.2 AA (Normal text >= 4.5:1, Large text & UI controls >= 3:1)"
+  },
+  "themes": {
+    "optionA": {
+      "id": "forest-midnight",
+      "name": "Phương án A: Rừng đêm (Forest Midnight)",
+      "character": "Nền đen pha sắc xanh lá rất nhẹ (tinted dark green), hòa quyện cùng bản sắc đại ngàn Tây Nguyên và thương hiệu #27ae60.",
+      "surfaces": {
+        "bg-canvas": {
+          "value": "#0b100e",
+          "description": "Nền toàn trang, độ sáng thấp nhất",
+          "wcagLuminance": 0.0051
+        },
+        "bg-card": {
+          "value": "#111815",
+          "description": "Thẻ nội dung, từ vựng, flashcard, bảng điều khiển",
+          "wcagLuminance": 0.0076
+        },
+        "bg-raised": {
+          "value": "#17201c",
+          "description": "Phần nổi, ô nhập dữ liệu (input/search), popover, dropdown",
+          "wcagLuminance": 0.0125
+        },
+        "bg-overlay": {
+          "value": "rgba(11, 16, 14, 0.85)",
+          "description": "Lớp phủ backdrop modal, bottom sheet"
+        }
+      },
+      "borders": {
+        "border-hairline": {
+          "value": "rgba(255, 255, 255, 0.08)",
+          "description": "Viền mảnh 1px phân tách các bề mặt card và input"
+        },
+        "border-subtle": {
+          "value": "rgba(255, 255, 255, 0.12)",
+          "description": "Viền hover và phân chia danh mục"
+        },
+        "border-focus": {
+          "value": "#34d399",
+          "description": "Vòng focus 2px rõ nét, đáp ứng WCAG 2.2 focus appearance"
+        }
+      },
+      "text": {
+        "text-primary": {
+          "value": "#e8efe9",
+          "description": "Chữ chính, tiêu đề từ vựng, văn bản Xơ Đăng",
+          "contrastRatio": {
+            "onCanvas": "16.40:1 (AAA)",
+            "onCard": "15.41:1 (AAA)",
+            "onRaised": "14.25:1 (AAA)"
+          }
+        },
+        "text-secondary": {
+          "value": "#9db0a4",
+          "description": "Chữ phụ, phiên âm ngữ âm, nhãn phụ, từ loại",
+          "contrastRatio": {
+            "onCanvas": "8.39:1 (AAA)",
+            "onCard": "7.88:1 (AAA)",
+            "onRaised": "7.29:1 (AAA)"
+          }
+        },
+        "text-muted": {
+          "value": "#6d8075",
+          "description": "Chữ mờ, placeholder, nhãn phụ trợ (dành cho văn bản lớn >= 18pt hoặc icon >= 3:1)",
+          "contrastRatio": {
+            "onCanvas": "4.56:1 (AA Pass)",
+            "onCard": "4.29:1 (Borderline - dùng cho text lớn / icon)",
+            "onRaised": "3.96:1 (3:1 UI Control Pass)"
+          }
+        },
+        "text-muted-calibrated": {
+          "value": "#75897e",
+          "description": "Chữ mờ hiệu chỉnh đạt chuẩn WCAG AA (>= 4.5:1) cho văn bản kích thước thường (< 18pt)",
+          "contrastRatio": {
+            "onCanvas": "5.15:1 (AA Pass)",
+            "onCard": "4.84:1 (AA Pass)",
+            "onRaised": "4.48:1 (AA Pass)"
+          }
+        },
+        "text-on-accent": {
+          "value": "#0b100e",
+          "description": "Màu chữ trên nút nền accent xanh lá #34d399. TUYỆT ĐỐI không dùng chữ trắng (#ffffff) vì tương phản chỉ đạt 2.08:1 (Fail)",
+          "contrastRatio": {
+            "onAccent": "9.98:1 (AAA Pass)"
+          }
+        }
+      },
+      "accent": {
+        "brand-source": "#27ae60",
+        "accent-primary": {
+          "value": "#34d399",
+          "description": "Xanh lá sáng (Emerald 400), khử bão hòa nhẹ giúp chống lóa trên nền tối",
+          "contrastRatio": {
+            "onCanvas": "9.98:1 (AAA)",
+            "onCard": "9.37:1 (AAA)",
+            "onRaised": "8.67:1 (AAA)"
+          }
+        },
+        "accent-hover": {
+          "value": "#10b981",
+          "description": "Trạng thái hover nút và tag đang chọn"
+        },
+        "accent-subtle": {
+          "value": "rgba(52, 211, 153, 0.12)",
+          "description": "Nền chip tag, nền nút audio đang phát, thanh tiến độ"
+        }
+      },
+      "semantic": {
+        "error": {
+          "value": "#f87171",
+          "contrastOnCard": "6.51:1 (AAA)",
+          "description": "Báo sai trắc nghiệm, lỗi kết nối mạng"
+        },
+        "error-subtle": {
+          "value": "rgba(248, 113, 113, 0.12)"
+        },
+        "warning": {
+          "value": "#fbbf24",
+          "contrastOnCard": "10.80:1 (AAA)",
+          "description": "Ghi chú từ cổ, biến thể phương ngữ, cảnh báo hết giờ"
+        },
+        "warning-subtle": {
+          "value": "rgba(251, 191, 36, 0.12)"
+        },
+        "info": {
+          "value": "#60a5fa",
+          "contrastOnCard": "7.09:1 (AAA)",
+          "description": "Giải thích ngữ pháp, mẹo ghi nhớ văn hóa"
+        },
+        "info-subtle": {
+          "value": "rgba(96, 165, 250, 0.12)"
+        }
+      }
+    },
+    "optionB": {
+      "id": "graphite",
+      "name": "Phương án B: Graphite (Trung tính / Neutral Dark)",
+      "character": "Tông than chì trung tính, không ám sắc tố màu, tập trung tuyệt đối vào sự chính xác của văn bản và công cụ học thuật.",
+      "surfaces": {
+        "bg-canvas": {
+          "value": "#0f1012",
+          "description": "Nền đen trung tính phẳng, không ám màu",
+          "wcagLuminance": 0.0055
+        },
+        "bg-card": {
+          "value": "#17181b",
+          "description": "Thẻ bài tập, danh sách từ vựng, thẻ trò chơi",
+          "wcagLuminance": 0.0089
+        },
+        "bg-raised": {
+          "value": "#1f2124",
+          "description": "Khung tìm kiếm, modal, bottom sheet, nút bấm phụ",
+          "wcagLuminance": 0.0135
+        },
+        "bg-overlay": {
+          "value": "rgba(15, 16, 18, 0.85)",
+          "description": "Lớp phủ backdrop"
+        }
+      },
+      "borders": {
+        "border-hairline": {
+          "value": "rgba(255, 255, 255, 0.08)",
+          "description": "Viền mảnh 1px"
+        },
+        "border-subtle": {
+          "value": "rgba(255, 255, 255, 0.12)",
+          "description": "Viền hover và phân chia danh mục"
+        },
+        "border-focus": {
+          "value": "#34d399",
+          "description": "Vòng focus chuẩn WCAG 2.2"
+        }
+      },
+      "text": {
+        "text-primary": {
+          "value": "#e8e8ea",
+          "description": "Chữ chính trắng ngà trung tính, chống chói mắt",
+          "contrastRatio": {
+            "onCanvas": "15.56:1 (AAA)",
+            "onCard": "14.51:1 (AAA)",
+            "onRaised": "13.19:1 (AAA)"
+          }
+        },
+        "text-secondary": {
+          "value": "#a0a3a8",
+          "description": "Chữ phụ xám trung tính, nhãn danh mục",
+          "contrastRatio": {
+            "onCanvas": "7.52:1 (AAA)",
+            "onCard": "7.02:1 (AAA)",
+            "onRaised": "6.38:1 (AAA)"
+          }
+        },
+        "text-muted": {
+          "value": "#6b6e75",
+          "description": "Chữ mờ, placeholder, ký tự gợi ý (dùng cho text lớn >= 18pt hoặc icon >= 3:1)",
+          "contrastRatio": {
+            "onCanvas": "3.73:1 (Pass UI 3:1)",
+            "onCard": "3.48:1 (Pass UI 3:1)",
+            "onRaised": "3.16:1 (Pass UI 3:1)"
+          }
+        },
+        "text-muted-calibrated": {
+          "value": "#7f838c",
+          "description": "Chữ mờ hiệu chỉnh đạt chuẩn WCAG AA (>= 4.5:1) cho văn bản thường",
+          "contrastRatio": {
+            "onCanvas": "4.97:1 (AA Pass)",
+            "onCard": "4.72:1 (AA Pass)",
+            "onRaised": "4.29:1 (AA Borderline)"
+          }
+        },
+        "text-on-accent": {
+          "value": "#0f1012",
+          "description": "Màu chữ trên nút nền accent xanh lá #34d399",
+          "contrastRatio": {
+            "onAccent": "9.90:1 (AAA Pass)"
+          }
+        }
+      },
+      "accent": {
+        "brand-source": "#27ae60",
+        "accent-primary": {
+          "value": "#34d399",
+          "description": "Nhấn xanh lá sáng tương thích thương hiệu #27ae60",
+          "contrastRatio": {
+            "onCanvas": "9.90:1 (AAA)",
+            "onCard": "9.23:1 (AAA)",
+            "onRaised": "8.52:1 (AAA)"
+          }
+        },
+        "accent-hover": {
+          "value": "#10b981",
+          "description": "Hover nút chính"
+        },
+        "accent-subtle": {
+          "value": "rgba(52, 211, 153, 0.12)",
+          "description": "Nền chip và hiệu ứng sáng viền"
+        }
+      },
+      "semantic": {
+        "error": {
+          "value": "#f87171",
+          "contrastOnCard": "6.30:1 (AAA)"
+        },
+        "error-subtle": {
+          "value": "rgba(248, 113, 113, 0.12)"
+        },
+        "warning": {
+          "value": "#fbbf24",
+          "contrastOnCard": "10.45:1 (AAA)"
+        },
+        "warning-subtle": {
+          "value": "rgba(251, 191, 36, 0.12)"
+        },
+        "info": {
+          "value": "#60a5fa",
+          "contrastOnCard": "6.86:1 (AAA)"
+        },
+        "info-subtle": {
+          "value": "rgba(96, 165, 250, 0.12)"
+        }
+      }
+    }
+  },
+  "componentMappings": {
+    "navbar": {
+      "background": "var(--color-bg-card)",
+      "borderBottom": "1px solid var(--color-border-hairline)",
+      "activeTab": "var(--color-accent)",
+      "inactiveTab": "var(--color-text-secondary)"
+    },
+    "searchField": {
+      "background": "var(--color-bg-raised)",
+      "border": "1px solid var(--color-border-hairline)",
+      "text": "var(--color-text-primary)",
+      "placeholder": "var(--color-text-muted-calibrated)",
+      "focusBorder": "var(--color-accent)",
+      "focusRing": "0 0 0 3px rgba(52, 211, 153, 0.2)"
+    },
+    "entryCard": {
+      "background": "var(--color-bg-card)",
+      "border": "1px solid var(--color-border-hairline)",
+      "headword": "var(--color-text-primary)",
+      "phonetics": "var(--color-accent)",
+      "definition": "var(--color-text-secondary)",
+      "audioButtonBg": "var(--color-accent-subtle)",
+      "audioButtonIcon": "var(--color-accent)"
+    },
+    "flashcard": {
+      "frontBackground": "var(--color-bg-card)",
+      "backBackground": "var(--color-bg-raised)",
+      "border": "1px solid var(--color-border-hairline)",
+      "flipTrigger": "var(--color-accent)"
+    },
+    "quizOption": {
+      "defaultBg": "var(--color-bg-raised)",
+      "defaultBorder": "1px solid var(--color-border-hairline)",
+      "hoverBorder": "1px solid var(--color-accent)",
+      "correctBg": "rgba(52, 211, 153, 0.15)",
+      "correctBorder": "1px solid var(--color-accent)",
+      "wrongBg": "var(--color-semantic-error-subtle)",
+      "wrongBorder": "1px solid var(--color-semantic-error)"
+    },
+    "gameCard": {
+      "background": "var(--color-bg-card)",
+      "hoverBackground": "var(--color-bg-raised)",
+      "badge": "var(--color-accent-subtle)",
+      "badgeText": "var(--color-accent)"
+    },
+    "bottomSheet": {
+      "background": "var(--color-bg-raised)",
+      "dragHandle": "rgba(255, 255, 255, 0.2)",
+      "backdrop": "var(--color-bg-overlay)"
+    },
+    "buttonPrimary": {
+      "background": "var(--color-accent)",
+      "text": "var(--color-text-on-accent)",
+      "hoverBackground": "var(--color-accent-hover)"
+    }
+  }
+}

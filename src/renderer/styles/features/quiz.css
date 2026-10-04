@@ -158,6 +158,10 @@
     color: white;
 }
 
+body.dark-mode .quiz-control-btn.submit-btn {
+    color: #0f1012;
+}
+
 .quiz-control-btn.submit-btn:hover:not(:disabled) {
     background: var(--color-secondary-hover);
 }

@@ -344,3 +344,24 @@
         padding: 12px 16px;
     }
 }
+
+/* Dark Mode Chat Overrides (Graphite) */
+body.dark-mode .chat-toggle-btn {
+    color: #0f1012;
+}
+
+body.dark-mode .chat-header {
+    color: #0f1012;
+}
+
+body.dark-mode .close-chat-btn {
+    color: #0f1012;
+}
+
+body.dark-mode .message.user {
+    color: #0f1012;
+}
+
+body.dark-mode .message.user .message-time {
+    color: rgba(15, 16, 18, 0.75);
+}

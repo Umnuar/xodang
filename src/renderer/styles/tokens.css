@@ -82,51 +82,60 @@
 }
 
 body.dark-mode {
-    /* Brand & Heritage Colors - Dark Mode */
-    --color-primary: #4ade80;
-    --color-primary-hover: #86efac;
-    --color-primary-light: #064e3b;
-    --color-primary-glow: none;
+    /* Brand & Heritage Colors - Graphite Dark Palette */
+    --color-primary: #34d399;
+    --color-primary-hover: #10b981;
+    --color-primary-light: rgba(52, 211, 153, 0.12);
+    --color-primary-glow: rgba(52, 211, 153, 0.25);
 
-    --color-secondary: #fb923c;
-    --color-secondary-hover: #fdba74;
-    --color-secondary-light: #7c2d12;
+    --color-secondary: #fbbf24;
+    --color-secondary-hover: #f59e0b;
+    --color-secondary-light: rgba(251, 191, 36, 0.12);
 
     --color-tertiary: #60a5fa;
-    --color-tertiary-hover: #93c5fd;
-    --color-tertiary-light: #1e3a8a;
+    --color-tertiary-hover: #3b82f6;
+    --color-tertiary-light: rgba(96, 165, 250, 0.12);
 
-    /* Semantic & Surface Colors - Dark (Quiet Neutral Dark) */
-    --bg-canvas: #18181b;
-    --bg-surface: #27272a;
-    --bg-surface-elevated: #3f3f46;
-    --bg-surface-hover: #323238;
-    --bg-surface-subtle: #202024;
+    /* Surfaces & Elevation - Graphite (Pure Neutral Dark, No Color Tint) */
+    --bg-canvas: #0f1012;
+    --bg-surface: #17181b;
+    --bg-surface-elevated: #1f2124;
+    --bg-surface-hover: #27292d;
+    --bg-surface-subtle: #141518;
+    --bg-card-dark: #17181b;
 
-    --text-primary: #fafafa;
-    --text-secondary: #d4d4d8;
-    --text-tertiary: #a1a1aa;
-    --text-inverse: #18181b;
+    /* Typography Colors - Graphite */
+    --text-primary: #e8e8ea;
+    --text-secondary: #a0a3a8;
+    --text-tertiary: #7f838c;
+    --text-inverse: #0f1012;
 
-    --border-subtle: #3f3f46;
-    --border-default: #52525b;
-    --border-strong: #71717a;
-    --border-focus: #4ade80;
+    /* Hairline & Component Borders */
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-default: rgba(255, 255, 255, 0.14);
+    --border-strong: rgba(255, 255, 255, 0.22);
+    --border-focus: #34d399;
 
-    /* Shadows - Dark (Minimal) */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.35);
-    --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-    --shadow-xl: 0 10px 15px -3px rgba(0, 0, 0, 0.45);
+    /* Feedback & Semantic */
+    --color-success: #34d399;
+    --color-warning: #fbbf24;
+    --color-danger: #f87171;
+    --color-info: #60a5fa;
+
+    /* Shadows - Graphite Elevation */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 10px 20px rgba(0, 0, 0, 0.6);
     --shadow-glow: none;
 
-    /* Backward Compatible Aliases - Dark */
-    --primary-color: #4ade80;
-    --secondary-color: #4ade80;
-    --accent-color: #fb923c;
+    /* Backward Compatible Aliases - Graphite */
+    --primary-color: #34d399;
+    --secondary-color: #34d399;
+    --accent-color: #fbbf24;
     --example-color: #60a5fa;
-    --text-color: #fafafa;
+    --text-color: #e8e8ea;
     --background-gradient: var(--bg-canvas);
-    --chat-primary: #4ade80;
-    --chat-secondary: #86efac;
+    --chat-primary: #34d399;
+    --chat-secondary: #10b981;
 }

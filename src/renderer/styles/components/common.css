@@ -11,9 +11,9 @@
 }
 
 body.dark-mode .error {
-    background: #e74c3c;
-    color: white;
-    border-left-color: #c0392b;
+    background: rgba(248, 113, 113, 0.15);
+    color: var(--color-danger);
+    border-left-color: var(--color-danger);
 }
 
 .loading {
@@ -182,12 +182,12 @@ body.dark-mode .error {
 }
 
 body.dark-mode .stat-item {
-    background: #34495e;
-    border-color: #4a6278;
+    background: var(--bg-surface-elevated);
+    border-color: var(--border-subtle);
 }
 
 body.dark-mode .stat-label {
-    color: #bdc3c7;
+    color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {
