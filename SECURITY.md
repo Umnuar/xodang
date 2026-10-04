@@ -1,129 +1,123 @@
-<div align="center">
+# Chính Sách Bảo Mật (Security Policy)
 
-# 🛡️ Chính Sách Bảo Mật (Security Policy)
-### *Tiêu Chuẩn Đảm Bảo An Ninh Ứng Dụng & Quy Trình Tiếp Nhận Lỗ Hổng Bảo Mật*
-
-[![Security Status](https://img.shields.io/badge/Security_Policy-Active-22c55e?style=flat-square&logo=shield)](https://github.com/Umnuar/xodang/security)
-[![Vulnerability Reporting](https://img.shields.io/badge/Vulnerability_Reporting-Private_Advisory-3b82f6?style=flat-square&logo=github)](https://github.com/Umnuar/xodang/security/advisories/new)
-[![Response SLA](https://img.shields.io/badge/Response_SLA-%3C_48h-f59e0b?style=flat-square)](https://github.com/Umnuar/xodang)
-[![CVSS Standard](https://img.shields.io/badge/Severity_Standard-CVSS_v3.1-6366f1?style=flat-square)](https://www.first.org/cvss/)
-
-</div>
+[English](#security-policy-en) | [Tiếng Việt](#chính-sách-bảo-mật-vi)
 
 ---
 
-Dự án **Từ Điển Xơ Đăng – Tiếng Việt** (`tudien-xedang`) cam kết bảo vệ dữ liệu văn hóa bản địa, an toàn thông tin người dùng và duy trì tiêu chuẩn kỹ thuật an ninh phần mềm cao cấp theo chuẩn **OWASP ASVS** và các thông lệ quốc tế tốt nhất.
+<a name="chính-sách-bảo-mật-vi"></a>
+## Chính sách bảo mật (Tiếng Việt)
 
-Tài liệu này xác định phạm vi phiên bản được duy trì, cơ chế phòng vệ kiến trúc và quy trình **Tiết lộ có trách nhiệm (Responsible Disclosure)**.
+Tài liệu này xác định phạm vi phiên bản được hỗ trợ, mô hình phòng vệ kiến trúc và quy trình báo cáo lỗ hổng bảo mật cho dự án Từ Điển Xơ Đăng – Tiếng Việt (`tudien-xedang`).
 
----
+### 1. Các phiên bản được hỗ trợ
 
-## 1. Các Phiên Bản Được Hỗ Trợ (Supported Versions)
-
-Chúng tôi cung cấp các bản vá bảo mật và cập nhật an ninh định kỳ cho các phiên bản theo lộ trình sau:
-
-| Phiên Bản | Hỗ Trợ Bảo Mật | Trạng Thái | Chiến Lược Bản Vá |
-| :---: | :---: | :---: | :--- |
-| **10.0.x** | :white_check_mark: **Được hỗ trợ** | Bản phát hành sản xuất (PWA & Electron) | Bản vá P0/P1 trong vòng 24–72 giờ |
-| **< 10.0.0** | :x: Không hỗ trợ | Phiên bản cũ (Legacy Web) | Hết hạn hỗ trợ; khuyến nghị nâng cấp |
+| Phiên bản | Hỗ trợ bảo mật | Ghi chú |
+| :---: | :---: | :--- |
+| **10.0.x** | Có | Bản phát hành chính thức hiện tại (PWA & Electron) |
+| **< 10.0.0** | Không | Bản cũ không còn duy trì |
 
 ---
 
-## 2. Báo Cáo Lỗ Hổng Bảo Mật (Reporting a Vulnerability)
+### 2. Quy trình báo cáo lỗ hổng
 
-Nếu bạn phát hiện bất kỳ vấn đề bảo mật nào trong ứng dụng, vui lòng thực hiện báo cáo theo quy trình **Tiết lộ có trách nhiệm**:
+Nếu phát hiện vấn đề an ninh hoặc lỗ hổng bảo mật trong mã nguồn hoặc hệ thống triển khai, vui lòng tuân thủ quy trình **Tiết lộ có trách nhiệm (Responsible Disclosure)**:
 
-### 🔒 Phương thức ưu tiên (Khuyến nghị trên GitHub)
-Sử dụng tính năng **GitHub Private Vulnerability Reporting**:
-👉 **[Tạo Báo Cáo Lỗ Hổng Riêng Tư (New Security Advisory)](https://github.com/Umnuar/xodang/security/advisories/new)**
+* **Phương thức ưu tiên (Khuyến nghị)**: Sử dụng tính năng GitHub Private Vulnerability Reporting tại:  
+  [https://github.com/Umnuar/xodang/security/advisories/new](https://github.com/Umnuar/xodang/security/advisories/new)
+* **Lưu ý quan trọng**: Không mở Issue công khai hoặc Pull Request chứa mã khai thác (PoC) trước khi bản vá được phát hành.
 
-> [!WARNING]
-> **TUYỆT ĐỐI KHÔNG** mở Issue công khai, Pull Request hoặc bình luận công khai trên GitHub để báo cáo lỗ hổng an ninh hoặc đính kèm mã khai thác (PoC) trước khi bản vá được phát hành.
-
-### 📝 Thông tin cần cung cấp trong báo cáo:
-1. **Loại lỗ hổng & Phân loại**: Mã CWE hoặc danh mục OWASP Top 10 (ví dụ: *CWE-79: Cross-site Scripting*, *CWE-200: Information Disclosure*).
-2. **Phạm vi tác động**: Màn hình bị ảnh hưởng (Trang chủ, Tra cứu, Học tập, Trò chơi, Service Worker).
-3. **Các bước tái hiện tối thiểu (Proof of Concept - PoC)**:
-   * Các bước từng bước (step-by-step) tái hiện hành vi lỗi.
-   * Dữ liệu đầu vào hoặc URL giả lập (không gây ảnh hưởng đến dữ liệu thực tế).
-4. **Đánh giá mức độ nghiêm trọng (CVSS v3.1 Calculator)**: Điểm số ước lượng và khả năng khai thác thực tế.
-5. **Đề xuất khắc phục (nếu có)**: Giải pháp kỹ thuật hoặc mã sửa đổi khuyến nghị.
+#### Thông tin cần cung cấp trong báo cáo:
+1. Phân loại lỗ hổng (mã CWE hoặc OWASP nếu xác định được).
+2. Phạm vi ảnh hưởng (Trang chủ, tra cứu, bài thi, minigame, Service Worker, hoặc tiến trình Electron).
+3. Các bước tái hiện chi tiết (kèm dữ liệu mẫu không gây hại).
+4. Đánh giá mức độ nghiêm trọng (điểm số CVSS v3.1 ước lượng).
+5. Đề xuất khắc phục (nếu có).
 
 ---
 
-## 3. Quy Trình Xử Lý & Cam Kết SLA (Incident Response Lifecycle)
+### 3. Thời gian phản hồi và xử lý (SLA)
 
-Mọi báo cáo hợp lệ sẽ được xử lý theo quy trình khép kín:
-
-```
-[Báo cáo gửi đến] 
-       │
-       ▼ (≤ 24 giờ)
-[Xác nhận tiếp nhận & Kiểm tra PoC ban đầu]
-       │
-       ▼ (≤ 72 giờ)
-[Xác định điểm CVSS v3.1 & Tạo nhánh vá bảo mật nội bộ]
-       │
-       ▼ (7–14 ngày)
-[Kiểm thử hồi quy tự động (Vitest) & Biên dịch an toàn]
-       │
-       ▼
-[Triển khai Bản Vá & Công bố CVE/Advisory phối hợp]
-```
-
-### Thời Gian Phản Hồi Theo Mức Độ CVSS:
-| Mức Độ (Severity) | Điểm CVSS v3.1 | Thời Gian Xác Nhận | Thời Gian Vá Lỗi Khẩn Cấp |
-| :--- | :---: | :---: | :---: |
-| **Critical (Khẩn cấp)** | 9.0 – 10.0 | < 12 giờ | **Trong vòng 24 giờ** |
-| **High (Nghiêm trọng)** | 7.0 – 8.9 | < 24 giờ | **Trong vòng 72 giờ** |
-| **Medium (Trung bình)** | 4.0 – 6.9 | < 48 giờ | Trong chu kỳ phát hành (7 ngày) |
-| **Low (Thấp)** | 0.1 – 3.9 | < 72 giờ | Bản phát hành định kỳ kế tiếp |
+| Mức độ nghiêm trọng (CVSS v3.1) | Xác nhận ban đầu | Thời gian phát hành bản vá |
+| :--- | :---: | :---: |
+| **Critical (9.0 – 10.0)** | < 12 giờ | Trong vòng 24 giờ |
+| **High (7.0 – 8.9)** | < 24 giờ | Trong vòng 72 giờ |
+| **Medium (4.0 – 6.9)** | < 48 giờ | Trong chu kỳ 7 ngày |
+| **Low (0.1 – 3.9)** | < 72 giờ | Bản phát hành định kỳ kế tiếp |
 
 ---
 
-## 4. Mô Hình Đe Dọa & Phòng Vệ Kiến Trúc (Threat Model & Defenses)
+### 4. Các biện pháp phòng vệ kiến trúc
 
-Dự án được thiết kế với cơ chế phòng thủ theo chiều sâu (Defense-in-Depth):
-
-### 4.1. Tấn Công Chuỗi Cung Ứng (Supply Chain & Runtime Bloat)
-* **Zero Runtime Dependencies**: Không chứa bất kỳ thư viện bên ngoài nào trong `dependencies`. Toàn bộ mã chạy trên trình duyệt là TypeScript thuần chuyển mã sang ESM.
-* **Tác động an ninh**: Triệt tiêu hoàn toàn bề mặt tấn công của các cuộc tấn công chiếm quyền npm (typosquatting, dependency confusion, malicious sub-dependencies).
-
-### 4.2. Chống Chèn Mã Phía Client (XSS & Injection Mitigation)
-* Dữ liệu từ điển và dữ liệu người dùng nhập tuyệt đối không được gán trực tiếp qua `innerHTML` chưa xử lý.
-* Áp dụng bắt buộc `textContent`, `document.createElement`, hoặc hàm tạo an toàn.
-* Tự động kiểm thử liên tục qua suite: [`tests/xss-security.test.ts`](tests/xss-security.test.ts) (100% pass với payload XSS chuyên sâu).
-
-### 4.3. Bảo Vệ Khóa Google Sheets API (Least Privilege & Key Protection)
-* **Nguyên tắc Đặc quyền tối thiểu**: Khóa API sử dụng cho dự án chỉ có quyền đọc (Read-only) dữ liệu bảng tính.
-* **HTTP Referrer Restriction**: Khóa API được khóa cứng tên miền trong Google Cloud Console (`hoctiengxodang.online/*`).
-* **Snapshot Resilience**: Khi khóa API bị thu hồi hoặc lỗi hạn ngạch (quota exceeded), ứng dụng tự động chuyển sang snapshot tĩnh (`src/shared/data/snapshot-fallback.ts`), không làm lộ thông tin lỗi ra giao diện.
-* **Sanctity of `.env`**: Tệp `.env` thực tế được chặn 100% trong `.gitignore`. Kho lưu trữ chỉ chứa tệp mẫu `.env.example`.
-
-### 4.4. Cách Ly & An Toàn Bộ Nhớ Đệm PWA (Service Worker Sandbox)
-* Service Worker chỉ lưu trữ nội dung có nguồn gốc từ chính ứng dụng (`origin: self`) và tài nguyên âm thanh/font chữ đã định danh.
-* Cơ chế tự dọn dẹp cache cũ khi có phiên bản mới, ngăn ngừa rò rỉ dữ liệu hoặc đầu độc bộ đệm (Cache Poisoning).
+* **Không có thư viện phụ thuộc runtime**: Dự án không dùng thư viện runtime của bên thứ ba, loại bỏ hoàn toàn rủi ro từ tấn công chuỗi cung ứng npm khi chạy trên trình duyệt.
+* **Ngăn chặn XSS**: Toàn bộ dữ liệu hiển thị được xử lý qua các phương thức DOM an toàn (`textContent`, `createElement`). Bộ kiểm thử `tests/xss-security.test.ts` tự động xác minh điều này trước mỗi lần đóng gói.
+* **Bảo vệ khóa API**: Khóa Google Sheets API được cấu hình quyền chỉ đọc (Read-only) và giới hạn tên miền HTTP Referrer. Khi mất mạng hoặc API lỗi, ứng dụng tự động chuyển sang snapshot tĩnh nội bộ mà không làm lộ dữ liệu nhạy cảm.
+* **Cô lập bộ nhớ đệm PWA**: Service Worker chỉ lưu trữ tài nguyên cùng nguồn gốc (`same-origin`) và tài nguyên âm thanh đã chỉ định.
 
 ---
 
-## 5. Quy Trình Thu Hồi & Xoay Khóa Khẩn Cấp (Key Rotation Protocol)
+### 5. Quy trình thu hồi khóa khi có sự cố
 
-Trong trường hợp có dấu hiệu rò rỉ khóa API hoặc thông tin bí mật:
-1. **Thu hồi khẩn cấp**: Truy cập Google Cloud Console và vô hiệu hóa ngay khóa nghi ngờ bị lộ.
-2. **Khởi tạo khóa mới**: Tạo khóa thay thế, cấu hình giới hạn chỉ cho phép HTTP Referrer của website chính thức.
-3. **Cập nhật cấu hình**: Cập nhật biến môi trường trên GitHub Actions Secrets và máy chủ triển khai.
-4. **Kiểm tra nhật ký truy cập**: Đánh giá lưu lượng bất thường để bảo đảm không có lạm dụng hạn ngạch.
-
----
-
-## 6. Vinh Danh Đóng Góp Bảo Mật (Security Hall of Fame)
-
-Chúng tôi trân trọng ghi nhận và vinh danh các chuyên gia bảo mật và cộng tác viên đã phát hiện, báo cáo có trách nhiệm các lỗ hổng giúp nâng cao độ an toàn của hệ sinh thái Từ Điển Xơ Đăng.
-
-*Mọi đóng góp bảo mật hợp lệ sẽ được ghi nhận tên và liên kết hồ sơ trên trang thông báo phát hành (Release Notes) và tài liệu bảo mật chính thức của dự án.*
+1. Đăng nhập Google Cloud Console và vô hiệu hóa ngay khóa API nghi ngờ bị lộ.
+2. Tạo khóa thay thế có cấu hình giới hạn HTTP Referrer.
+3. Cập nhật khóa mới vào biến môi trường và chạy script kiểm tra.
+4. Đánh giá nhật ký truy cập để kiểm tra lưu lượng bất thường.
 
 ---
 
-<div align="center">
-  <sub>Bảo mật thông tin là nền tảng bảo tồn tri thức di sản bền vững.</sub>
-</div>
+<a name="security-policy-en"></a>
+## Security Policy (English)
+
+This document outlines supported versions, architectural defense mechanisms, and vulnerability reporting procedures for the Xe Dang – Vietnamese Dictionary project.
+
+### 1. Supported Versions
+
+| Version | Supported | Notes |
+| :---: | :---: | :--- |
+| **10.0.x** | Yes | Current production release (PWA & Electron) |
+| **< 10.0.0** | No | Legacy release, no longer maintained |
+
+---
+
+### 2. Reporting a Vulnerability
+
+If you discover a security vulnerability, please report it through **Responsible Disclosure**:
+
+* **Preferred Channel**: Submit a private report via GitHub Security Advisories:  
+  [https://github.com/Umnuar/xodang/security/advisories/new](https://github.com/Umnuar/xodang/security/advisories/new)
+* **Important**: Please do not open public issues or public pull requests containing exploit code prior to a coordinated patch release.
+
+#### Information to include in your report:
+1. Vulnerability category (CWE identifier or OWASP classification, if applicable).
+2. Affected scope (search engine, quiz module, games hub, service worker, or Electron process).
+3. Step-by-step reproduction instructions with non-destructive proof-of-concept payload.
+4. Estimated CVSS v3.1 severity rating.
+5. Proposed remediation or patch suggestion (optional).
+
+---
+
+### 3. Response & Remediation SLA
+
+| Severity (CVSS v3.1) | Acknowledgment | Patch Release SLA |
+| :--- | :---: | :---: |
+| **Critical (9.0 – 10.0)** | < 12 hours | Within 24 hours |
+| **High (7.0 – 8.9)** | < 24 hours | Within 72 hours |
+| **Medium (4.0 – 6.9)** | < 48 hours | Within 7 days |
+| **Low (0.1 – 3.9)** | < 72 hours | Next planned release |
+
+---
+
+### 4. Architectural Defenses
+
+* **Zero Runtime Dependencies**: No third-party runtime packages are imported, eliminating supply-chain attack surfaces in production builds.
+* **XSS Mitigation**: Dynamic text insertion strictly uses safe DOM APIs (`textContent`, `createElement`). Regression test `tests/xss-security.test.ts` enforces this requirement.
+* **API Credential Isolation**: Google Sheets API keys are read-only and restricted to authorized HTTP referrers. On network failure or quota exhaustion, the app gracefully falls back to bundled static snapshot data.
+* **Service Worker Sandboxing**: CacheStorage is scoped to same-origin assets with automatic versioned cache eviction.
+
+---
+
+### 5. Emergency Key Rotation
+
+1. Revoke the exposed API key in Google Cloud Console immediately.
+2. Provision a replacement key with domain restrictions enabled.
+3. Update environment secrets on deployment hosts.
+4. Review access logs to evaluate unauthorized usage.
