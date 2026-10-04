@@ -1,68 +1,129 @@
-# Chính Sách Bảo Mật (Security Policy)
+<div align="center">
 
-Dự án **Từ Điển Xơ Đăng - Việt** cam kết duy trì tiêu chuẩn an ninh và bảo vệ thông tin cho người dùng cũng như các dữ liệu văn hóa ngôn ngữ truyền thống.
+# 🛡️ Chính Sách Bảo Mật (Security Policy)
+### *Tiêu Chuẩn Đảm Bảo An Ninh Ứng Dụng & Quy Trình Tiếp Nhận Lỗ Hổng Bảo Mật*
+
+[![Security Status](https://img.shields.io/badge/Security_Policy-Active-22c55e?style=flat-square&logo=shield)](https://github.com/Umnuar/xodang/security)
+[![Vulnerability Reporting](https://img.shields.io/badge/Vulnerability_Reporting-Private_Advisory-3b82f6?style=flat-square&logo=github)](https://github.com/Umnuar/xodang/security/advisories/new)
+[![Response SLA](https://img.shields.io/badge/Response_SLA-%3C_48h-f59e0b?style=flat-square)](https://github.com/Umnuar/xodang)
+[![CVSS Standard](https://img.shields.io/badge/Severity_Standard-CVSS_v3.1-6366f1?style=flat-square)](https://www.first.org/cvss/)
+
+</div>
+
+---
+
+Dự án **Từ Điển Xơ Đăng – Tiếng Việt** (`tudien-xedang`) cam kết bảo vệ dữ liệu văn hóa bản địa, an toàn thông tin người dùng và duy trì tiêu chuẩn kỹ thuật an ninh phần mềm cao cấp theo chuẩn **OWASP ASVS** và các thông lệ quốc tế tốt nhất.
+
+Tài liệu này xác định phạm vi phiên bản được duy trì, cơ chế phòng vệ kiến trúc và quy trình **Tiết lộ có trách nhiệm (Responsible Disclosure)**.
 
 ---
 
 ## 1. Các Phiên Bản Được Hỗ Trợ (Supported Versions)
 
-Chúng tôi cung cấp các bản vá bảo mật và cải tiến cho các phiên bản sau:
+Chúng tôi cung cấp các bản vá bảo mật và cập nhật an ninh định kỳ cho các phiên bản theo lộ trình sau:
 
-| Phiên bản | Hỗ trợ bảo mật | Trạng thái |
-|:---:|:---:|:---:|
-| **10.0.x** | :white_check_mark: Có | Phiên bản sản xuất hiện tại (PWA & Electron) |
-| **< 10.0.0** | :x: Không | Bản cũ không còn duy trì |
+| Phiên Bản | Hỗ Trợ Bảo Mật | Trạng Thái | Chiến Lược Bản Vá |
+| :---: | :---: | :---: | :--- |
+| **10.0.x** | :white_check_mark: **Được hỗ trợ** | Bản phát hành sản xuất (PWA & Electron) | Bản vá P0/P1 trong vòng 24–72 giờ |
+| **< 10.0.0** | :x: Không hỗ trợ | Phiên bản cũ (Legacy Web) | Hết hạn hỗ trợ; khuyến nghị nâng cấp |
 
 ---
 
 ## 2. Báo Cáo Lỗ Hổng Bảo Mật (Reporting a Vulnerability)
 
-Nếu bạn phát hiện bất kỳ vấn đề hoặc lỗ hổng bảo mật nào trong dự án, vui lòng tuân thủ quy trình **Tiết lộ có trách nhiệm (Responsible Disclosure)**:
+Nếu bạn phát hiện bất kỳ vấn đề bảo mật nào trong ứng dụng, vui lòng thực hiện báo cáo theo quy trình **Tiết lộ có trách nhiệm**:
 
-1. **KHÔNG** mở Issue công khai trên GitHub để báo cáo lỗ hổng an ninh hoặc tiết lộ thông tin nhạy cảm.
-2. Vui lòng gửi email trực tiếp tới người quản trị dự án hoặc kênh bảo mật riêng tư với tiêu đề `[SECURITY] Phát hiện lỗ hổng trên Dự án Từ Điển Xơ Đăng`.
-3. Vui lòng cung cấp đầy đủ thông tin:
-   - Mô tả chi tiết lỗ hổng và phạm vi ảnh hưởng.
-   - Các bước tái hiện tối thiểu (PoC) không gây hại.
-   - Mã CWE / Phân loại OWASP liên quan (nếu có).
-   - Đề xuất khắc phục (nếu có).
+### 🔒 Phương thức ưu tiên (Khuyến nghị trên GitHub)
+Sử dụng tính năng **GitHub Private Vulnerability Reporting**:
+👉 **[Tạo Báo Cáo Lỗ Hổng Riêng Tư (New Security Advisory)](https://github.com/Umnuar/xodang/security/advisories/new)**
 
----
+> [!WARNING]
+> **TUYỆT ĐỐI KHÔNG** mở Issue công khai, Pull Request hoặc bình luận công khai trên GitHub để báo cáo lỗ hổng an ninh hoặc đính kèm mã khai thác (PoC) trước khi bản vá được phát hành.
 
-## 3. Thời Gian Phản Hồi & Xử Lý (Response SLA)
-
-* **Xác nhận tiếp nhận:** Trong vòng **48 giờ** kể từ khi nhận được báo cáo.
-* **Đánh giá & Phân loại rủi ro:** Trong vòng **7 ngày làm việc**.
-* **Phát hành bản vá:** Ưu tiên xử lý theo mức độ CVSS:
-  - **P0 / P1 (Nghiêm trọng & Cao):** Phát hành bản vá khẩn cấp trong vòng 24–72 giờ.
-  - **P2 (Trung bình):** Phát hành trong chu kỳ cập nhật tiếp theo (7–14 ngày).
-  - **P3 (Thấp):** Ghi nhận và xử lý trong bản phát hành định kỳ.
+### 📝 Thông tin cần cung cấp trong báo cáo:
+1. **Loại lỗ hổng & Phân loại**: Mã CWE hoặc danh mục OWASP Top 10 (ví dụ: *CWE-79: Cross-site Scripting*, *CWE-200: Information Disclosure*).
+2. **Phạm vi tác động**: Màn hình bị ảnh hưởng (Trang chủ, Tra cứu, Học tập, Trò chơi, Service Worker).
+3. **Các bước tái hiện tối thiểu (Proof of Concept - PoC)**:
+   * Các bước từng bước (step-by-step) tái hiện hành vi lỗi.
+   * Dữ liệu đầu vào hoặc URL giả lập (không gây ảnh hưởng đến dữ liệu thực tế).
+4. **Đánh giá mức độ nghiêm trọng (CVSS v3.1 Calculator)**: Điểm số ước lượng và khả năng khai thác thực tế.
+5. **Đề xuất khắc phục (nếu có)**: Giải pháp kỹ thuật hoặc mã sửa đổi khuyến nghị.
 
 ---
 
-## 4. Nguyên Tắc An Ninh Cốt Lõi Của Dự Án (Security Best Practices)
+## 3. Quy Trình Xử Lý & Cam Kết SLA (Incident Response Lifecycle)
 
-Toàn bộ thành viên phát triển và cộng tác viên phải tuân thủ nghiêm ngặt các nguyên tắc sau:
+Mọi báo cáo hợp lệ sẽ được xử lý theo quy trình khép kín:
 
-1. **Tuyệt đối không commit bí mật vào mã nguồn:**
-   - Mọi khóa API (Google Sheets API, Apps Script tokens, v.v.) phải được quản lý qua biến môi trường (`.env.local`) hoặc CI Secrets.
-   - Luôn sử dụng `.env.example` làm tệp mẫu chứa giá trị placeholder.
-2. **Nguyên tắc Đặc quyền tối thiểu (Least Privilege):**
-   - Các khóa API bên ngoài chỉ được cấp quyền đọc (Read-only) và bị giới hạn phạm vi truy cập (HTTP Referrer / IP restriction).
-3. **Phòng chống tấn công chèn mã (XSS / Code Injection):**
-   - Tuyệt đối không nội suy dữ liệu người dùng hoặc từ điển vào `innerHTML`, `eval`, hay các hàm thực thi mã động.
-   - Luôn sử dụng `textContent`, `document.createElement`, hoặc các phương thức DOM an toàn.
-4. **Chính sách An ninh Nội dung (CSP):**
-   - Bản build phát hành luôn thực thi CSP nghiêm ngặt: cấm `eval`, chặn plugin/object lạ (`object-src 'none'`), chặn base hijacking (`base-uri 'self'`).
-5. **Kiểm thử tự động trước khi đóng gói:**
-   - Mọi đóng góp mã mới phải vượt qua 100% test suite tự động (`npm test`) và kiểm tra biên dịch (`npm run build`).
+```
+[Báo cáo gửi đến] 
+       │
+       ▼ (≤ 24 giờ)
+[Xác nhận tiếp nhận & Kiểm tra PoC ban đầu]
+       │
+       ▼ (≤ 72 giờ)
+[Xác định điểm CVSS v3.1 & Tạo nhánh vá bảo mật nội bộ]
+       │
+       ▼ (7–14 ngày)
+[Kiểm thử hồi quy tự động (Vitest) & Biên dịch an toàn]
+       │
+       ▼
+[Triển khai Bản Vá & Công bố CVE/Advisory phối hợp]
+```
+
+### Thời Gian Phản Hồi Theo Mức Độ CVSS:
+| Mức Độ (Severity) | Điểm CVSS v3.1 | Thời Gian Xác Nhận | Thời Gian Vá Lỗi Khẩn Cấp |
+| :--- | :---: | :---: | :---: |
+| **Critical (Khẩn cấp)** | 9.0 – 10.0 | < 12 giờ | **Trong vòng 24 giờ** |
+| **High (Nghiêm trọng)** | 7.0 – 8.9 | < 24 giờ | **Trong vòng 72 giờ** |
+| **Medium (Trung bình)** | 4.0 – 6.9 | < 48 giờ | Trong chu kỳ phát hành (7 ngày) |
+| **Low (Thấp)** | 0.1 – 3.9 | < 72 giờ | Bản phát hành định kỳ kế tiếp |
 
 ---
 
-## 5. Quy Trình Thu Hồi & Xoay Khóa (Key Rotation Policy)
+## 4. Mô Hình Đe Dọa & Phòng Vệ Kiến Trúc (Threat Model & Defenses)
 
-Khi có nghi ngờ rò rỉ khóa API:
-1. Đăng nhập Google Cloud Console / Bảng điều khiển dịch vụ liên quan.
-2. Tạo khóa API mới với cấu hình hạn chế HTTP Referrer (`hoctiengxodang.online/*`).
-3. Cập nhật biến môi trường trên hệ thống triển khai và `.env.local` của các nhà phát triển.
-4. Xóa/Vô hiệu hóa (Revoke) khóa cũ ngay lập tức.
+Dự án được thiết kế với cơ chế phòng thủ theo chiều sâu (Defense-in-Depth):
+
+### 4.1. Tấn Công Chuỗi Cung Ứng (Supply Chain & Runtime Bloat)
+* **Zero Runtime Dependencies**: Không chứa bất kỳ thư viện bên ngoài nào trong `dependencies`. Toàn bộ mã chạy trên trình duyệt là TypeScript thuần chuyển mã sang ESM.
+* **Tác động an ninh**: Triệt tiêu hoàn toàn bề mặt tấn công của các cuộc tấn công chiếm quyền npm (typosquatting, dependency confusion, malicious sub-dependencies).
+
+### 4.2. Chống Chèn Mã Phía Client (XSS & Injection Mitigation)
+* Dữ liệu từ điển và dữ liệu người dùng nhập tuyệt đối không được gán trực tiếp qua `innerHTML` chưa xử lý.
+* Áp dụng bắt buộc `textContent`, `document.createElement`, hoặc hàm tạo an toàn.
+* Tự động kiểm thử liên tục qua suite: [`tests/xss-security.test.ts`](tests/xss-security.test.ts) (100% pass với payload XSS chuyên sâu).
+
+### 4.3. Bảo Vệ Khóa Google Sheets API (Least Privilege & Key Protection)
+* **Nguyên tắc Đặc quyền tối thiểu**: Khóa API sử dụng cho dự án chỉ có quyền đọc (Read-only) dữ liệu bảng tính.
+* **HTTP Referrer Restriction**: Khóa API được khóa cứng tên miền trong Google Cloud Console (`hoctiengxodang.online/*`).
+* **Snapshot Resilience**: Khi khóa API bị thu hồi hoặc lỗi hạn ngạch (quota exceeded), ứng dụng tự động chuyển sang snapshot tĩnh (`src/shared/data/snapshot-fallback.ts`), không làm lộ thông tin lỗi ra giao diện.
+* **Sanctity of `.env`**: Tệp `.env` thực tế được chặn 100% trong `.gitignore`. Kho lưu trữ chỉ chứa tệp mẫu `.env.example`.
+
+### 4.4. Cách Ly & An Toàn Bộ Nhớ Đệm PWA (Service Worker Sandbox)
+* Service Worker chỉ lưu trữ nội dung có nguồn gốc từ chính ứng dụng (`origin: self`) và tài nguyên âm thanh/font chữ đã định danh.
+* Cơ chế tự dọn dẹp cache cũ khi có phiên bản mới, ngăn ngừa rò rỉ dữ liệu hoặc đầu độc bộ đệm (Cache Poisoning).
+
+---
+
+## 5. Quy Trình Thu Hồi & Xoay Khóa Khẩn Cấp (Key Rotation Protocol)
+
+Trong trường hợp có dấu hiệu rò rỉ khóa API hoặc thông tin bí mật:
+1. **Thu hồi khẩn cấp**: Truy cập Google Cloud Console và vô hiệu hóa ngay khóa nghi ngờ bị lộ.
+2. **Khởi tạo khóa mới**: Tạo khóa thay thế, cấu hình giới hạn chỉ cho phép HTTP Referrer của website chính thức.
+3. **Cập nhật cấu hình**: Cập nhật biến môi trường trên GitHub Actions Secrets và máy chủ triển khai.
+4. **Kiểm tra nhật ký truy cập**: Đánh giá lưu lượng bất thường để bảo đảm không có lạm dụng hạn ngạch.
+
+---
+
+## 6. Vinh Danh Đóng Góp Bảo Mật (Security Hall of Fame)
+
+Chúng tôi trân trọng ghi nhận và vinh danh các chuyên gia bảo mật và cộng tác viên đã phát hiện, báo cáo có trách nhiệm các lỗ hổng giúp nâng cao độ an toàn của hệ sinh thái Từ Điển Xơ Đăng.
+
+*Mọi đóng góp bảo mật hợp lệ sẽ được ghi nhận tên và liên kết hồ sơ trên trang thông báo phát hành (Release Notes) và tài liệu bảo mật chính thức của dự án.*
+
+---
+
+<div align="center">
+  <sub>Bảo mật thông tin là nền tảng bảo tồn tri thức di sản bền vững.</sub>
+</div>
