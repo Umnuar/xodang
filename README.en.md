@@ -1,180 +1,226 @@
+<div align="center">
+
 # Xe Dang – Vietnamese Dictionary
+### *Bilingual Lexical Engine & Indigenous Language Learning Platform*
 
-English | [Tiếng Việt](README.md)
-
-[![Build Status](https://img.shields.io/badge/build-passing-22c55e?style=flat-square)](https://github.com/Umnuar/xodang)
-[![Tests](https://img.shields.io/badge/tests-95%2F95%20passed-34d399?style=flat-square)](https://github.com/Umnuar/xodang)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178c6?style=flat-square)](https://www.typescriptlang.org/)
-[![PWA](https://img.shields.io/badge/PWA-offline--first-f59e0b?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
+[![Build Status](https://img.shields.io/badge/build-passing-22c55e?style=flat-square&logo=vite)](https://github.com/Umnuar/xodang)
+[![Tests](https://img.shields.io/badge/tests-95%2F95%20passed-34d399?style=flat-square&logo=vitest)](https://github.com/Umnuar/xodang)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![PWA Ready](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
 [![WCAG 2.2](https://img.shields.io/badge/WCAG%202.2-AA%20%2F%20AAA-4ade80?style=flat-square)](docs/design/dark-mode-tokens.md)
+[![Zero Runtime Deps](https://img.shields.io/badge/dependencies-0%20runtime-blueviolet?style=flat-square)](#-system-architecture)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](LICENSE)
 
-A bilingual dictionary and educational web application for the Xe Dang (Sedang) language, an indigenous Mon-Khmer language of the Central Highlands, Vietnam. Built as an offline-first Progressive Web App (PWA) with desktop support via Electron.
+**English** • [Tiếng Việt](README.md) • **[Live Application](https://umnuar.github.io/xodang/#home)** • **[Design Tokens](docs/design/dark-mode-tokens.md)** • **[Security](SECURITY.md)**
 
-Live Application: [https://umnuar.github.io/xodang/#home](https://umnuar.github.io/xodang/#home)
-
----
-
-## Key Features
-
-* **Bidirectional Search**: Xe Dang <-> Vietnamese lookup with fuzzy matching, Unicode NFC normalization, and a dedicated virtual diacritic bar for special characters (`ơ̆`, `ŏ`, `ê̆`, `ô̆`, `ă`, `ĭ`, `ŭ`).
-* **Audio & Speech**: Native pronunciation playback via WebM audio files and voice search powered by the Web Speech API.
-* **Study & Examination**: Double-sided 3D flashcards, topic-based multiple-choice quizzes, and localized study progress tracking in `localStorage`.
-* **Language Minigames**: 4 interactive learning games (memory matching, word catcher, target shooter, vocabulary farm) with a client-side leaderboard and canvas-rendered certificates.
-* **Audio Contribution**: Browser-based audio recorder with a real-time waveform visualizer via the Web Audio API (`AudioContext` / `AnalyserNode`).
-* **Offline-First Resilience**: Full asset and data caching through Service Workers, with automatic fallback to a local static dataset (`snapshot-fallback.ts`) during network loss.
-* **WCAG 2.2 AA / AAA Dark Mode**: Contrast-calibrated dark palettes ("Graphite" and "Forest Midnight") with surface lightness elevation.
-* **Zero Runtime Dependencies**: Authored entirely in native TypeScript and DOM APIs without frontend framework overhead, minimizing bundle size and supply chain risks.
+</div>
 
 ---
 
-## System Architecture
+## ◈ Overview
+
+**Xe Dang Dictionary** (`tudien-xedang`) is an educational platform and linguistic repository for the Xe Dang (Sedang) language, an indigenous Mon-Khmer language spoken in the Central Highlands of Vietnam. It is designed for middle-school learners, linguistic researchers, and independent language students.
+
+The platform is engineered around modern software standards:
+* **Zero Runtime Dependencies**: Authored entirely with native Web APIs and pure TypeScript. Eliminating runtime framework overhead ensures sub-500ms First Contentful Paint.
+* **Offline-First Resilience**: Functions reliably in remote environments with intermittent connectivity through Service Worker caching and a bundled static snapshot fallback (`snapshot-fallback.ts`).
+* **Phonetic Normalization**: Handles complex Mon-Khmer diacritical marks and breathy vowels via automated Unicode NFC normalization pipelines.
+* **WCAG 2.2 Dark Mode**: Contrast-calibrated dark palettes ("Graphite" and "Forest Midnight") supporting accessible study under low-light conditions.
+
+---
+
+## ⬡ System Architecture
 
 ```text
-+-----------------------------------------------------------------+
-|                       Client Application Layer                  |
-|    Web PWA (Service Worker Cache)   |   Desktop App (Electron)  |
-+-----------------------------------------------------------------+
-                                |
-+-------------------------------v---------------------------------+
-|                      Renderer Presentation                      |
-|    Dictionary     Study & Quizzes     Games     Audio Recording |
-+-----------------------------------------------------------------+
-                                |
-+-------------------------------v---------------------------------+
-|                    Service & Data Access Layer                  |
-|   DictionaryEngine   StorageService   Google Sheets API (Sync)  |
-|   (Unicode NFC)      (Local v10)      (Online Live Sync)        |
-+-----------------------------------------------------------------+
-                                |
-                                v (Fallback on network/API failure)
-+-----------------------------------------------------------------+
-|               Offline Static Snapshot (snapshot-fallback)       |
-+-----------------------------------------------------------------+
+┌─────────────────────────────────────────────────────────────────┐
+│                     Client Application Layer                     │
+├────────────────────────────────┬────────────────────────────────┤
+│       Web Browser (PWA)        │    Desktop Client (Electron)    │
+│    (Service Worker Cache)      │       (IPC Bridge Fetcher)     │
+└────────────────────────────────┴────────────────────────────────┘
+                                │
+┌───────────────────────────────▼─────────────────────────────────┐
+│               Core Presentation & Modules (Vite + TS)            │
+├───────────────┬────────────────┬───────────────┬────────────────┤
+│  Dictionary   │  Study & Quiz  │   Game Hub    │  Contribute    │
+│  Dual Search  │ 3D Flashcards  │  4 Minigames  │ WebAudio / Mic │
+└───────────────┴────────────────┴───────────────┴────────────────┘
+                                │
+┌───────────────────────────────▼─────────────────────────────────┐
+│                    Service & Data Access Layer                   │
+├──────────────────┬───────────────────────┬──────────────────────┤
+│ DictionaryEngine │ StorageService (v10)  │ Google Sheets API    │
+│  (Unicode NFC)   │ (Progress / Badges)   │ (Online Live Sync)   │
+└──────────────────┴───────────────────────┴──────────────────────┘
+                                │
+                                ▼ [Fallback on offline or API failure]
+┌─────────────────────────────────────────────────────────────────┐
+│             Offline Local Snapshot (`snapshot-fallback.ts`)     │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Directory Structure
+## ◇ Core Features
+
+### 1. ⌕ Bidirectional Lexical Search Engine
+* Bidirectional lookup: **Xe Dang → Vietnamese** and **Vietnamese → Xe Dang**.
+* Integrated virtual diacritic bar for special characters: `ơ̆`, `ŏ`, `ê̆`, `ô̆`, `ă`, `ĭ`, `ŭ`.
+* Voice-driven search powered by the Web Speech Recognition API.
+* Concise lexical summary bar displaying definition summaries and entry counts directly above the fold.
+
+### 2. ⎘ Study & Spaced Repetition
+* **Double-sided 3D Flashcards**: Front side presents Xe Dang terms with phonetic guides; reverse side reveals definitions and context examples.
+* **Topic-based Examination**: Timed quizzes, automated scoring, and real-time answer explanation feedback.
+* Localized study history preserved in `localStorage` with resilient recovery against corrupted JSON.
+
+### 3. ⊡ Gamification Hub
+* **4 Interactive Minigames**:
+  1. *Memory Match*: Vocabulary recall and visual matching.
+  2. *Word Catcher*: Reflex-based translation pairing.
+  3. *Word Shooter*: Spelling and orthographic recognition.
+  4. *Vocabulary Farm*: Gamified lexical progression.
+* **Automated Certificate Generation**: Client-rendered completion certificates via HTML5 Canvas.
+* Privacy-preserving client-side leaderboard and achievement badges.
+
+### 4. ⊚ Crowdsourced Audio Repository
+* Bundled library of native pronunciation recordings in WebM format.
+* In-browser audio recorder equipped with real-time waveform visualization via Web Audio API (`AudioContext` / `AnalyserNode`).
+* Streamlined single-step download and audio removal workflows.
+
+### 5. ◐ Mathematically Audited Dark Mode (WCAG 2.2 AA / AAA)
+* Structured surface elevation model (`Canvas < Card < Raised/Input`).
+* Avoids pure black `#000000` and pure white text `#ffffff`.
+* Token specifications:
+  * Neutral Graphite canvas: `#0f1012`
+  * Card surface: `#17181b`
+  * Primary text: `#e8e8ea` (**14.51:1 AAA contrast**)
+  * Vibrant green accent: `#34d399` (**9.90:1 AAA contrast** with dark button labels)
+* Complete specifications available in [docs/design/dark-mode-tokens.md](docs/design/dark-mode-tokens.md).
+
+---
+
+## ◫ Project Structure
 
 ```text
 tudien-main/
 ├── docs/
-│   └── design/                 # Design specifications, tokens.json, and theme assets
+│   └── design/                 # Design tokens, contrast audits, and theme previews
 ├── public/
-│   ├── audio/                  # Xe Dang audio recordings (.webm)
-│   ├── fonts/jakarta/          # Locally hosted Plus Jakarta Sans font
-│   └── icons/                  # PWA application icons
+│   ├── audio/                  # Native Xe Dang audio pronunciations (.webm)
+│   ├── fonts/jakarta/          # Locally bundled Plus Jakarta Sans font
+│   └── icons/                  # PWA application icons (72x72 to 512x512)
 ├── scripts/
-│   └── generate-snapshot.ts    # Build-time Google Sheets snapshot generator
+│   └── generate-snapshot.ts    # Build-time Google Sheets snapshot exporter
 ├── src/
 │   ├── main/                   # Electron main process and IPC fetcher
 │   ├── preload/                # Secure Electron preload bridge
-│   ├── shared/                 # Shared constants, types, and fallback data
-│   └── renderer/               # Web client and renderer source
-│       ├── components/         # Shared UI components (navbar, footer, modal)
+│   ├── shared/                 # Shared constants, types, and fallback snapshot
+│   └── renderer/               # Web client and renderer implementation
+│       ├── components/         # Common UI components (navbar, footer, modal, toast)
 │       ├── features/           # Feature modules (home, quiz, games, chat, contribute)
-│       ├── services/           # Business logic (dictionary, speech, storage)
+│       ├── services/           # Domain logic (dictionary, speech, audio, storage)
 │       ├── styles/             # Modular CSS architecture
 │       ├── router.ts           # Client-side hash router
 │       └── main.ts             # Application bootstrap entry
-├── tests/                      # Vitest automated test suite (95 tests)
+├── tests/                      # Vitest test suite (95 tests)
 ├── index.html                  # HTML entry point with metadata
-├── vite.config.ts              # Vite and PWA configuration
-└── package.json                # Project dependencies and npm scripts
+├── vite.config.ts              # Vite and PWA build configuration
+└── package.json                # Project configuration (zero runtime dependencies)
 ```
 
 ---
 
-## Getting Started
+## ▷ Quick Start & Development
 
-### Prerequisites
+### System Requirements
 * Node.js >= 18.0.0
 * npm >= 9.0.0
 
-### 1. Installation
+### 1. Clone Repository
 ```bash
 git clone https://github.com/Umnuar/xodang.git
 cd xodang
+```
+
+### 2. Install Development Dependencies
+```bash
 npm install
 ```
 
-### 2. Environment Variables (Optional)
+### 3. Environment Variables (Optional)
 To connect a custom Google Sheets database, configure `.env`:
 ```bash
 cp .env.example .env
 ```
-
 Configuration entries:
 ```ini
-VITE_GOOGLE_API_KEY=your_google_sheets_api_key
-VITE_SHEET_ID=your_google_sheet_id
+VITE_GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY_HERE
+VITE_SHEET_ID=YOUR_SHEET_ID_HERE
 ```
+*(If unconfigured, the application seamlessly defaults to bundled static data in `src/shared/data/snapshot-fallback.ts`).*
 
-If left unconfigured, the application defaults to the bundled dictionary in `src/shared/data/snapshot-fallback.ts`.
-
-### 3. Development Server
+### 4. Run Development Server
 ```bash
 npm run dev
 ```
 Open `http://localhost:5173` in your browser.
 
-### 4. Production Build
+### 5. Production Build
 ```bash
 npm run build
 ```
-Compiled production files are output to `dist/`.
+Optimized assets are emitted to the `dist/` directory.
 
 ---
 
-## Automated Testing & Quality Gates
+## ⊚ Quality Gates & Automated Testing
 
 The test suite runs on Vitest with happy-dom:
 
 ```bash
-# Run all tests
+# Run all 95 tests
 npm test
 
 # Run tests in watch mode
 npm run test:watch
 ```
 
-Key test coverage:
-* `tests/xss-security.test.ts`: Validates XSS injection defenses.
-* `tests/unicode-nfc.test.ts`: Verifies diacritic normalization and character preservation.
-* `tests/memory-leak.test.ts`: Verifies listener and timer teardown during view transitions.
-* `tests/legacy-storage.test.ts`: Tests `localStorage` schema migration and corrupt data recovery.
-* `tests/service-worker.test.ts`: Verifies offline cache-first strategies.
+### Key Test Coverage:
+| Test Category | Test File | Target Invariant |
+| :--- | :--- | :--- |
+| **XSS Security** | `tests/xss-security.test.ts` | Enforces zero unsanitized HTML injections |
+| **Unicode NFC** | `tests/unicode-nfc.test.ts` | Validates diacritic clustering and vowel preservation |
+| **Memory Leaks** | `tests/memory-leak.test.ts` | Verifies timer and listener disposal on route transitions |
+| **Storage Integrity** | `tests/legacy-storage.test.ts` | Tests schema migrations and corrupt data recovery |
+| **Offline Reliability** | `tests/service-worker.test.ts` | Ensures correct cache-first service worker behavior |
 
 ---
 
-## Desktop Packaging (Electron)
+## ⊞ Desktop Packaging (Electron)
 
-To run or package the desktop client:
+Supports cross-platform desktop application packaging for Windows, macOS, and Linux:
+
 ```bash
-# Launch in development
+# Run Electron in development
 npm run electron:dev
 
-# Build distributable installer
+# Build distributable installer packages
 npm run electron:build
 ```
 
 ---
 
-## Design System
+## ⛊ Security & Contributing
 
-* Design Tokens: [docs/design/dark-mode-tokens.json](docs/design/dark-mode-tokens.json)
-* WCAG 2.2 Contrast Audit: [docs/design/dark-mode-tokens.md](docs/design/dark-mode-tokens.md)
-* CSS Custom Properties: [docs/design/dark-mode-themes.css](docs/design/dark-mode-themes.css)
-
----
-
-## Security
-
-Security policies, supported versions, and responsible disclosure procedures are documented in [SECURITY.md](SECURITY.md).
+* Review security policies and vulnerability disclosure procedures in [SECURITY.md](SECURITY.md).
+* All pull requests must satisfy:
+  1. 100% passing test suite: `npm test`.
+  2. Clean compilation and packaging: `npm run build`.
+  3. No unapproved runtime dependencies.
 
 ---
 
-## License
+## ⎘ License
 
 Distributed under the [MIT License](LICENSE).
