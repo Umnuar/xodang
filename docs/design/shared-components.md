@@ -1,5 +1,5 @@
 # KIỂM KÊ COMPONENT DÙNG CHUNG (SHARED COMPONENTS AUDIT)
-*Dự án: Ứng dụng số hóa hỗ trợ tự học và bảo tồn ngôn ngữ Xơ Đăng cho học sinh THCS*
+*Dự án: Ứng dụng số hóa hỗ trợ tự học, nghiên cứu và bảo tồn ngôn ngữ Xơ Đăng*
 
 ---
 

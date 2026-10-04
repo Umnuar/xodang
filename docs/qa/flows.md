@@ -113,7 +113,7 @@
 ---
 
 ### Luồng 10 (FLOW-10): Hướng dẫn sử dụng Onboarding (Onboarding Modal)
-- **Mục đích:** Kiểm tra modal giới thiệu dành cho học sinh THCS lần đầu truy cập.
+- **Mục đích:** Kiểm tra modal giới thiệu dành cho người dùng lần đầu truy cập.
 - **Các bước:**
   1. Bấm nút "Trợ giúp / Hướng dẫn" trên thanh điều hướng.
   2. Lần lượt bấm "Tiếp tục" qua các bước hướng dẫn.

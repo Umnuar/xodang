@@ -9,7 +9,7 @@
 
 | ID | Tên mục | Trạng thái | Vị trí file:dòng mới | Ghi chú & Trích đoạn đối chiếu |
 | :--- | :--- | :---: | :--- | :--- |
-| **S001_F06** | `name` | ✅ GIỮ NGUYÊN | `public/manifest.json:2` | `"Từ điển Xơ Đăng THCS"` |
+| **S001_F06** | `name` | ✅ CẬP NHẬT | `public/manifest.json:2` | `"Từ điển Xơ Đăng"` |
 | **S002_F06** | `short_name` | ✅ GIỮ NGUYÊN | `public/manifest.json:3` | `"Xơ Đăng"` |
 | **S003_F06** | `description` | ✅ GIỮ NGUYÊN | `public/manifest.json:4` | Giữ nguyên mô tả đầy đủ |
 | **S004_F06** | `start_url` | ✅ GIỮ NGUYÊN | `public/manifest.json:5` | `"./index.html"` |

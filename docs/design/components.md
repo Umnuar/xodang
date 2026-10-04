@@ -19,7 +19,7 @@
 
 #### A. Thanh Điều Hướng Desktop (Navbar)
 - **Cấu trúc**: Chiều cao cố định 60px. Viền đáy 1px `border-subtle`.
-- **Logo thương hiệu**: Căn trái. Icon `book-open` (24px) + Tiêu đề "Xơ Đăng Lingua" (`font-weight: 700`, 1.1rem) + phụ đề nhỏ "Bảo tồn ngôn ngữ THCS".
+- **Logo thương hiệu**: Căn trái. Icon `book-open` (24px) + Tiêu đề "Xơ Đăng Lingua" (`font-weight: 700`, 1.1rem) + phụ đề nhỏ "Bảo tồn ngôn ngữ".
 - **Menu liên kết**: Danh sách phẳng 4 mục (Tra từ, Học & Thi, Trò chơi, Đóng góp). Mục active có viền đáy 2px `colorPrimary` hoặc nền nhẹ 4px radius; không dùng pill màu.
 - **Nút hành động**:
   - Nút chuyển Dark/Light mode: Nút viền mỏng, icon `moon` / `sun`.
@@ -122,12 +122,12 @@
 
 #### A. Cửa Sổ Chat Trên Mobile (#chatWindow)
 - **Giải quyết mâu thuẫn hiển thị**:
-  - **Phương án A (Bottom Sheet 85%)**: Trượt lên từ đáy chiếm 85% chiều cao màn hình, chừa lại 15% phía trên và **giữ nguyên thanh bottom navigation phía dưới** để học sinh có thể chuyển trang bất kỳ lúc nào.
-  - **Phương án B (Full-screen Modal)**: Chiếm trọn 100% màn hình, thanh điều hướng tạm thời ẩn đi khi mở chat để học sinh có không gian tối đa để gõ phím ảo và đọc câu trả lời. Nút "Đóng" (icon `x`) to 44px ở góc trên cùng bên phải.
+  - **Phương án A (Bottom Sheet 85%)**: Trượt lên từ đáy chiếm 85% chiều cao màn hình, chừa lại 15% phía trên và **giữ nguyên thanh bottom navigation phía dưới** để người dùng có thể chuyển trang bất kỳ lúc nào.
+  - **Phương án B (Full-screen Modal)**: Chiếm trọn 100% màn hình, thanh điều hướng tạm thời ẩn đi khi mở chat để người dùng có không gian tối đa để gõ phím ảo và đọc câu trả lời. Nút "Đóng" (icon `x`) to 44px ở góc trên cùng bên phải.
 - **Hỗ trợ bàn phím**: Đóng ngay lập tức khi nhấn phím `Escape`.
 
 #### B. Hướng Dẫn Ban Đầu (Onboarding Guide)
-- Viết lại câu từ súc tích, dễ hiểu cho lứa tuổi 11-15:
+- Viết lại câu từ súc tích, dễ hiểu cho người học và nhà nghiên cứu:
   1. *Tra từ*: Gõ tiếng Việt hoặc Xơ Đăng, dùng phím dấu trên màn hình để tìm từ nhanh.
   2. *Luyện tập*: Lật thẻ từ vựng và làm bài trắc nghiệm ngắn để ghi nhớ.
   3. *Trò chơi*: Vừa chơi vừa tích điểm và sưu tầm huy hiệu học tập.

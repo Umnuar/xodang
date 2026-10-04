@@ -19,7 +19,7 @@
 
 ## ◈ Overview
 
-**Xe Dang Dictionary** (`tudien-xedang`) is an educational platform and linguistic repository for the Xe Dang (Sedang) language, an indigenous Mon-Khmer language spoken in the Central Highlands of Vietnam. It is designed for middle-school learners, linguistic researchers, and independent language students.
+**Xe Dang Dictionary** (`tudien-xedang`) is an educational platform and linguistic repository for the Xe Dang (Sedang) language, an indigenous Mon-Khmer language spoken in the Central Highlands of Vietnam. It is engineered for indigenous language learners, linguistic researchers, and software developers building digital tools for ethnic language preservation.
 
 The platform is engineered around modern software standards:
 * **Zero Runtime Dependencies**: Authored entirely with native Web APIs and pure TypeScript. Eliminating runtime framework overhead ensures sub-500ms First Contentful Paint.

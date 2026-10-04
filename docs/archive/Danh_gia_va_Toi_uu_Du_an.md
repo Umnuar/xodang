@@ -6,7 +6,7 @@ Hệ thống học tiếng Xơ Đăng trên website [hoctiengxodang.online](http
 
 ## 🎯 1. Đánh Giá Tổng Quan
 
-Dự án có cấu trúc rất tốt cho một sản phẩm dự thi cấp học sinh THCS:
+Dự án có cấu trúc vững chắc cho một sản phẩm giáo dục và bảo tồn ngôn ngữ cộng đồng:
 *   **Công nghệ phù hợp**: Sử dụng PWA (Progressive Web App) giúp ứng dụng hoạt động như App di động thực sự.
 *   **Dữ liệu động linh hoạt**: Dữ liệu từ vựng, chatbot, trắc nghiệm được lấy trực tiếp từ Google Sheets, giúp dễ dàng chỉnh sửa dữ liệu mà không cần biết lập trình.
 *   **Chuẩn SEO và tiếp cận tốt**: Đầy đủ Schema Markup (JSON-LD) cho ứng dụng, khóa học, breadcrumb giúp AI của Google hiểu sâu và ưu tiên hiển thị.

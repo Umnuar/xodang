@@ -1,7 +1,7 @@
 {
-  "name": "Từ điển Xơ Đăng THCS",
+  "name": "Từ điển Xơ Đăng",
   "short_name": "Xơ Đăng",
-  "description": "Hệ thống học tiếng Xơ Đăng trên nền tảng PWA cho học sinh THCS",
+  "description": "Nền tảng học tập, nghiên cứu và bảo tồn ngôn ngữ Xơ Đăng trên PWA",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",

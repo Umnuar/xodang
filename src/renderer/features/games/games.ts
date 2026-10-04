@@ -32,7 +32,7 @@ export function initGames(): void {
     if (!section) return;
 
     // Load active player profile
-    const currentUser = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Học sinh Xơ Đăng';
+    const currentUser = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
     const userEl = section.querySelector('#gameCurrentUserName');
     if (userEl) userEl.textContent = currentUser;
 
@@ -84,7 +84,7 @@ export function initGames(): void {
 
         // Claim / View Certificate Button
         if (target.closest('#btnGetCertificate')) {
-            const studentName = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Học sinh Xơ Đăng';
+            const studentName = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
             const gameTitles: Record<GameId, string> = {
                 game1: 'Lật Thẻ Trí Nhớ',
                 game2: 'Mưa Từ Vựng',

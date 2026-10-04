@@ -1,6 +1,6 @@
 # Bảng màu Dark Mode & Đặc tả Design Tokens - Từ điển Xơ Đăng
 
-Tài liệu đặc tả hệ thống giao diện tối (Dark Mode) cho ứng dụng học tập và tra cứu từ điển Xơ Đăng – Tiếng Việt, phục vụ học sinh THCS (11–15 tuổi) và người tự học ngôn ngữ bản địa. Toàn bộ thiết kế bám sát nhận diện thương hiệu gốc (xanh lá `#27ae60`, kiểu chữ **Plus Jakarta Sans**), áp dụng nguyên tắc tăng độ sáng bề mặt (surface lightness elevation), không dùng nền đen tuyệt đối (#000000) và không dùng chữ trắng gắt (#ffffff).
+Tài liệu đặc tả hệ thống giao diện tối (Dark Mode) cho ứng dụng học tập và tra cứu từ điển Xơ Đăng – Tiếng Việt, phục vụ người muốn học tiếng dân tộc, các nhà nghiên cứu ngôn ngữ học và các nhà phát triển muốn bảo tồn ngôn ngữ dân tộc. Toàn bộ thiết kế bám sát nhận diện thương hiệu gốc (xanh lá `#27ae60`, kiểu chữ **Plus Jakarta Sans**), áp dụng nguyên tắc tăng độ sáng bề mặt (surface lightness elevation), không dùng nền đen tuyệt đối (#000000) và không dùng chữ trắng gắt (#ffffff).
 
 ---
 

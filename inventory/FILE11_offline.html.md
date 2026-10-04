@@ -36,7 +36,7 @@
 | **B002_F11** | `<button>` | `.btn.btn-secondary` | Quay lại trang trước | Lùi về trang trước qua `history.back()` |
 | **B003_F11** | `<button>` | `.btn.btn-tertiary` | Về trang chủ offline | Điều hướng về `./` |
 | **B004_F11** | `<button>` | `.btn` (Dynamic) | Cài đặt ứng dụng | Kích hoạt PWA Install Prompt |
-| **B005_F11** | `<a>` | Không | Liên hệ hỗ trợ | Mở trình gửi mail tới `hvty.thcsbtdttstumorong@moet.edu.vn` |
+| **B005_F11** | `<a>` | Không | Liên hệ hỗ trợ | Mở trình gửi mail tới `baotruongminh201@gmail.com` |
 
 ### 2. Danh mục Selectors mà JavaScript tham chiếu
 - `document.getElementById('statusIndicator')` (dòng 343)

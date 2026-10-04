@@ -18,9 +18,9 @@
 ## D. STATE & DỮ LIỆU CẤU HÌNH PWA
 | ID | Trường cấu hình | Kiểu | Giá trị thực tế | Mô tả vai trò |
 | :--- | :--- | :--- | :--- | :--- |
-| **S001_F06** | `name` | String | `Từ điển Xơ Đăng THCS` | Tên đầy đủ hiển thị khi cài đặt PWA |
+| **S001_F06** | `name` | String | `Từ điển Xơ Đăng` | Tên đầy đủ hiển thị khi cài đặt PWA |
 | **S002_F06** | `short_name` | String | `Xơ Đăng` | Tên ngắn hiển thị dưới icon trên màn hình chính |
-| **S003_F06** | `description` | String | `Hệ thống học tiếng Xơ Đăng trên nền tảng PWA cho học sinh THCS` | Mô tả ứng dụng |
+| **S003_F06** | `description` | String | `Nền tảng học tập, nghiên cứu và bảo tồn ngôn ngữ Xơ Đăng trên PWA` | Mô tả ứng dụng |
 | **S004_F06** | `start_url` | String | `./index.html` | Điểm khởi đầu khi mở app từ màn hình chính |
 | **S005_F06** | `display` | String | `standalone` | Chế độ hiển thị độc lập không có thanh địa chỉ trình duyệt |
 | **S006_F06** | `background_color` | Hex String | `#ffffff` | Màu nền splash screen khi nạp app |

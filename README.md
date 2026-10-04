@@ -19,7 +19,7 @@
 
 ## ◈ Tổng quan (Overview)
 
-**Từ Điển Xơ Đăng** (`tudien-xedang`) là nền tảng học tập và lưu trữ di sản ngôn ngữ Xơ Đăng (ngữ hệ Môn-Khmer, vùng Bắc Tây Nguyên). Dự án được thiết kế cho các nhà nghiên cứu dân tộc học và người tự học ngôn ngữ bản địa.
+**Từ Điển Xơ Đăng** (`tudien-xedang`) là nền tảng học tập, nghiên cứu và lưu trữ di sản ngôn ngữ Xơ Đăng (ngữ hệ Môn-Khmer, vùng Bắc Tây Nguyên). Dự án được thiết kế chuyên biệt phục vụ người muốn học tiếng dân tộc, các nhà nghiên cứu ngôn ngữ học và các nhà phát triển phần mềm muốn xây dựng công cụ số hóa bảo tồn ngôn ngữ dân tộc.
 
 Nền tảng được xây dựng dựa trên các tiêu chuẩn kỹ thuật hiện đại:
 * **Zero Runtime Dependencies**: 100% Native Web APIs và TypeScript thuần, không phụ thuộc framework runtime bên ngoài, đảm bảo thời gian tải trang nhanh và kích thước gói tối ưu.

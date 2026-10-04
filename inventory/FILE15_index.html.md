@@ -176,7 +176,7 @@
   1. `WebApplication` Schema: Khai báo ứng dụng PWA, tính năng, đánh giá rating 4.9.
   2. `BreadcrumbList` Schema: Cấu trúc phân cấp website.
   3. `FAQPage` Schema: 4 câu hỏi thường gặp về từ điển Xơ Đăng cho Google Search Rich Snippets.
-  4. `EducationalOrganization` Schema: Thông tin Trường THCS Chu Văn An, Đăk Hà, Kon Tum.
+  4. `Organization` Schema: Thông tin Dự án Bảo Tồn Ngôn Ngữ Xơ Đăng, Kon Tum.
 - **CSS:** Hơn 4.000 dòng CSS tùy biến kết hợp Tailwind CDN, hỗ trợ hiệu ứng Card Flip 3D, Waveform Visualizer, Chat widget bong bóng, Responsive Mobile và Dark Mode.
 
 ---

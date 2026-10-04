@@ -65,7 +65,7 @@ function saveAllUsers(users: Record<string, UserProfile>): void {
  * Records a completed game score for the current active player.
  */
 export function recordGameScore(gameType: string, score: number, level: number): void {
-    const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Học sinh Xơ Đăng';
+    const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
     const users = getAllUsers();
 
     if (!users[currentUsername]) {
@@ -125,7 +125,7 @@ export function getLeaderboard(): LeaderboardEntry[] {
  * Evaluates unlock status for all badge milestones based on active user stats.
  */
 export function getUserBadges(): BadgeRecord[] {
-    const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Học sinh Xơ Đăng';
+    const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
     const users = getAllUsers();
     const user = users[currentUsername] || { totalScore: 0, bestScore: 0, level: 1, gamesPlayed: 0 };
     const certCount = getSavedCertificates().length;
@@ -174,7 +174,7 @@ export function getUserBadges(): BadgeRecord[] {
         {
             id: 'games_5',
             icon: '🎯',
-            name: 'Học Sinh Chăm Chỉ',
+            name: 'Người Học Chăm Chỉ',
             desc: 'Tham gia từ 5 trận chơi',
             category: 'Trận đấu',
             isUnlocked: user.gamesPlayed >= 5
@@ -214,7 +214,7 @@ export function getUserBadges(): BadgeRecord[] {
 export function showLeaderboardModal(): void {
     soundEffects.click();
     const leaderboard = getLeaderboard();
-    const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Học sinh Xơ Đăng';
+    const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
 
     let modal = document.getElementById('leaderboardModal');
     if (!modal) {

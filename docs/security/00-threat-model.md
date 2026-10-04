@@ -9,11 +9,11 @@
 ## 1. Tổng Quan Kiến Trúc & Mục Tiêu An Ninh
 
 Ứng dụng **Từ Điển Xơ Đăng - Tiếng Việt** là hệ thống giáo dục đa nền tảng gồm:
-1. **Web Progressive Web App (PWA):** Triển khai tĩnh trên GitHub Pages (`https://hoctiengxodang.online/`), hỗ trợ học sinh THCS tra cứu từ điển song ngữ, bài tập trắc nghiệm, luyện nghe phát âm và 4 trò chơi học tập tương tác với khả năng hoạt động offline 100% qua Service Worker.
+1. **Web Progressive Web App (PWA):** Triển khai tĩnh trên GitHub Pages (`https://hoctiengxodang.online/`), hỗ trợ người học, nhà nghiên cứu và nhà phát triển tra cứu từ điển song ngữ, bài tập trắc nghiệm, luyện nghe phát âm và 4 trò chơi học tập tương tác với khả năng hoạt động offline 100% qua Service Worker.
 2. **Desktop Application (Electron):** Đóng gói cho máy tính để bàn (Windows, macOS, Linux), nạp giao diện tĩnh từ thư mục `dist/` và truy xuất dữ liệu qua cầu nối IPC và snapshot ngoại tuyến.
 
 ### Mục tiêu an ninh cốt lõi (CIA Triad & Safety):
-* **Tính bảo mật (Confidentiality):** Bảo vệ các khóa API (Google Sheets API Key), ngăn chặn lộ thông tin dữ liệu âm thanh cá nhân hoặc hành vi của học sinh vị thành niên (Nghị định 13/2023/NĐ-CP).
+* **Tính bảo mật (Confidentiality):** Bảo vệ các khóa API (Google Sheets API Key), ngăn chặn lộ thông tin dữ liệu âm thanh cá nhân hoặc hành vi của người dùng (Nghị định 13/2023/NĐ-CP).
 * **Tính toàn vẹn (Integrity):** Đảm bảo tính chuẩn xác của dữ liệu từ điển, ngăn chặn mã độc tiêm nhiễm (XSS - Cross-Site Scripting, DOM Clobbering, Prototype Pollution) hoặc dữ liệu giả mạo làm sai lệch kết quả học tập.
 * **Tính khả dụng (Availability):** Bảo đảm ứng dụng vận hành mượt mà cả khi mất mạng (Offline-first), không bị nghẽn hạn ngạch (quota exhaustion) hoặc tấn công từ chối dịch vụ trên endpoint Google Apps Script.
 * **An toàn hệ thống máy chủ/desktop (Safety & Sandboxing):** Cô lập tuyệt đối môi trường Electron Renderer khỏi quyền truy cập hệ điều hành của máy tính người dùng.

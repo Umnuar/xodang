@@ -51,7 +51,7 @@ export function saveCertificate(cert: Omit<CertificateRecord, 'id' | 'timestamp'
         // Also update currentUser in xedang_users if present
         const rawUsers = localStorage.getItem(STORAGE_KEYS.GAME_USERS);
         const users = rawUsers ? JSON.parse(rawUsers) : {};
-        const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Học sinh Xơ Đăng';
+        const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
         if (!users[currentUsername]) {
             users[currentUsername] = { name: currentUsername, certificates: [] };
         }
@@ -132,12 +132,12 @@ export function renderCertificateCanvas(options: {
     // 6. Commendation Text
     ctx.fillStyle = '#4b5563';
     ctx.font = 'italic 18px "Segoe UI", sans-serif';
-    ctx.fillText('Trân trọng trao tặng cho em học sinh:', 400, 240);
+    ctx.fillText('Trân trọng trao tặng cho:', 400, 240);
 
-    // 7. Student Name
+    // 7. Recipient Name
     ctx.fillStyle = '#b91c1c';
     ctx.font = 'bold 38px "Segoe UI", sans-serif';
-    ctx.fillText(studentName || 'Học sinh Xơ Đăng', 400, 295);
+    ctx.fillText(studentName || 'Người học Xơ Đăng', 400, 295);
 
     // 8. Game Achievement Details
     ctx.fillStyle = '#374151';

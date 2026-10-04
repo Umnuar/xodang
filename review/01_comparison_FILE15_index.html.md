@@ -109,7 +109,7 @@
 2. **`Course` Schema:** `index.html:115-133` $\rightarrow$ ✅ GIỮ NGUYÊN (Khóa học tiếng Xơ Đăng trực tuyến miễn phí).
 3. **`BreadcrumbList` Schema:** `index.html:135-161` $\rightarrow$ ✅ GIỮ NGUYÊN (Cấu trúc phân cấp Trang chủ $\rightarrow$ Từ điển).
 4. **`FAQPage` Schema:** `index.html:163-211` $\rightarrow$ ✅ GIỮ NGUYÊN (4 câu hỏi đáp thường gặp cho Google Search Snippets).
-5. **`EducationalOrganization` Schema:** `index.html:213-250` $\rightarrow$ ✅ GIỮ NGUYÊN (Trường THCS Chu Văn An).
+5. **`Organization` Schema:** `index.html:213-250` $\rightarrow$ ✅ CẬP NHẬT (Dự án Bảo Tồn Ngôn Ngữ Xơ Đăng).
 
 ---
 
