@@ -167,7 +167,7 @@
 .message-time {
     font-size: 0.72rem;
     margin-top: 4px;
-    opacity: 0.7;
+    opacity: 1;
     text-align: right;
 }
 
@@ -176,7 +176,7 @@
 }
 
 .message.user .message-time {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-inverse);
 }
 
 .chat-input-container {
@@ -358,5 +358,5 @@ body.dark-mode .close-chat-btn:hover {
 
 :root.dark-mode .message.user .message-time,
 body.dark-mode .message.user .message-time {
-    color: rgba(15, 16, 18, 0.75);
+    color: var(--text-inverse);
 }

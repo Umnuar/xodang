@@ -45,6 +45,23 @@ describe('HashRouter (< 40 lines router)', () => {
         expect(callback).toHaveBeenCalledWith('contribute');
     });
 
+    it('normalizes uppercase hash routes and query strings (UX-18)', () => {
+        const callback = vi.fn();
+        router.init(callback);
+
+        window.location.hash = '#Quiz';
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+        expect(callback).toHaveBeenLastCalledWith('quiz');
+
+        window.location.hash = '#/HOME?q=rung&dir=viet_to_ethnic';
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+        expect(callback).toHaveBeenLastCalledWith('home');
+
+        router.navigate('GAME?level=2');
+        expect(window.location.hash).toBe('#game');
+        expect(callback).toHaveBeenLastCalledWith('game');
+    });
+
     it('calls handler again if navigating to current route', () => {
         const callback = vi.fn();
         router.init(callback);
@@ -53,6 +70,6 @@ describe('HashRouter (< 40 lines router)', () => {
         expect(callback).toHaveBeenLastCalledWith('game');
 
         router.navigate('game');
-        expect(callback).toHaveBeenCalledTimes(3); // init(home) -> game -> game
+        expect(callback).toHaveBeenCalledTimes(3);
     });
 });

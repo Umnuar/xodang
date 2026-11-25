@@ -14,6 +14,9 @@ import {
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import { OnboardingController } from '@/features/onboarding/onboarding';
 import onboardingHtml from '@/features/onboarding/onboarding.html?raw';
+import { FlashcardManager } from '@/features/quiz/flashcard';
+import quizHtml from '@/features/quiz/quiz.html?raw';
+import type { QuizQuestion } from '@/services/quiz.service';
 import { soundEffects } from '@/features/games/sound-effects';
 import { getLeaderboard } from '@/features/games/leaderboard';
 import { getSavedCertificates, saveCertificate } from '@/features/games/certificate';
@@ -40,8 +43,6 @@ describe('Storage Service & Legacy Migration Tests', () => {
     });
 
     it('reads legacy double-JSON-encoded studyProgressByTopic correctly', () => {
-        // Simulate legacy format created by index.html line 3245
-        // localStorage.setItem('studyProgressByTopic', JSON.stringify({ topic1: JSON.stringify(['1', '2', '3']) }))
         const legacyPayload = {
             'Gia đình': JSON.stringify(['card1', 'card2']),
             'Thiên nhiên': JSON.stringify(['card3', 'card4', 'card5'])
@@ -55,6 +56,52 @@ describe('Storage Service & Legacy Migration Tests', () => {
         expect(progressMap.get('Gia đình')?.has('card1')).toBe(true);
         expect(progressMap.get('Gia đình')?.has('card2')).toBe(true);
         expect(progressMap.get('Thiên nhiên')?.size).toBe(3);
+    });
+
+    it('migrates legacy numeric index studyProgressByTopic entries to q.id and clamps progress <= 100%', () => {
+        document.body.innerHTML = quizHtml;
+
+        const legacyPayload = {
+            'Gia đình': JSON.stringify(['0', '1', '5', '99']),
+            'Thiên nhiên': JSON.stringify(['q101', 'stale_1', 'stale_2', 'stale_3'])
+        };
+        window.localStorage.setItem(STORAGE_KEYS.STUDY_PROGRESS_BY_TOPIC, JSON.stringify(legacyPayload));
+
+        const topicsMap = new Map<string, QuizQuestion[]>([
+            [
+                'Gia đình',
+                [
+                    { id: 'q36', question: 'Bố', options: ['Pa', 'Nôu'], correctAnswer: 1, topic: 'Gia đình' },
+                    { id: 'q37', question: 'Mẹ', options: ['Nôu', 'Pa'], correctAnswer: 1, topic: 'Gia đình' },
+                    { id: 'q38', question: 'Anh', options: ['Ngoh', 'O'], correctAnswer: 1, topic: 'Gia đình' }
+                ]
+            ],
+            [
+                'Thiên nhiên',
+                [
+                    { id: 'q101', question: 'Núi', options: ['Ngo', 'Đak'], correctAnswer: 1, topic: 'Thiên nhiên' }
+                ]
+            ]
+        ]);
+
+        const manager = new FlashcardManager();
+        manager.setAllTopics(topicsMap);
+
+        const migratedMap = loadStudyProgress();
+        expect(Array.from(migratedMap.get('Gia đình') ?? [])).toEqual(['q36', 'q37']);
+        expect(Array.from(migratedMap.get('Thiên nhiên') ?? [])).toEqual(['q101']);
+
+        manager.setCards('Gia đình', topicsMap.get('Gia đình')!);
+        expect(document.getElementById('studyCompletion')?.textContent).toBe('67% đã học');
+
+        manager.setCards('Thiên nhiên', topicsMap.get('Thiên nhiên')!);
+        expect(document.getElementById('studyCompletion')?.textContent).toBe('100% đã học');
+
+        const overallFill = document.getElementById('studyProgressFill');
+        const overallBar = overallFill?.closest('[role="progressbar"]');
+        const ariaVal = Number(overallBar?.getAttribute('aria-valuenow'));
+        expect(ariaVal).toBe(75);
+        expect(ariaVal).toBeLessThanOrEqual(100);
     });
 
     it('saves study progress in exact legacy-compatible format', () => {

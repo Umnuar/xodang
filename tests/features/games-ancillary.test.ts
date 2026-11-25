@@ -1,13 +1,11 @@
-/**
- * @vitest-environment happy-dom
- */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     renderCertificateCanvas,
     saveCertificate,
     getSavedCertificates,
     showCertificateModal,
-    closeCertificateModal
+    closeCertificateModal,
+    formatCertificateFilename
 } from '@/features/games/certificate';
 import {
     recordGameScore,
@@ -15,8 +13,10 @@ import {
     getUserBadges,
     showLeaderboardModal,
     showBadgesModal,
-    showCertificatesModal
+    showCertificatesModal,
+    closeAllLeaderboardModals
 } from '@/features/games/leaderboard';
+import { soundEffects } from '@/features/games/sound-effects';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
 describe('Minigames Certificate & Leaderboard Systems (Restoration Tests)', () => {
@@ -43,12 +43,13 @@ describe('Minigames Certificate & Leaderboard Systems (Restoration Tests)', () =
 
     afterEach(() => {
         closeCertificateModal();
+        closeAllLeaderboardModals();
         vi.restoreAllMocks();
     });
 
     describe('Certificate Generation', () => {
-        it('renders a high-resolution 800x600 canvas with certificate details', () => {
-            const canvas = renderCertificateCanvas({
+        it('renders 800x600 by default and 1600x1200 with scale 2', () => {
+            const canvas1x = renderCertificateCanvas({
                 studentName: 'A Dũng',
                 gameTitle: 'Lật Thẻ Trí Nhớ',
                 score: 150,
@@ -56,9 +57,31 @@ describe('Minigames Certificate & Leaderboard Systems (Restoration Tests)', () =
                 date: '02/10/2026'
             });
 
-            expect(canvas).toBeInstanceOf(HTMLCanvasElement);
-            expect(canvas.width).toBe(800);
-            expect(canvas.height).toBe(600);
+            expect(canvas1x).toBeInstanceOf(HTMLCanvasElement);
+            expect(canvas1x.width).toBe(800);
+            expect(canvas1x.height).toBe(600);
+
+            const canvas2x = renderCertificateCanvas({
+                studentName: 'A Dũng',
+                gameTitle: 'Lật Thẻ Trí Nhớ',
+                score: 150,
+                level: 3,
+                date: '02/10/2026',
+                scale: 2
+            });
+
+            expect(canvas2x).toBeInstanceOf(HTMLCanvasElement);
+            expect(canvas2x.width).toBe(1600);
+            expect(canvas2x.height).toBe(1200);
+        });
+
+        it('normalizes Vietnamese diacritics using NFD in certificate download filenames', () => {
+            expect(formatCertificateFilename('Người học Xơ Đăng', '25/11/2026')).toBe(
+                'Chung-Nhan-nguoi-hoc-xo-dang-25-11-2026.png'
+            );
+            expect(formatCertificateFilename('Đặng Thị Ánh Tuyết', '01/02/2026')).toBe(
+                'Chung-Nhan-dang-thi-anh-tuyet-01-02-2026.png'
+            );
         });
 
         it('saves and retrieves certificate records in localStorage', () => {
@@ -80,20 +103,41 @@ describe('Minigames Certificate & Leaderboard Systems (Restoration Tests)', () =
             expect(list[0].gameTitle).toBe('Mưa Từ Vựng');
         });
 
-        it('mounts certificate modal on DOM and handles closing', () => {
-            showCertificateModal({
+        it('mounts certificate modal with 2x canvas, suppresses levelUp and persistence when persist is false', () => {
+            const levelUpSpy = vi.spyOn(soundEffects, 'levelUp').mockImplementation(() => {});
+
+            const certId = showCertificateModal({
                 studentName: 'A Phong',
                 gameTitle: 'Bảo Vệ Làng',
                 score: 300,
-                level: 4
+                level: 4,
+                persist: false
             });
+
+            expect(certId).toBeUndefined();
+            expect(levelUpSpy).not.toHaveBeenCalled();
+            expect(getSavedCertificates().length).toBe(0);
 
             const modal = document.getElementById('certificateModal');
             expect(modal).not.toBeNull();
             expect(modal?.style.display).toBe('flex');
+            const canvas = modal?.querySelector('canvas') as HTMLCanvasElement | null;
+            expect(canvas?.width).toBe(1600);
+            expect(canvas?.height).toBe(1200);
 
             closeCertificateModal();
             expect(modal?.style.display).toBe('none');
+
+            const savedId = showCertificateModal({
+                studentName: 'A Phong',
+                gameTitle: 'Bảo Vệ Làng',
+                score: 300,
+                level: 4,
+                persist: true
+            });
+            expect(savedId).toBeDefined();
+            expect(levelUpSpy).toHaveBeenCalledTimes(1);
+            expect(getSavedCertificates().length).toBe(1);
         });
     });
 
@@ -115,17 +159,36 @@ describe('Minigames Certificate & Leaderboard Systems (Restoration Tests)', () =
             expect(board[1].gamesPlayed).toBe(2);
         });
 
+        it('does not increment user level or unlock completion badges when completed is false', () => {
+            localStorage.setItem(STORAGE_KEYS.GAME_CURRENT_USER, 'LossTester');
+            recordGameScore('game2', 75, 3, false, 75);
+
+            const board = getLeaderboard();
+            expect(board[0].level).toBe(1);
+            expect(board[0].gamesPlayed).toBe(1);
+
+            const badgesOnLoss = getUserBadges();
+            expect(badgesOnLoss.find(b => b.id === 'games_1')?.isUnlocked).toBe(false);
+            expect(badgesOnLoss.find(b => b.id === 'level_3')?.isUnlocked).toBe(false);
+
+            recordGameScore('game2', 120, 3, true, 195);
+            const boardAfterWin = getLeaderboard();
+            expect(boardAfterWin[0].level).toBe(3);
+
+            const badgesOnWin = getUserBadges();
+            expect(badgesOnWin.find(b => b.id === 'games_1')?.isUnlocked).toBe(true);
+            expect(badgesOnWin.find(b => b.id === 'level_3')?.isUnlocked).toBe(true);
+        });
+
         it('correctly calculates badge milestone unlocks', () => {
             localStorage.setItem(STORAGE_KEYS.GAME_CURRENT_USER, 'StarStudent');
 
-            // Initially locked
             let badges = getUserBadges();
             const score100 = badges.find(b => b.id === 'score_100');
             const games1 = badges.find(b => b.id === 'games_1');
             expect(score100?.isUnlocked).toBe(false);
             expect(games1?.isUnlocked).toBe(false);
 
-            // Record game with score 120
             recordGameScore('game3', 120, 1);
 
             badges = getUserBadges();
@@ -133,6 +196,47 @@ describe('Minigames Certificate & Leaderboard Systems (Restoration Tests)', () =
             const games1After = badges.find(b => b.id === 'games_1');
             expect(score100After?.isUnlocked).toBe(true);
             expect(games1After?.isUnlocked).toBe(true);
+        });
+
+        it('filters certificates by current owner in showCertificatesModal', () => {
+            saveCertificate({
+                studentName: 'Y Mi',
+                gameTitle: 'Mưa Từ Vựng',
+                score: 220,
+                level: 2,
+                date: '25/11/2026'
+            });
+            saveCertificate({
+                studentName: 'A Phong',
+                gameTitle: 'Bảo Vệ Làng',
+                score: 300,
+                level: 3,
+                date: '25/11/2026'
+            });
+
+            localStorage.setItem(STORAGE_KEYS.GAME_CURRENT_USER, 'Y Mi');
+            showCertificatesModal();
+
+            const modal = document.getElementById('certificatesListModal')!;
+            expect(modal.querySelectorAll('.cert-card-item').length).toBe(2);
+
+            const mineBtn = modal.querySelector<HTMLButtonElement>('[data-filter-scope="mine"]')!;
+            expect(mineBtn.textContent).toContain('Của Y Mi (1)');
+            mineBtn.click();
+
+            const filteredItems = modal.querySelectorAll('.cert-card-item');
+            expect(filteredItems.length).toBe(1);
+            expect(filteredItems[0].textContent).toContain('Y Mi');
+
+            localStorage.setItem(STORAGE_KEYS.GAME_CURRENT_USER, 'Người Mới');
+            showCertificatesModal();
+            const mineEmptyBtn = modal.querySelector<HTMLButtonElement>('[data-filter-scope="mine"]')!;
+            mineEmptyBtn.click();
+
+            const gridEl = modal.querySelector('.certs-grid') as HTMLElement;
+            const emptyEl = modal.querySelector('.certs-filtered-empty') as HTMLElement;
+            expect(gridEl.hidden).toBe(true);
+            expect(emptyEl.hidden).toBe(false);
         });
 
         it('mounts leaderboard and badges modals without runtime exceptions', () => {

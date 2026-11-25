@@ -31,6 +31,25 @@ describe('Quiz Service Unit Tests', () => {
         expect(questions[0].topic).toBe('Chào hỏi');
     });
 
+    it('UX-10: parses A..D answers, filters empty options, clamps out-of-range indices, and strips emojis from evaluateQuiz', () => {
+        const parsed = parseQuizRows([
+            ['10', 'Câu A', 'Opt1', 'Opt2', '', '   ', 'b', 'Chủ đề'],
+            ['11', 'Câu D', 'O1', 'O2', 'O3', 'O4', 'D', 'Chủ đề'],
+            ['12', 'Câu Lệch', 'X1', 'X2', '', '', '4', 'Chủ đề'],
+            ['13', '', 'A', 'B', 'C', 'D', '1', 'Chủ đề']
+        ]);
+
+        expect(parsed.length).toBe(3);
+        expect(parsed[0].options).toEqual(['Opt1', 'Opt2']);
+        expect(parsed[0].correctAnswer).toBe(2);
+        expect(parsed[1].correctAnswer).toBe(4);
+        expect(parsed[2].correctAnswer).toBe(1);
+
+        const summary = evaluateQuiz(parsed, [2, 4, 1]);
+        expect(summary.title).toBe('Xuất sắc!');
+        expect(summary.title).not.toMatch(/[\u{1F300}-\u{1FAFF}]/u);
+    });
+
     it('groups questions correctly by topic', () => {
         const questions = parseQuizRows(rawRows);
         const grouped = groupQuestionsByTopic(questions);
@@ -109,7 +128,7 @@ describe('Quiz Service Unit Tests', () => {
         expect(evaluateQuiz(tenQuestions, fiveRight).title).toBe('Cần cố gắng thêm!');
     });
 
-    it('maps 1-indexed correctAnswer accurately to flashcard answer text', () => {
+    it('maps 1-indexed correctAnswer accurately and resets flip transition without back-face flash (UX-26)', () => {
         document.body.innerHTML = quizHtml;
         const manager = new FlashcardManager();
         const questions = parseQuizRows([
@@ -118,10 +137,32 @@ describe('Quiz Service Unit Tests', () => {
         ]);
 
         manager.setCards('Chào hỏi', questions);
+        const flashcard = document.getElementById('flashcard')!;
         expect(document.getElementById('flashcardAnswer')?.textContent).toBe('Bơ rơ ha');
 
+        manager.flipCard();
+        expect(flashcard.classList.contains('flipped')).toBe(true);
+
+        const transitionLog: string[] = [];
+        const originalDescriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'transition');
+        let currentTransition = '';
+        Object.defineProperty(flashcard.style, 'transition', {
+            get: () => currentTransition,
+            set: (val: string) => {
+                currentTransition = val;
+                transitionLog.push(val);
+            },
+            configurable: true
+        });
+
         manager.nextCard();
+        expect(flashcard.classList.contains('flipped')).toBe(false);
+        expect(transitionLog).toEqual(['none', '']);
         expect(document.getElementById('flashcardAnswer')?.textContent).toBe('Opt4');
+
+        if (originalDescriptor) {
+            delete (flashcard.style as unknown as { transition?: string }).transition;
+        }
     });
 });
 
@@ -132,12 +173,12 @@ describe('Quiz UI Controller Tests', () => {
         vi.restoreAllMocks();
     });
 
-    it('avoids duplicate "/5" in question counter, updates maxScore dynamically, and stops timer on tab change', async () => {
+    it('UX-08, UX-09, UX-24: resumes timer on tab return, displays completion time, and restarts quiz directly via #retryQuizBtn', async () => {
         vi.useFakeTimers();
         document.body.innerHTML = `<div id="toastContainer"></div>${quizHtml}`;
         vi.spyOn(sheetsService, 'fetchQuizData').mockResolvedValue([
-            ['1', 'Q1', 'A1', 'B1', 'C1', 'D1', '1', 'Chủ đề 2 câu'],
-            ['2', 'Q2', 'A2', 'B2', 'C2', 'D2', '2', 'Chủ đề 2 câu']
+            ['1', 'Q1', 'A1', 'B1', 'C1', 'D1', 'A', 'Chủ đề 2 câu'],
+            ['2', 'Q2', 'A2', 'B2', 'C2', 'D2', 'B', 'Chủ đề 2 câu']
         ]);
 
         await initQuiz();
@@ -157,6 +198,7 @@ describe('Quiz UI Controller Tests', () => {
         expect(startBtn.disabled).toBe(false);
         startBtn.click();
 
+        expect(document.getElementById('quizTimer')?.textContent).toBe('00:00');
         const badgeText = document.querySelector('.quiz-progress-badge')?.textContent?.replace(/\s+/g, ' ').trim();
         expect(badgeText).toBe('Câu 1/2');
 
@@ -168,6 +210,8 @@ describe('Quiz UI Controller Tests', () => {
         expect(document.getElementById('quizTimer')?.textContent).toBe('00:03');
 
         eventBus.emit('tab:change', 'quiz');
+        vi.advanceTimersByTime(2000);
+        expect(document.getElementById('quizTimer')?.textContent).toBe('00:05');
 
         const expectedAnswersByQuestion: Record<string, string> = {
             Q1: 'A1',
@@ -206,5 +250,17 @@ describe('Quiz UI Controller Tests', () => {
         expect(document.getElementById('finalScore')?.textContent).toBe('2');
         expect(document.getElementById('maxScore')?.textContent).toBe('/2');
         expect(document.getElementById('resultTitle')?.textContent).toBe('Xuất sắc!');
+        expect(document.getElementById('resultTime')?.textContent).toBe('Thời gian hoàn thành: 00:05');
+
+        const studyInterface = document.getElementById('studyInterface') as HTMLElement;
+        const quizInterface = document.getElementById('quizInterface') as HTMLElement;
+        const quizResult = document.getElementById('quizResult') as HTMLElement;
+
+        document.getElementById('retryQuizBtn')!.click();
+
+        expect(quizInterface.style.display).toBe('block');
+        expect(studyInterface.style.display).toBe('none');
+        expect(quizResult.style.display).toBe('none');
+        expect(document.getElementById('quizTimer')?.textContent).toBe('00:00');
     });
 });

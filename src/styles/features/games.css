@@ -663,9 +663,18 @@ body.game-focus-mode .game-stage {
 }
 
 .memory-card.matched .memory-card-back {
-    background: #15803d;
+    background: #166534;
     color: #ffffff;
     border-color: #166534;
+}
+
+.memory-card-lang {
+    color: var(--text-secondary);
+    opacity: 1;
+}
+
+.memory-card.matched .memory-card-lang {
+    color: #ffffff;
 }
 
 .catcher-prompt,
@@ -1451,6 +1460,11 @@ body.dark-mode .memory-card.matched .memory-card-back {
     background: var(--color-primary);
     color: var(--text-inverse);
     border-color: var(--color-primary-hover);
+}
+
+:root.dark-mode .memory-card.matched .memory-card-lang,
+body.dark-mode .memory-card.matched .memory-card-lang {
+    color: var(--text-inverse);
 }
 
 :root.dark-mode .rank-col.rank-top-1,

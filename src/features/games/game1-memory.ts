@@ -245,7 +245,6 @@ export class Game1Memory {
             langTag.className = 'memory-card-lang';
             langTag.style.fontSize = '0.7rem';
             langTag.style.fontWeight = '600';
-            langTag.style.opacity = '0.82';
             langTag.textContent = this.getCardLangLabel(card);
 
             const wordSpan = document.createElement('span');

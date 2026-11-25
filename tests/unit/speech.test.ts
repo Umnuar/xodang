@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     resolvePreferredSpeechTier,
     startSmartVietnameseSpeech,
-    setWasmSpeechCached
+    setWasmSpeechCached,
+    isWasmSpeechCached
 } from '@/services/speech.service';
 import * as whisperSttService from '@/services/whisper-stt.service';
 
@@ -33,6 +34,7 @@ describe('3-Tier Vietnamese Speech Recognition Waterfall', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+        vi.unstubAllGlobals();
         delete (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition;
         delete (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition;
     });
@@ -191,6 +193,82 @@ describe('3-Tier Vietnamese Speech Recognition Waterfall', () => {
         expect(wasmSpy).toHaveBeenCalledTimes(1);
         expect(onProcessing).toHaveBeenCalledWith('wasm');
         expect(onResult).toHaveBeenCalledWith('xin chào', 'wasm');
-        vi.unstubAllGlobals();
+    });
+
+    it('UX-07: clears STT_WASM_READY flag and falls back to keyboard when offline WASM model load fails', async () => {
+        setWasmSpeechCached(true);
+        expect(isWasmSpeechCached()).toBe(true);
+
+        Object.defineProperty(window.navigator, 'onLine', {
+            configurable: true,
+            value: false
+        });
+        Object.defineProperty(window.navigator, 'mediaDevices', {
+            configurable: true,
+            value: { getUserMedia: vi.fn() }
+        });
+        if (typeof globalThis.Worker === 'undefined') {
+            vi.stubGlobal('Worker', class {});
+        }
+
+        vi.spyOn(whisperSttService, 'startWasmVoiceCapture').mockImplementation(async (cbs) => {
+            cbs.onModelLoadError?.('Offline cache evicted');
+            return { stop: vi.fn(), cancel: vi.fn() };
+        });
+
+        const onFallbackKeyboard = vi.fn();
+        const onError = vi.fn();
+        await startSmartVietnameseSpeech({
+            onFallbackKeyboard,
+            onError
+        });
+
+        expect(isWasmSpeechCached()).toBe(false);
+        expect(onError).not.toHaveBeenCalled();
+        expect(onFallbackKeyboard).toHaveBeenCalledTimes(1);
+        expect(onFallbackKeyboard.mock.calls[0][0].reason).toBe('wasm-load-failed');
+        expect(onFallbackKeyboard.mock.calls[0][0].isWasmCached).toBe(false);
+    });
+
+    it('UX-07: aborts and cancels active speech session without emitting results when AbortSignal fires', async () => {
+        setWasmSpeechCached(true);
+        Object.defineProperty(window.navigator, 'onLine', {
+            configurable: true,
+            value: false
+        });
+        Object.defineProperty(window.navigator, 'mediaDevices', {
+            configurable: true,
+            value: { getUserMedia: vi.fn() }
+        });
+        if (typeof globalThis.Worker === 'undefined') {
+            vi.stubGlobal('Worker', class {});
+        }
+
+        const cancelSessionSpy = vi.fn();
+        let capturedCbs: whisperSttService.WasmVoiceCallbacks | null = null;
+        vi.spyOn(whisperSttService, 'startWasmVoiceCapture').mockImplementation(async (cbs) => {
+            capturedCbs = cbs;
+            cbs.onStart?.();
+            return { stop: vi.fn(), cancel: cancelSessionSpy };
+        });
+
+        const controller = new AbortController();
+        const onResult = vi.fn();
+        const onStateChange = vi.fn();
+
+        const handle = await startSmartVietnameseSpeech({
+            signal: controller.signal,
+            onResult,
+            onStateChange
+        });
+
+        expect(handle.state).toBe('listening');
+        controller.abort();
+
+        expect(cancelSessionSpy).toHaveBeenCalledTimes(1);
+        expect(handle.state).toBe('idle');
+
+        capturedCbs!.onResult?.('should be ignored');
+        expect(onResult).not.toHaveBeenCalled();
     });
 });
