@@ -4,7 +4,12 @@ import { renderWordCards } from './word-card';
 import { showToast } from '@/renderer/components/toast';
 import { showLoading, hideLoading } from '@/renderer/components/loading-overlay';
 import { isSpeechRecognitionSupported, startSpeechRecognition } from '@/renderer/services/speech.service';
-import { downloadOfflineAudio, filterValidDriveIds, getOfflineAudioStatus } from '@/renderer/services/offline-sync.service';
+import {
+    downloadOfflineAudio,
+    filterValidDriveIds,
+    hasOfflineAudioUpdates,
+    shouldAutoDownloadOfflineAudio
+} from '@/renderer/services/offline-sync.service';
 import { getLucideIcon } from '@/renderer/utils/icons';
 
 let dictionaryData: DictionaryEntry[] = [];
@@ -220,51 +225,78 @@ export async function initHome(): Promise<void> {
         }
     }
 
+    async function runOfflineAudioSync(isAuto: boolean): Promise<void> {
+        if (!btnDownload || !progressContainer || !progressBar || !progressText || !downloadStatus) return;
+
+        btnDownload.disabled = true;
+        btnDownload.style.opacity = '0.7';
+        btnDownload.innerHTML = `${getLucideIcon('rotate-ccw', 'lucide-icon', 18)} <span>${isAuto ? 'Đang tự động đồng bộ âm thanh...' : 'Đang chuẩn bị dữ liệu...'}</span>`;
+        progressContainer.style.display = 'block';
+
+        const driveIds = filterValidDriveIds(dictionaryData.map(d => d.driveId));
+        const result = await downloadOfflineAudio(driveIds, (loaded: number, total: number, percent: number) => {
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `Đang tải: ${loaded}/${total} (${percent}%)`;
+        });
+
+        btnDownload.style.opacity = '1';
+        if (result.total > 0 && result.cached >= result.total) {
+            btnDownload.innerHTML = `${getLucideIcon('check-circle', 'lucide-icon', 18)} <span>Đã tải offline thành công</span>`;
+            btnDownload.style.background = 'var(--color-primary)';
+            btnDownload.disabled = true;
+            downloadStatus.textContent = 'Tải hoàn tất! Bạn có thể nghe phát âm khi không có mạng.';
+            const card = document.querySelector('.offline-download-card') as HTMLElement | null;
+            if (card) card.style.display = 'none';
+            if (!isAuto) {
+                showToast('Tải thành công âm thanh offline!', 'success');
+            }
+        } else {
+            btnDownload.disabled = false;
+            btnDownload.innerHTML = `${getLucideIcon('download', 'lucide-icon', 18)} <span>Thử tải lại (${result.cached}/${result.total})</span>`;
+            downloadStatus.textContent = `Đã tải được ${result.cached}/${result.total} file âm thanh. Vui lòng thử lại khi mạng ổn định.`;
+            if (!isAuto) {
+                showToast(`Chỉ tải được ${result.cached}/${result.total} file âm thanh.`, 'warning');
+            }
+        }
+    }
+
     async function checkOfflineAudioState(): Promise<void> {
         if (!btnDownload || !downloadStatus) return;
         const driveIds = filterValidDriveIds(dictionaryData.map(d => d.driveId));
-        const status = await getOfflineAudioStatus(driveIds);
+        const status = await hasOfflineAudioUpdates(driveIds);
 
-        if (status.total > 0 && status.cached >= status.total) {
+        if (status.total > 0 && !status.needsSync) {
             btnDownload.innerHTML = `${getLucideIcon('check-circle', 'lucide-icon', 18)} <span>Đã tải offline thành công</span>`;
             btnDownload.style.background = 'var(--color-primary)';
             btnDownload.disabled = true;
             downloadStatus.textContent = `Đã lưu sẵn ${status.cached}/${status.total} file âm thanh. Sẵn sàng học offline 100%!`;
             const card = document.querySelector('.offline-download-card') as HTMLElement | null;
             if (card) card.style.display = 'none';
-        } else if (status.cached > 0) {
-            btnDownload.innerHTML = `${getLucideIcon('download', 'lucide-icon', 18)} <span>Tiếp tục tải offline (${status.cached}/${status.total})</span>`;
-            downloadStatus.textContent = `Đã tải được ${status.cached}/${status.total} file âm thanh.`;
+            return;
+        }
+
+        if (status.cached > 0) {
+            btnDownload.innerHTML = `${getLucideIcon('download', 'lucide-icon', 18)} <span>Cập nhật âm thanh (${status.cached}/${status.total})</span>`;
+            downloadStatus.textContent = `Đã lưu ${status.cached}/${status.total} file âm thanh mới nhất.`;
+        }
+
+        if (status.total > 0 && shouldAutoDownloadOfflineAudio()) {
+            const scheduleIdle = (window as unknown as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback;
+            if (typeof scheduleIdle === 'function') {
+                scheduleIdle(() => {
+                    void runOfflineAudioSync(true);
+                });
+            } else {
+                setTimeout(() => {
+                    void runOfflineAudioSync(true);
+                }, 1200);
+            }
         }
     }
 
     if (btnDownload && progressContainer && progressBar && progressText && downloadStatus) {
-        btnDownload.addEventListener('click', async () => {
-            btnDownload.disabled = true;
-            btnDownload.style.opacity = '0.7';
-            btnDownload.innerHTML = `${getLucideIcon('rotate-ccw', 'lucide-icon', 18)} <span>Đang chuẩn bị dữ liệu...</span>`;
-            progressContainer.style.display = 'block';
-
-            const driveIds = filterValidDriveIds(dictionaryData.map(d => d.driveId));
-
-            const result = await downloadOfflineAudio(driveIds, (loaded: number, total: number, percent: number) => {
-                progressBar.style.width = `${percent}%`;
-                progressText.textContent = `Đang tải: ${loaded}/${total} (${percent}%)`;
-            });
-
-            btnDownload.style.opacity = '1';
-            if (result.total > 0 && result.cached >= result.total) {
-                btnDownload.innerHTML = `${getLucideIcon('check-circle', 'lucide-icon', 18)} <span>Đã tải offline thành công</span>`;
-                btnDownload.style.background = 'var(--color-primary)';
-                btnDownload.disabled = true;
-                downloadStatus.textContent = 'Tải hoàn tất! Bạn có thể nghe phát âm khi không có mạng.';
-                showToast('Tải thành công âm thanh offline!', 'success');
-            } else {
-                btnDownload.disabled = false;
-                btnDownload.innerHTML = `${getLucideIcon('download', 'lucide-icon', 18)} <span>Thử tải lại (${result.cached}/${result.total})</span>`;
-                downloadStatus.textContent = `Đã tải được ${result.cached}/${result.total} file âm thanh. Vui lòng thử lại khi mạng ổn định.`;
-                showToast(`Chỉ tải được ${result.cached}/${result.total} file âm thanh.`, 'warning');
-            }
+        btnDownload.addEventListener('click', () => {
+            void runOfflineAudioSync(false);
         });
     }
 }

@@ -1,14 +1,37 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     getAudioUrl,
     filterValidDriveIds,
     getOfflineAudioStatus,
+    hasOfflineAudioUpdates,
+    downloadOfflineAudio,
+    shouldAutoDownloadOfflineAudio,
     sanitizeFilename,
     sendContribution
 } from '@/renderer/services/offline-sync.service';
 import { isValidAudioFile, MAX_AUDIO_FILE_SIZE } from '@/renderer/features/contribute/contribute';
+import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
 describe('Audio & Filename Utility Tests', () => {
+    beforeEach(() => {
+        if (!window.localStorage || typeof window.localStorage.clear !== 'function') {
+            const store = new Map<string, string>();
+            Object.defineProperty(window, 'localStorage', {
+                value: {
+                    getItem: (k: string) => store.get(k) ?? null,
+                    setItem: (k: string, v: string) => store.set(k, String(v)),
+                    removeItem: (k: string) => store.delete(k),
+                    clear: () => store.clear(),
+                    get length() { return store.size; },
+                    key: (i: number) => Array.from(store.keys())[i] ?? null
+                },
+                configurable: true,
+                writable: true
+            });
+        }
+        window.localStorage.clear();
+    });
+
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
@@ -143,5 +166,178 @@ describe('Audio & Filename Utility Tests', () => {
         expect(payload.readingContent).toBe('Test');
         expect(typeof payload.audioData).toBe('string');
         expect(payload.audioData.length).toBeGreaterThan(0);
+    });
+
+    it('downloads binary audio-pack.bin in 1 request when missing >= 30 audio files', async () => {
+        const ids = Array.from({ length: 35 }, (_, idx) => `word_${idx}`);
+        const chunks = ids.map((id, idx) => new Uint8Array([0x1A, 0x45, idx & 0xff, id.length]));
+        const totalBytes = chunks.reduce((sum, c) => sum + c.byteLength, 0);
+        const packed = new Uint8Array(totalBytes);
+        const files: Record<string, [number, number, string]> = {};
+        let offset = 0;
+        ids.forEach((id, idx) => {
+            packed.set(chunks[idx], offset);
+            files[id] = [offset, chunks[idx].byteLength, `hash_${idx}`];
+            offset += chunks[idx].byteLength;
+        });
+
+        const storedResponses = new Map<string, Response>();
+        const putMock = vi.fn().mockImplementation(async (key: string, res: Response) => {
+            storedResponses.set(key, res);
+        });
+        vi.stubGlobal('caches', {
+            open: vi.fn().mockResolvedValue({
+                keys: vi.fn().mockResolvedValue([]),
+                put: putMock,
+                delete: vi.fn().mockResolvedValue(true)
+            })
+        });
+
+        const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+            if (url === './audio-pack.index.json') {
+                return {
+                    ok: true,
+                    json: async () => ({ version: 'v1', totalBytes, count: ids.length, files })
+                };
+            }
+            if (url === './audio-pack.bin') {
+                return {
+                    ok: true,
+                    headers: { get: () => String(totalBytes) },
+                    arrayBuffer: async () => packed.buffer.slice(0)
+                };
+            }
+            throw new Error(`Unexpected individual fetch: ${url}`);
+        });
+        vi.stubGlobal('fetch', fetchMock);
+
+        const progressEvents: number[] = [];
+        const result = await downloadOfflineAudio(ids, (_loaded, _total, percent) => {
+            progressEvents.push(percent);
+        });
+
+        expect(result).toEqual({ cached: 35, total: 35 });
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(putMock).toHaveBeenCalledTimes(35);
+        const firstSlice = new Uint8Array(await storedResponses.get('./audio/word_0.webm')!.arrayBuffer());
+        expect(Array.from(firstSlice)).toEqual(Array.from(chunks[0]));
+        const savedHashes = JSON.parse(window.localStorage.getItem(STORAGE_KEYS.AUDIO_PACK_HASHES) || '{}');
+        expect(savedHashes.word_34).toBe('hash_34');
+        expect(progressEvents[progressEvents.length - 1]).toBe(100);
+    });
+
+    it('downloads only delta files when < 30 items missing or hash-changed and prunes obsolete keys', async () => {
+        const upToDateIds = Array.from({ length: 34 }, (_, idx) => `keep_${idx}`);
+        const staleId = 'stale_1';
+        const brandNewId = 'new_1';
+        const allIds = [...upToDateIds, staleId, brandNewId];
+
+        const initialHashes: Record<string, string> = {};
+        const files: Record<string, [number, number, string]> = {};
+        upToDateIds.forEach((id, idx) => {
+            initialHashes[id] = `h_${idx}`;
+            files[id] = [idx * 4, 4, `h_${idx}`];
+        });
+        initialHashes[staleId] = 'old_hash';
+        files[staleId] = [1000, 4, 'new_hash'];
+        files[brandNewId] = [1004, 4, 'brand_new_hash'];
+        window.localStorage.setItem(STORAGE_KEYS.AUDIO_PACK_HASHES, JSON.stringify(initialHashes));
+
+        const cachedReqs = [
+            ...upToDateIds.map(id => ({ url: `./audio/${id}.webm` })),
+            { url: `./audio/${staleId}.webm` },
+            { url: './audio/removed_old.webm' }
+        ];
+        const deleteMock = vi.fn().mockResolvedValue(true);
+        const putMock = vi.fn().mockResolvedValue(undefined);
+        vi.stubGlobal('caches', {
+            open: vi.fn().mockResolvedValue({
+                keys: vi.fn().mockResolvedValue(cachedReqs),
+                put: putMock,
+                delete: deleteMock
+            })
+        });
+
+        const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+            if (url === './audio-pack.index.json') {
+                return {
+                    ok: true,
+                    json: async () => ({ version: 'v2', totalBytes: 1008, count: allIds.length, files })
+                };
+            }
+            if (url === `./audio/${staleId}.webm` || url === `./audio/${brandNewId}.webm`) {
+                return {
+                    ok: true,
+                    clone: () => ({ ok: true })
+                };
+            }
+            throw new Error(`Unexpected fetch URL: ${url}`);
+        });
+        vi.stubGlobal('fetch', fetchMock);
+
+        const updateCheck = await hasOfflineAudioUpdates(allIds);
+        expect(updateCheck).toEqual({ needsSync: true, cached: 34, total: 36 });
+
+        const result = await downloadOfflineAudio(allIds);
+        expect(result).toEqual({ cached: 36, total: 36 });
+        expect(fetchMock).toHaveBeenCalledTimes(4);
+        expect(fetchMock.mock.calls.some(c => c[0] === './audio-pack.bin')).toBe(false);
+        expect(putMock).toHaveBeenCalledTimes(2);
+        expect(deleteMock).toHaveBeenCalledWith({ url: './audio/removed_old.webm' });
+        const savedHashes = JSON.parse(window.localStorage.getItem(STORAGE_KEYS.AUDIO_PACK_HASHES) || '{}');
+        expect(savedHashes[staleId]).toBe('new_hash');
+        expect(savedHashes[brandNewId]).toBe('brand_new_hash');
+    });
+
+    it('falls back cleanly to individual fetches when audio-pack.index.json is unavailable', async () => {
+        const putMock = vi.fn().mockResolvedValue(undefined);
+        vi.stubGlobal('caches', {
+            open: vi.fn().mockResolvedValue({
+                keys: vi.fn().mockResolvedValue([]),
+                put: putMock,
+                delete: vi.fn().mockResolvedValue(true)
+            })
+        });
+
+        const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+            if (url === './audio-pack.index.json') {
+                return { ok: false, status: 404 };
+            }
+            return { ok: true, clone: () => ({ ok: true }) };
+        });
+        vi.stubGlobal('fetch', fetchMock);
+
+        const result = await downloadOfflineAudio(['a1', 'a2']);
+        expect(result).toEqual({ cached: 2, total: 2 });
+        expect(putMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('gates auto-download based on CacheStorage support, online status, and network conditions', () => {
+        vi.stubGlobal('caches', {});
+        Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+        Object.defineProperty(navigator, 'connection', {
+            value: { saveData: false, effectiveType: '4g' },
+            configurable: true
+        });
+        expect(shouldAutoDownloadOfflineAudio()).toBe(true);
+
+        Object.defineProperty(navigator, 'connection', {
+            value: { saveData: true, effectiveType: '4g' },
+            configurable: true
+        });
+        expect(shouldAutoDownloadOfflineAudio()).toBe(false);
+
+        Object.defineProperty(navigator, 'connection', {
+            value: { saveData: false, effectiveType: '2g' },
+            configurable: true
+        });
+        expect(shouldAutoDownloadOfflineAudio()).toBe(false);
+
+        Object.defineProperty(navigator, 'connection', {
+            value: { saveData: false, effectiveType: '4g' },
+            configurable: true
+        });
+        Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+        expect(shouldAutoDownloadOfflineAudio()).toBe(false);
     });
 });

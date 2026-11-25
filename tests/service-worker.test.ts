@@ -80,6 +80,9 @@ describe('PWA Service Worker & Cache Preservation Tests (Rule 8 Compliance)', ()
             const inRoot = fs.existsSync(path.resolve(__dirname, '..', rel));
             expect(inPublic || inRoot, `Missing precache file for ${entry}`).toBe(true);
         });
+
+        expect(swSource).toContain("'/audio-pack.bin'");
+        expect(swSource).toContain("'/audio-pack.index.json'");
     });
 
     it('uses relative font paths without root-relative /fonts/ prefixes', () => {

@@ -68,6 +68,10 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
 
     const url = new URL(event.request.url);
 
+    if (url.pathname.endsWith('/audio-pack.bin') || url.pathname.endsWith('/audio-pack.index.json')) {
+        return;
+    }
+
     if (url.pathname.includes('/audio/') || url.pathname.endsWith('.webm')) {
         event.respondWith(
             caches.open(AUDIO_CACHE_NAME).then(async (audioCache) => {

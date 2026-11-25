@@ -10,3 +10,5 @@ graft/
 tools/audio-optimizer/target/
 services/contribute-api/target/
 services/contribute-api/data/
+public/audio-pack.bin
+public/audio-pack.index.json

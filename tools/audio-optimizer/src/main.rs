@@ -1,6 +1,7 @@
 use std::env;
 use std::ffi::OsString;
-use std::fs;
+use std::fs::{self, File};
+use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
@@ -15,6 +16,8 @@ struct CliArgs {
     bitrate: String,
     loudnorm: bool,
     dry_run: bool,
+    pack: bool,
+    pack_out: PathBuf,
     sample: Option<usize>,
     jobs: usize,
 }
@@ -49,6 +52,8 @@ where
         bitrate: String::from("24k"),
         loudnorm: true,
         dry_run: false,
+        pack: false,
+        pack_out: PathBuf::from("public"),
         sample: None,
         jobs: default_jobs(),
     };
@@ -81,6 +86,11 @@ where
             "--no-loudnorm" => cfg.loudnorm = false,
             "--loudnorm" => cfg.loudnorm = true,
             "--dry-run" => cfg.dry_run = true,
+            "--pack" => cfg.pack = true,
+            "--pack-out" => {
+                let val = iter.next().ok_or("--pack-out requires a directory path")?;
+                cfg.pack_out = PathBuf::from(val);
+            }
             "--sample" => {
                 let val = iter.next().ok_or("--sample requires a positive integer")?;
                 let parsed = val
@@ -138,6 +148,133 @@ fn collect_webm_files(dir: &Path, sample: Option<usize>) -> Result<Vec<PathBuf>,
         files.truncate(limit);
     }
     Ok(files)
+}
+
+fn fnv1a_64_hex(bytes: &[u8]) -> String {
+    let mut hash: u64 = 0xcbf29ce484222325;
+    for &b in bytes {
+        hash ^= u64::from(b);
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    format!("{hash:016x}")
+}
+
+fn escape_json_str(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    for ch in raw.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if c.is_control() => {
+                out.push_str(&format!("\\u{:04x}", c as u32));
+            }
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+fn build_audio_pack(input_dir: &Path, pack_out_dir: &Path) -> Result<(usize, u64, String), String> {
+    let files = collect_webm_files(input_dir, None)?;
+    if files.is_empty() {
+        return Err(format!("No .webm files found in {}", input_dir.display()));
+    }
+    fs::create_dir_all(pack_out_dir).map_err(|err| {
+        format!(
+            "Failed to create pack dir {}: {err}",
+            pack_out_dir.display()
+        )
+    })?;
+
+    let bin_tmp = pack_out_dir.join(".audio-pack.bin.tmp");
+    let index_tmp = pack_out_dir.join(".audio-pack.index.json.tmp");
+    let bin_dest = pack_out_dir.join("audio-pack.bin");
+    let index_dest = pack_out_dir.join("audio-pack.index.json");
+
+    let bin_file =
+        File::create(&bin_tmp).map_err(|err| format!("Failed to create temp pack file: {err}"))?;
+    let mut writer = BufWriter::new(bin_file);
+
+    let mut offset: u64 = 0;
+    let mut entries: Vec<(String, u64, u64, String)> = Vec::with_capacity(files.len());
+    let mut manifest_seed = String::new();
+
+    for path in &files {
+        let stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .ok_or_else(|| format!("Invalid UTF-8 file stem: {}", path.display()))?
+            .to_string();
+        let bytes = fs::read(path).map_err(|err| {
+            let _ = fs::remove_file(&bin_tmp);
+            format!("Failed to read {}: {err}", path.display())
+        })?;
+        let len = bytes.len() as u64;
+        if len == 0 {
+            let _ = fs::remove_file(&bin_tmp);
+            return Err(format!("Cannot pack zero-byte file: {}", path.display()));
+        }
+        if let Err(err) = writer.write_all(&bytes) {
+            let _ = fs::remove_file(&bin_tmp);
+            return Err(format!("Failed to write pack data: {err}"));
+        }
+        let hash = fnv1a_64_hex(&bytes);
+        manifest_seed.push_str(&stem);
+        manifest_seed.push(':');
+        manifest_seed.push_str(&hash);
+        manifest_seed.push('\n');
+        entries.push((stem, offset, len, hash));
+        offset += len;
+    }
+
+    if let Err(err) = writer.flush() {
+        let _ = fs::remove_file(&bin_tmp);
+        return Err(format!("Failed to flush pack data: {err}"));
+    }
+    drop(writer);
+
+    let version = fnv1a_64_hex(manifest_seed.as_bytes());
+    let count = entries.len();
+    let mut json = format!(
+        "{{\"version\":\"{}\",\"totalBytes\":{},\"count\":{},\"files\":{{",
+        escape_json_str(&version),
+        offset,
+        count
+    );
+    for (idx, (id, off, len, hash)) in entries.iter().enumerate() {
+        if idx > 0 {
+            json.push(',');
+        }
+        json.push_str(&format!(
+            "\"{}\":[{},{},\"{}\"]",
+            escape_json_str(id),
+            off,
+            len,
+            hash
+        ));
+    }
+    json.push_str("}}");
+
+    if let Err(err) = fs::write(&index_tmp, json) {
+        let _ = fs::remove_file(&bin_tmp);
+        let _ = fs::remove_file(&index_tmp);
+        return Err(format!("Failed to write index json: {err}"));
+    }
+
+    if let Err(err) = fs::rename(&bin_tmp, &bin_dest) {
+        let _ = fs::remove_file(&bin_tmp);
+        let _ = fs::remove_file(&index_tmp);
+        return Err(format!("Failed to finalize audio-pack.bin: {err}"));
+    }
+    if let Err(err) = fs::rename(&index_tmp, &index_dest) {
+        let _ = fs::remove_file(&index_tmp);
+        return Err(format!("Failed to finalize audio-pack.index.json: {err}"));
+    }
+
+    Ok((count, offset, version))
 }
 
 fn parse_ffprobe_output(stdout: &str) -> Result<ProbeInfo, String> {
@@ -347,6 +484,21 @@ fn format_mb(bytes: u64) -> f64 {
 
 fn run() -> Result<(), String> {
     let cfg = parse_args(env::args().skip(1))?;
+    if cfg.pack {
+        let start = Instant::now();
+        let (count, bytes, version) = build_audio_pack(&cfg.input, &cfg.pack_out)?;
+        println!(
+            "Packed: {} files | Bytes: {} B ({:.2} MB) | Version: {} | Out: {} | Time: {:.2}s",
+            count,
+            bytes,
+            format_mb(bytes),
+            version,
+            cfg.pack_out.display(),
+            start.elapsed().as_secs_f64()
+        );
+        return Ok(());
+    }
+
     if !cfg.dry_run {
         if let Some(dir) = &cfg.output_dir {
             fs::create_dir_all(dir)
@@ -508,6 +660,8 @@ mod tests {
         assert_eq!(defaults.bitrate, "24k");
         assert!(defaults.loudnorm);
         assert!(!defaults.dry_run);
+        assert!(!defaults.pack);
+        assert_eq!(defaults.pack_out, PathBuf::from("public"));
         assert_eq!(defaults.sample, None);
 
         let custom = parse_args([
@@ -517,6 +671,9 @@ mod tests {
             "32k".to_string(),
             "--no-loudnorm".to_string(),
             "--dry-run".to_string(),
+            "--pack".to_string(),
+            "--pack-out".to_string(),
+            "dist-pack".to_string(),
             "--sample".to_string(),
             "10".to_string(),
             "--jobs".to_string(),
@@ -527,6 +684,8 @@ mod tests {
         assert_eq!(custom.bitrate, "32k");
         assert!(!custom.loudnorm);
         assert!(custom.dry_run);
+        assert!(custom.pack);
+        assert_eq!(custom.pack_out, PathBuf::from("dist-pack"));
         assert_eq!(custom.sample, Some(10));
         assert_eq!(custom.jobs, 2);
 
@@ -556,5 +715,66 @@ mod tests {
         assert_eq!(all.len(), 2);
 
         let _ = fs::remove_dir_all(&temp_dir);
+    }
+
+    #[test]
+    fn hashes_and_packs_webm_files_deterministically_detecting_updates() {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = env::temp_dir().join(format!("audio_pack_test_{unique}"));
+        let audio_dir = root.join("audio");
+        let out_dir = root.join("out");
+        fs::create_dir_all(&audio_dir).unwrap();
+
+        let bytes_a = b"\x1A\x45\xDF\xA3_audio_a".to_vec();
+        let bytes_b = b"\x1A\x45\xDF\xA3_audio_bb".to_vec();
+        let bytes_c = b"\x1A\x45\xDF\xA3_audio_ccc".to_vec();
+        fs::write(audio_dir.join("idA.webm"), &bytes_a).unwrap();
+        fs::write(audio_dir.join("idB.webm"), &bytes_b).unwrap();
+        fs::write(audio_dir.join("idC.webm"), &bytes_c).unwrap();
+        fs::write(audio_dir.join("coi.mp3"), b"mp3_skip").unwrap();
+        fs::write(audio_dir.join("README.md"), b"skip").unwrap();
+
+        let (count1, total1, ver1) = build_audio_pack(&audio_dir, &out_dir).unwrap();
+        assert_eq!(count1, 3);
+        let expected_total = (bytes_a.len() + bytes_b.len() + bytes_c.len()) as u64;
+        assert_eq!(total1, expected_total);
+
+        let packed_bin = fs::read(out_dir.join("audio-pack.bin")).unwrap();
+        assert_eq!(packed_bin.len() as u64, expected_total);
+        assert_eq!(&packed_bin[0..bytes_a.len()], bytes_a.as_slice());
+        assert_eq!(
+            &packed_bin[bytes_a.len()..bytes_a.len() + bytes_b.len()],
+            bytes_b.as_slice()
+        );
+        assert_eq!(
+            &packed_bin[bytes_a.len() + bytes_b.len()..],
+            bytes_c.as_slice()
+        );
+
+        let index_str = fs::read_to_string(out_dir.join("audio-pack.index.json")).unwrap();
+        assert!(index_str.contains("\"count\":3"));
+        assert!(index_str.contains(&format!("\"version\":\"{ver1}\"")));
+        assert!(index_str.contains(&format!(
+            "\"idA\":[0,{},\"{}\"]",
+            bytes_a.len(),
+            fnv1a_64_hex(&bytes_a)
+        )));
+        assert!(!index_str.contains("coi"));
+
+        let (_count2, _total2, ver2) = build_audio_pack(&audio_dir, &out_dir).unwrap();
+        assert_eq!(ver1, ver2);
+
+        fs::write(
+            audio_dir.join("idB.webm"),
+            b"\x1A\x45\xDF\xA3_audio_updated",
+        )
+        .unwrap();
+        let (_count3, _total3, ver3) = build_audio_pack(&audio_dir, &out_dir).unwrap();
+        assert_ne!(ver1, ver3);
+
+        let _ = fs::remove_dir_all(&root);
     }
 }
