@@ -37,7 +37,7 @@ Vui lòng báo cáo riêng tư thông qua tính năng **GitHub Private Security 
 
 ### Thông tin cần đính kèm
 1. **Phân loại vấn đề:** Mã CWE / OWASP (ví dụ: `CWE-79` XSS, `CWE-434` Unrestricted Upload, `CWE-22` Path Traversal).
-2. **Thành phần ảnh hưởng:** Đường dẫn tệp hoặc phân hệ (`src/renderer/*`, `service-worker.ts`, `services/contribute-api/*`, CI/CD).
+2. **Thành phần ảnh hưởng:** Đường dẫn tệp hoặc phân hệ (`src/*`, `src/service-worker.ts`, `services/contribute-api/*`, CI/CD).
 3. **Các bước tái hiện (PoC):** Kịch bản tối thiểu, không tác động lên dữ liệu thật hoặc làm gián đoạn dịch vụ công cộng.
 4. **Mức độ nghiêm trọng đề xuất:** Ước lượng theo thang điểm **CVSS v3.1** kèm điều kiện khai thác.
 
@@ -76,15 +76,15 @@ Nhóm phát triển không khởi kiện hoặc truy cứu đối với các ngh
 
 ### 4.3. Phòng chống XSS phía Client
 - Toàn bộ kết quả tra cứu, câu trả lời chatbot, bảng xếp hạng, huy hiệu, chứng chỉ và hàng đợi đóng góp được render bằng DOM API an toàn (`document.createElement` + `textContent`) thay vì nội suy trực tiếp chuỗi chưa làm sạch vào `innerHTML`.
-- Được kiểm thử hồi quy bắt buộc trong [tests/xss-security.test.ts](tests/xss-security.test.ts).
+- Được kiểm thử hồi quy bắt buộc trong [tests/security/xss-security.test.ts](tests/security/xss-security.test.ts).
 
 ### 4.4. Bảo vệ dữ liệu lưu trữ & Private Mode
-- Toàn bộ thao tác `localStorage` được tập trung qua [src/renderer/services/storage.service.ts](src/renderer/services/storage.service.ts) với xử lý an toàn khi gặp `SecurityError`, `QuotaExceededError` hoặc JSON hỏng ([tests/legacy-storage.test.ts](tests/legacy-storage.test.ts)).
-- Không dùng fallback secret hardcode trong mã nguồn ([tests/smoke.test.ts](tests/smoke.test.ts)); toàn bộ tệp `.env*` bị chặn qua [.gitignore](.gitignore).
+- Toàn bộ thao tác `localStorage` được tập trung qua [src/services/storage.service.ts](src/services/storage.service.ts) với xử lý an toàn khi gặp `SecurityError`, `QuotaExceededError` hoặc JSON hỏng ([tests/unit/legacy-storage.test.ts](tests/unit/legacy-storage.test.ts)).
+- Không dùng fallback secret hardcode trong mã nguồn ([tests/security/smoke.test.ts](tests/security/smoke.test.ts)); toàn bộ tệp `.env*` bị chặn qua [.gitignore](.gitignore).
 
 ### 4.5. Cách ly Service Worker Cache
-- [src/renderer/service-worker.ts](src/renderer/service-worker.ts) chỉ cache tài nguyên `same-origin` và thư mục audio; thực hiện dọn sạch cache phiên bản cũ khi kích hoạt (`tudien-modular-v10.0.4`) nhưng bảo toàn kho âm thanh `tudien-audio`.
-- Tệp gói lớn `/audio-pack.bin` và bảng chỉ mục `/audio-pack.index.json` bỏ qua bộ đệm SW để tránh nhân đôi dung lượng lưu trữ và bảo đảm kiểm tra hash phiên bản luôn chính xác từ mạng ([tests/service-worker.test.ts](tests/service-worker.test.ts)).
+- [src/service-worker.ts](src/service-worker.ts) chỉ cache tài nguyên `same-origin` và thư mục audio; thực hiện dọn sạch cache phiên bản cũ khi kích hoạt (`tudien-modular-v10.0.4`) nhưng bảo toàn kho âm thanh `tudien-audio`.
+- Tệp gói lớn `/audio-pack.bin` và bảng chỉ mục `/audio-pack.index.json` bỏ qua bộ đệm SW để tránh nhân đôi dung lượng lưu trữ và bảo đảm kiểm tra hash phiên bản luôn chính xác từ mạng ([tests/integration/service-worker.test.ts](tests/integration/service-worker.test.ts)).
 
 ### 4.6. Hardening cho Rust Axum Contribute Gateway (`services/contribute-api`)
 Khi triển khai backend tùy chọn [services/contribute-api](services/contribute-api/):

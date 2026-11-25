@@ -6,12 +6,12 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Vitest](https://img.shields.io/badge/vitest-116%20passed-22c55e?style=flat-square&logo=vitest)](tests/)
 [![Rust Tooling](https://img.shields.io/badge/rust%20tests-15%20passed-f97316?style=flat-square&logo=rust)](tools/audio-optimizer/)
-[![PWA Offline-First](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](src/renderer/service-worker.ts)
+[![PWA Offline-First](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](src/service-worker.ts)
 [![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-0-1e7e48?style=flat-square)](package.json)
 [![WCAG 2.2](https://img.shields.io/badge/WCAG%202.2-AA%20%2F%20AAA-4ade80?style=flat-square)](docs/design/dark-mode-tokens.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](LICENSE)
 
-**English** • [Tiếng Việt](README.md) • **[Live Application](https://umnuar.github.io/xodang/#home)** • **[Design Tokens](docs/design/dark-mode-tokens.md)** • **[Security Policy](SECURITY.en.md)**
+**English** • [Tiếng Việt](README.md) • **[Live Application](https://umnuar.github.io/xodang/#home)** • **[Changelog](CHANGELOG.md)** • **[Design Tokens](docs/design/dark-mode-tokens.md)** • **[Security Policy](SECURITY.en.md)**
 
 </div>
 
@@ -80,17 +80,23 @@
 │   └── generate-snapshot.ts    # Build-time Google Sheets static snapshot generator
 ├── services/contribute-api/    # Optional Rust Axum server for binary upload & forwarding
 ├── src/
+│   ├── components/             # Navbar, install modal, offline-indicator, toast, footer
+│   ├── features/               # home, quiz, games (4 minigames + certificates), contribute, chat, onboarding
+│   ├── services/               # dictionary, sheets, offline-sync, quiz, faq, speech, storage
 │   ├── shared/                 # Config constants, storage keys, and snapshot fallback
-│   └── renderer/
-│       ├── components/         # Navbar, onboarding, install modal, toast, event-bus
-│       ├── features/           # home, quiz, games (4 minigames + certificates), contribute, chat
-│       ├── services/           # dictionary, sheets, offline-sync, quiz, faq, speech, storage
-│       ├── styles/             # Tokenized CSS & route-split feature stylesheets
-│       ├── router.ts           # Client-side hash router
-│       ├── service-worker.ts   # PWA Service Worker with versioned cache eviction
-│       └── main.ts             # Application entry point & route lazy-loader
-├── tests/                      # 16 Vitest suites covering 116 automated checks
+│   ├── styles/                 # Tokenized CSS & route-split feature stylesheets
+│   ├── utils/                  # Event bus & inline Lucide SVG icon helpers
+│   ├── router.ts               # Client-side hash router
+│   ├── service-worker.ts       # PWA Service Worker with versioned cache eviction
+│   └── main.ts                 # Application entry point & route lazy-loader
+├── tests/
+│   ├── unit/                   # Unit suites: audio, faq, NFC search, router, storage
+│   ├── features/               # Feature suites: contribute, games, quiz, onboarding
+│   ├── integration/            # Integration suites: Service Worker, memory leaks, design audit
+│   ├── security/               # Security suites: XSS & smoke guards (allowlist, secrets, referrer)
+│   └── fixtures/               # Golden baseline search & shared test fixtures
 ├── tools/audio-optimizer/      # Zero-dep Rust CLI for Opus encoding & pack generation
+├── CHANGELOG.md                # Release history following Keep a Changelog
 ├── index.html                  # HTML shell with SEO & Schema.org metadata
 ├── package.json                # Project scripts & devDependencies
 ├── tsconfig.json               # Strict TypeScript compiler configuration
@@ -171,12 +177,12 @@ cargo test --manifest-path services/contribute-api/Cargo.toml
 ### Automated Test Coverage Highlights
 | Suite | File | Guarantees Verified |
 | :--- | :--- | :--- |
-| **XSS Prevention** | [tests/xss-security.test.ts](tests/xss-security.test.ts) | DOM API (`textContent`) rendering across search, chat, quiz, leaderboards, badges & certificates |
-| **Phonetic NFC & Search** | [tests/unicode-nfc.test.ts](tests/unicode-nfc.test.ts), [tests/golden-search.test.ts](tests/golden-search.test.ts) | Unicode diacritic clustering, exact-match parity & accent-insensitive fallback |
-| **Audio Pack & Upload** | [tests/audio.test.ts](tests/audio.test.ts) | Single-request binary pack unpack, hash delta sync, auto-download gating, `FormData` & fallback upload |
-| **Memory & Timer Cleanup** | [tests/memory-leak.test.ts](tests/memory-leak.test.ts) | Cleanup of `requestAnimationFrame`, timeouts, timers, and mic streams across route transitions |
-| **Storage Resilience** | [tests/legacy-storage.test.ts](tests/legacy-storage.test.ts) | Legacy schema migration & safe handling of `SecurityError` / `QuotaExceededError` / malformed JSON |
-| **SW & Config Guards** | [tests/service-worker.test.ts](tests/service-worker.test.ts), [tests/smoke.test.ts](tests/smoke.test.ts) | Audio cache preservation, `audio-pack.*` cache bypass, `ALLOWED_SHEET_RANGES` enforcement |
+| **XSS Prevention** | [tests/security/xss-security.test.ts](tests/security/xss-security.test.ts) | DOM API (`textContent`) rendering across search, chat, quiz, leaderboards, badges & certificates |
+| **Phonetic NFC & Search** | [tests/unit/unicode-nfc.test.ts](tests/unit/unicode-nfc.test.ts), [tests/unit/golden-search.test.ts](tests/unit/golden-search.test.ts) | Unicode diacritic clustering, exact-match parity & accent-insensitive fallback |
+| **Audio Pack & Upload** | [tests/unit/audio.test.ts](tests/unit/audio.test.ts) | Single-request binary pack unpack, hash delta sync, auto-download gating, `FormData` & fallback upload |
+| **Memory & Timer Cleanup** | [tests/integration/memory-leak.test.ts](tests/integration/memory-leak.test.ts) | Cleanup of `requestAnimationFrame`, timeouts, timers, and mic streams across route transitions |
+| **Storage Resilience** | [tests/unit/legacy-storage.test.ts](tests/unit/legacy-storage.test.ts) | Legacy schema migration & safe handling of `SecurityError` / `QuotaExceededError` / malformed JSON |
+| **SW & Config Guards** | [tests/integration/service-worker.test.ts](tests/integration/service-worker.test.ts), [tests/security/smoke.test.ts](tests/security/smoke.test.ts) | Audio cache preservation, `audio-pack.*` cache bypass, `ALLOWED_SHEET_RANGES` enforcement |
 
 ---
 

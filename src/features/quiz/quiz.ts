@@ -1,0 +1,346 @@
+import '@/styles/features/quiz.css';
+import '@/styles/features/flashcard.css';
+import { fetchQuizData } from '@/services/sheets.service';
+import {
+    parseQuizRows,
+    groupQuestionsByTopic,
+    selectQuizQuestions,
+    evaluateQuiz,
+    type QuizQuestion
+} from '@/services/quiz.service';
+import { FlashcardManager } from './flashcard';
+import { showToast } from '@/components/toast';
+import { showLoading, hideLoading } from '@/components/loading-overlay';
+import { eventBus } from '@/utils/event-bus';
+import { getLucideIcon } from '@/utils/icons';
+
+let allQuestions: QuizQuestion[] = [];
+let topicsMap = new Map<string, QuizQuestion[]>();
+let currentTopic = '';
+let currentQuizQuestions: QuizQuestion[] = [];
+let currentQuestionIndex = 0;
+let userAnswers: Array<number | null> = [];
+let quizTimerId: ReturnType<typeof setInterval> | null = null;
+let timeElapsedSeconds = 0;
+
+export async function initQuiz(): Promise<void> {
+    const topicSelection = document.getElementById('studyQuizTopicSelection');
+    const topicsGrid = document.getElementById('studyQuizTopicsGrid');
+    const studyInterface = document.getElementById('studyInterface');
+    const quizInterface = document.getElementById('quizInterface');
+    const quizResult = document.getElementById('quizResult');
+
+    const flashcardElem = document.getElementById('flashcard');
+    const flipCardBtn = document.getElementById('flipCardBtn');
+    const prevCardBtn = document.getElementById('prevCardBtn');
+    const nextCardBtn = document.getElementById('nextCardBtn');
+    const startQuizBtn = document.getElementById('startQuizBtn');
+
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const prevQuestionBtn = document.getElementById('prevQuestionBtn') as HTMLButtonElement | null;
+    const nextQuestionBtn = document.getElementById('nextQuestionBtn') as HTMLButtonElement | null;
+    const submitQuizBtn = document.getElementById('submitQuizBtn') as HTMLButtonElement | null;
+    const quizTimer = document.getElementById('quizTimer');
+
+    const retryQuizBtn = document.getElementById('retryQuizBtn');
+    const newTopicBtn = document.getElementById('newTopicBtn');
+    const shareResultBtn = document.getElementById('shareResultBtn');
+
+    const flashcardManager = new FlashcardManager();
+
+    stopTimer();
+
+    eventBus.on('tab:change', (sectionId: string) => {
+        if (sectionId === 'quiz') {
+            if (allQuestions.length === 0) {
+                loadQuizData();
+            }
+        } else {
+            stopTimer();
+        }
+    });
+
+    async function loadQuizData(): Promise<void> {
+        showLoading('Đang tải câu hỏi trắc nghiệm...');
+        try {
+            const rawRows = await fetchQuizData();
+            allQuestions = parseQuizRows(rawRows);
+            topicsMap = groupQuestionsByTopic(allQuestions);
+            renderTopicGrid();
+        } catch (err: unknown) {
+            console.error('Failed to load quiz data:', err);
+            showToast('Không thể tải dữ liệu câu hỏi.', 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function renderTopicGrid(): void {
+        if (!topicsGrid) return;
+        topicsGrid.replaceChildren();
+
+        const fragment = document.createDocumentFragment();
+        topicsMap.forEach((questions, topicName) => {
+            const card = document.createElement('div');
+            card.className = 'topic-card study-quiz-topic-card';
+
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'topic-icon';
+            iconDiv.innerHTML = getLucideIcon('book-open', 'lucide-icon', 22);
+
+            const title = document.createElement('h3');
+            title.textContent = topicName;
+
+            const count = document.createElement('p');
+            count.textContent = `${questions.length} câu hỏi / từ vựng`;
+
+            card.appendChild(iconDiv);
+            card.appendChild(title);
+            card.appendChild(count);
+
+            card.addEventListener('click', () => {
+                selectTopic(topicName);
+            });
+
+            fragment.appendChild(card);
+        });
+
+        topicsGrid.appendChild(fragment);
+    }
+
+    function selectTopic(topicName: string): void {
+        currentTopic = topicName;
+        const topicQuestions = topicsMap.get(topicName) || [];
+
+        if (topicQuestions.length === 0) {
+            showToast('Chủ đề này chưa có câu hỏi.', 'warning');
+            return;
+        }
+
+        if (topicSelection) topicSelection.style.display = 'none';
+        if (quizInterface) quizInterface.style.display = 'none';
+        if (quizResult) quizResult.style.display = 'none';
+        if (studyInterface) studyInterface.style.display = 'block';
+
+        const topicTitle = document.getElementById('currentStudyTopicTitle');
+        const totalCards = document.getElementById('totalStudyCards');
+        if (topicTitle) topicTitle.textContent = `Chủ đề: ${topicName}`;
+        if (totalCards) totalCards.textContent = String(topicQuestions.length);
+
+        flashcardManager.setCards(topicName, topicQuestions);
+    }
+
+    // Flashcard Bindings
+    if (flashcardElem) {
+        flashcardElem.addEventListener('click', () => flashcardManager.flipCard());
+    }
+    if (flipCardBtn) {
+        flipCardBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            flashcardManager.flipCard();
+        });
+    }
+    if (prevCardBtn) {
+        prevCardBtn.addEventListener('click', () => flashcardManager.prevCard());
+    }
+    if (nextCardBtn) {
+        nextCardBtn.addEventListener('click', () => flashcardManager.nextCard());
+    }
+
+    // Start Quiz Button
+    if (startQuizBtn) {
+        startQuizBtn.addEventListener('click', () => {
+            const topicQuestions = topicsMap.get(currentTopic) || [];
+            currentQuizQuestions = selectQuizQuestions(topicQuestions, 5);
+            currentQuestionIndex = 0;
+            userAnswers = new Array(currentQuizQuestions.length).fill(null);
+
+            if (studyInterface) studyInterface.style.display = 'none';
+            if (quizResult) quizResult.style.display = 'none';
+            if (quizInterface) quizInterface.style.display = 'block';
+
+            const quizTopicTitle = document.getElementById('currentQuizTopicTitle');
+            if (quizTopicTitle) quizTopicTitle.textContent = `Chủ đề: ${currentTopic}`;
+
+            startTimer();
+            displayQuestion();
+        });
+    }
+
+    function startTimer(): void {
+        if (quizTimerId) clearInterval(quizTimerId);
+        timeElapsedSeconds = 0;
+        quizTimerId = setInterval(() => {
+            timeElapsedSeconds++;
+            if (quizTimer) {
+                const mins = String(Math.floor(timeElapsedSeconds / 60)).padStart(2, '0');
+                const secs = String(timeElapsedSeconds % 60).padStart(2, '0');
+                quizTimer.textContent = `${mins}:${secs}`;
+            }
+        }, 1000);
+    }
+
+    function stopTimer(): void {
+        if (quizTimerId) {
+            clearInterval(quizTimerId);
+            quizTimerId = null;
+        }
+    }
+
+    function displayQuestion(): void {
+        if (currentQuizQuestions.length === 0 || !questionText || !optionsContainer) return;
+
+        const q = currentQuizQuestions[currentQuestionIndex];
+        const currentQNum = document.getElementById('currentQuestionNumber');
+        if (currentQNum) currentQNum.textContent = `${currentQuestionIndex + 1}/${currentQuizQuestions.length}`;
+
+        questionText.textContent = q.question;
+        optionsContainer.replaceChildren();
+
+        const fragment = document.createDocumentFragment();
+        q.options.forEach((optText, optIndex) => {
+            const optionDiv = document.createElement('div');
+            const isSelected = userAnswers[currentQuestionIndex] === optIndex + 1;
+            optionDiv.className = `option ${isSelected ? 'selected' : ''}`;
+
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'option-label';
+            labelSpan.textContent = `${String.fromCharCode(65 + optIndex)}. `;
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = optText;
+
+            optionDiv.appendChild(labelSpan);
+            optionDiv.appendChild(textSpan);
+
+            optionDiv.addEventListener('click', () => {
+                userAnswers[currentQuestionIndex] = optIndex + 1;
+                displayQuestion(); // re-render to reflect selection
+            });
+
+            fragment.appendChild(optionDiv);
+        });
+
+        optionsContainer.appendChild(fragment);
+
+        if (prevQuestionBtn) prevQuestionBtn.disabled = currentQuestionIndex === 0;
+        if (nextQuestionBtn) nextQuestionBtn.disabled = currentQuestionIndex === currentQuizQuestions.length - 1;
+        if (submitQuizBtn) submitQuizBtn.disabled = userAnswers.includes(null);
+    }
+
+    if (prevQuestionBtn) {
+        prevQuestionBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        });
+    }
+
+    if (nextQuestionBtn) {
+        nextQuestionBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        });
+    }
+
+    if (submitQuizBtn) {
+        submitQuizBtn.addEventListener('click', () => {
+            if (userAnswers.includes(null)) {
+                showToast('Vui lòng trả lời tất cả các câu hỏi trước khi nộp bài!', 'warning');
+                return;
+            }
+            stopTimer();
+            showQuizResults();
+        });
+    }
+
+    function showQuizResults(): void {
+        const answersAsNumbers = userAnswers.map(a => a ?? -1);
+        const { score, total, title, description, details } = evaluateQuiz(currentQuizQuestions, answersAsNumbers);
+
+        if (quizInterface) quizInterface.style.display = 'none';
+        if (quizResult) quizResult.style.display = 'block';
+
+        const finalScore = document.getElementById('finalScore');
+        const maxScore = document.getElementById('maxScore');
+        const resultTopic = document.getElementById('resultTopic');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDesc = document.getElementById('resultDescription');
+        const resultDetails = document.getElementById('resultDetails');
+
+        if (finalScore) finalScore.textContent = String(score);
+        if (maxScore) maxScore.textContent = `/${total}`;
+        if (resultTopic) resultTopic.textContent = `Chủ đề: ${currentTopic}`;
+        if (resultTitle) resultTitle.textContent = title;
+        if (resultDesc) resultDesc.textContent = description;
+
+        if (resultDetails) {
+            resultDetails.replaceChildren();
+            const fragment = document.createDocumentFragment();
+
+            details.forEach((item, idx) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `result-detail-item ${item.isCorrect ? 'correct' : 'incorrect'}`;
+
+                const qTitle = document.createElement('strong');
+                qTitle.textContent = `Câu ${idx + 1}: ${item.question}`;
+
+                const userAns = document.createElement('p');
+                const userChoice = (item.userAnswer !== null && item.userAnswer > 0)
+                    ? (item.options[item.userAnswer - 1] || 'Chưa trả lời')
+                    : 'Chưa trả lời';
+                userAns.textContent = `Bạn chọn: ${userChoice}`;
+
+                const correctAns = document.createElement('p');
+                correctAns.textContent = `Đáp án đúng: ${item.options[item.correctAnswer - 1] || ''}`;
+
+                itemDiv.appendChild(qTitle);
+                itemDiv.appendChild(userAns);
+                itemDiv.appendChild(correctAns);
+                fragment.appendChild(itemDiv);
+            });
+
+            resultDetails.appendChild(fragment);
+        }
+    }
+
+    if (retryQuizBtn) {
+        retryQuizBtn.addEventListener('click', () => {
+            stopTimer();
+            selectTopic(currentTopic);
+        });
+    }
+
+    if (newTopicBtn) {
+        newTopicBtn.addEventListener('click', () => {
+            stopTimer();
+            if (studyInterface) studyInterface.style.display = 'none';
+            if (quizInterface) quizInterface.style.display = 'none';
+            if (quizResult) quizResult.style.display = 'none';
+            if (topicSelection) topicSelection.style.display = 'block';
+        });
+    }
+
+    if (shareResultBtn) {
+        shareResultBtn.addEventListener('click', () => {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Kết quả học tiếng Xơ Đăng',
+                    text: `Tôi vừa hoàn thành bài kiểm tra chủ đề "${currentTopic}" trên Từ Điển Xơ Đăng!`,
+                    url: window.location.href
+                }).catch(() => {});
+            } else if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(window.location.href)
+                    .then(() => showToast('Đã sao chép liên kết vào bộ nhớ tạm!', 'info'))
+                    .catch(() => showToast('Không thể sao chép liên kết.', 'error'));
+            } else {
+                showToast('Trình duyệt không hỗ trợ chia sẻ hoặc sao chép liên kết.', 'warning');
+            }
+        });
+    }
+}

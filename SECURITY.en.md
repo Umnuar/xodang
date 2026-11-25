@@ -37,7 +37,7 @@ Submit vulnerability reports privately via **GitHub Private Security Advisory**:
 
 ### Required Report Details
 1. **Vulnerability Category:** CWE ID or OWASP classification (e.g., `CWE-79` XSS, `CWE-434` Unrestricted File Upload, `CWE-22` Path Traversal).
-2. **Affected Surface:** File path or module (`src/renderer/*`, `service-worker.ts`, `services/contribute-api/*`, CI workflows).
+2. **Affected Surface:** File path or module (`src/*`, `src/service-worker.ts`, `services/contribute-api/*`, CI workflows).
 3. **Minimal Reproduction (PoC):** Clear, non-destructive steps demonstrating the impact without touching real user data.
 4. **Estimated Severity:** Approximate **CVSS v3.1** vector/score and prerequisites.
 
@@ -76,14 +76,14 @@ Maintainers will not pursue legal action against researchers who conduct good-fa
 
 ### 4.3. Client-Side DOM XSS Mitigation
 - Dictionary entries, chat replies, leaderboards, badges, completion certificates, and upload queues are rendered through safe DOM APIs (`document.createElement` + `textContent`) rather than unescaped `innerHTML` string interpolation.
-- Enforced via automated regression checks in [tests/xss-security.test.ts](tests/xss-security.test.ts).
+- Enforced via automated regression checks in [tests/security/xss-security.test.ts](tests/security/xss-security.test.ts).
 
 ### 4.4. Storage Safety & Credential Hygiene
-- All browser storage access flows through [src/renderer/services/storage.service.ts](src/renderer/services/storage.service.ts), catching `SecurityError`, `QuotaExceededError`, and corrupt JSON without crashing ([tests/legacy-storage.test.ts](tests/legacy-storage.test.ts)).
-- Hardcoded fallback API secrets are prohibited and checked by [tests/smoke.test.ts](tests/smoke.test.ts); `.env*` files are excluded via [.gitignore](.gitignore).
+- All browser storage access flows through [src/services/storage.service.ts](src/services/storage.service.ts), catching `SecurityError`, `QuotaExceededError`, and corrupt JSON without crashing ([tests/unit/legacy-storage.test.ts](tests/unit/legacy-storage.test.ts)).
+- Hardcoded fallback API secrets are prohibited and checked by [tests/security/smoke.test.ts](tests/security/smoke.test.ts); `.env*` files are excluded via [.gitignore](.gitignore).
 
 ### 4.5. Service Worker Isolation
-- [src/renderer/service-worker.ts](src/renderer/service-worker.ts) caches only `same-origin` assets and audio resources, evicts stale versioned caches on activation while preserving `tudien-audio`, and explicitly bypasses SW caching for `/audio-pack.bin` and `/audio-pack.index.json` to ensure accurate hash-delta verification ([tests/service-worker.test.ts](tests/service-worker.test.ts)).
+- [src/service-worker.ts](src/service-worker.ts) caches only `same-origin` assets and audio resources, evicts stale versioned caches on activation while preserving `tudien-audio`, and explicitly bypasses SW caching for `/audio-pack.bin` and `/audio-pack.index.json` to ensure accurate hash-delta verification ([tests/integration/service-worker.test.ts](tests/integration/service-worker.test.ts)).
 
 ### 4.6. Rust Contribute Gateway Controls (`services/contribute-api`)
 When deploying the optional [services/contribute-api](services/contribute-api/) backend:

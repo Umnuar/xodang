@@ -6,12 +6,12 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Vitest](https://img.shields.io/badge/vitest-116%20passed-22c55e?style=flat-square&logo=vitest)](tests/)
 [![Rust Tooling](https://img.shields.io/badge/rust%20tests-15%20passed-f97316?style=flat-square&logo=rust)](tools/audio-optimizer/)
-[![PWA Offline-First](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](src/renderer/service-worker.ts)
+[![PWA Offline-First](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](src/service-worker.ts)
 [![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-0-1e7e48?style=flat-square)](package.json)
 [![WCAG 2.2](https://img.shields.io/badge/WCAG%202.2-AA%20%2F%20AAA-4ade80?style=flat-square)](docs/design/dark-mode-tokens.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](LICENSE)
 
-[English](README.en.md) • **Tiếng Việt** • **[Ứng dụng trực tuyến](https://umnuar.github.io/xodang/#home)** • **[Design Tokens](docs/design/dark-mode-tokens.md)** • **[Chính sách bảo mật](SECURITY.md)**
+[English](README.en.md) • **Tiếng Việt** • **[Ứng dụng trực tuyến](https://umnuar.github.io/xodang/#home)** • **[Nhật ký thay đổi](CHANGELOG.md)** • **[Design Tokens](docs/design/dark-mode-tokens.md)** • **[Chính sách bảo mật](SECURITY.md)**
 
 </div>
 
@@ -80,17 +80,23 @@
 │   └── generate-snapshot.ts    # Script kết xuất Google Sheets thành snapshot build-time
 ├── services/contribute-api/    # Tùy chọn Rust Axum API nhận upload binary & forward Sheet
 ├── src/
+│   ├── components/             # Navbar, install modal, offline-indicator, toast, footer
+│   ├── features/               # home, quiz, games (4 minigame + chứng chỉ), contribute, chat, onboarding
+│   ├── services/               # dictionary, sheets, offline-sync, quiz, faq, speech, storage
 │   ├── shared/                 # Hằng số config, storage keys và snapshot fallback
-│   └── renderer/
-│       ├── components/         # Navbar, onboarding, install modal, toast, event-bus
-│       ├── features/           # home, quiz, games (4 minigame + chứng chỉ), contribute, chat
-│       ├── services/           # dictionary, sheets, offline-sync, quiz, faq, speech, storage
-│       ├── styles/             # CSS tokens, base, layout và style tách theo từng route
-│       ├── router.ts           # Hash router điều hướng không tải lại trang
-│       ├── service-worker.ts   # Service Worker quản lý cache & bảo toàn audio offline
-│       └── main.ts             # Entry point nạp core & lazy-load route
-├── tests/                      # 16 file kiểm thử tự động Vitest (116 test cases)
+│   ├── styles/                 # CSS tokens, base, layout và style tách theo từng route
+│   ├── utils/                  # Event bus & bộ icon Lucide SVG nội tuyến
+│   ├── router.ts               # Hash router điều hướng không tải lại trang
+│   ├── service-worker.ts       # Service Worker quản lý cache & bảo toàn audio offline
+│   └── main.ts                 # Entry point nạp core & lazy-load route
+├── tests/
+│   ├── unit/                   # Kiểm thử đơn vị: audio, faq, tìm kiếm NFC, router, storage
+│   ├── features/               # Kiểm thử tính năng: contribute, games, quiz, onboarding
+│   ├── integration/            # Kiểm thử tích hợp: Service Worker, memory leak, design system
+│   ├── security/               # Kiểm thử bảo mật: XSS & smoke guards (allowlist, secret, referrer)
+│   └── fixtures/               # Dữ liệu & hàm đối chiếu chuẩn (legacy-search.ts)
 ├── tools/audio-optimizer/      # Rust CLI tối ưu FFmpeg Opus & đóng gói audio-pack
+├── CHANGELOG.md                # Nhật ký thay đổi theo chuẩn Keep a Changelog
 ├── index.html                  # HTML entry với SEO metadata & Schema.org
 ├── package.json                # Cấu hình scripts & devDependencies
 ├── tsconfig.json               # Cấu hình TypeScript chính (strict)
@@ -171,12 +177,12 @@ cargo test --manifest-path services/contribute-api/Cargo.toml
 ### Phạm vi kiểm thử tự động then chốt
 | Hạng mục | Tệp kiểm thử | Trọng tâm kiểm chứng |
 | :--- | :--- | :--- |
-| **Chống XSS** | [tests/xss-security.test.ts](tests/xss-security.test.ts) | Dữ liệu từ điển, chat, bảng xếp hạng, huy hiệu, chứng chỉ dùng DOM API (`textContent`), vô hiệu hóa `<script>`/`<img onerror>` |
-| **Chuẩn hóa ngữ âm NFC** | [tests/unicode-nfc.test.ts](tests/unicode-nfc.test.ts) | Gom dấu tiếng Việt/Xơ Đăng, tìm kiếm chính xác và fallback không dấu (`golden-search.test.ts`) |
-| **Audio Pack & Upload** | [tests/audio.test.ts](tests/audio.test.ts) | Đóng gói 1 request (`audio-pack.bin`), đồng bộ delta theo hash, lọc điều kiện auto-download, gửi `FormData` & fallback `no-cors` |
-| **Rò rỉ bộ nhớ & Timer** | [tests/memory-leak.test.ts](tests/memory-leak.test.ts) | Hủy animation frame, timeout game, timer quiz và stream ghi âm khi chuyển tab |
-| **Storage & Private Mode** | [tests/legacy-storage.test.ts](tests/legacy-storage.test.ts) | Di trú dữ liệu cũ, chống crash khi `SecurityError`/`QuotaExceededError` hoặc JSON lỗi |
-| **Service Worker & Allowlist** | [tests/service-worker.test.ts](tests/service-worker.test.ts), [tests/smoke.test.ts](tests/smoke.test.ts) | Bảo toàn cache `tudien-audio`, bypass cache `audio-pack.*`, kiểm tra `ALLOWED_SHEET_RANGES` & không lộ secret fallback |
+| **Chống XSS** | [tests/security/xss-security.test.ts](tests/security/xss-security.test.ts) | Dữ liệu từ điển, chat, bảng xếp hạng, huy hiệu, chứng chỉ dùng DOM API (`textContent`), vô hiệu hóa `<script>`/`<img onerror>` |
+| **Chuẩn hóa ngữ âm NFC** | [tests/unit/unicode-nfc.test.ts](tests/unit/unicode-nfc.test.ts), [tests/unit/golden-search.test.ts](tests/unit/golden-search.test.ts) | Gom dấu tiếng Việt/Xơ Đăng, tìm kiếm chính xác và fallback không dấu |
+| **Audio Pack & Upload** | [tests/unit/audio.test.ts](tests/unit/audio.test.ts) | Đóng gói 1 request (`audio-pack.bin`), đồng bộ delta theo hash, lọc điều kiện auto-download, gửi `FormData` & fallback `no-cors` |
+| **Rò rỉ bộ nhớ & Timer** | [tests/integration/memory-leak.test.ts](tests/integration/memory-leak.test.ts) | Hủy animation frame, timeout game, timer quiz và stream ghi âm khi chuyển tab |
+| **Storage & Private Mode** | [tests/unit/legacy-storage.test.ts](tests/unit/legacy-storage.test.ts) | Di trú dữ liệu cũ, chống crash khi `SecurityError`/`QuotaExceededError` hoặc JSON lỗi |
+| **Service Worker & Allowlist** | [tests/integration/service-worker.test.ts](tests/integration/service-worker.test.ts), [tests/security/smoke.test.ts](tests/security/smoke.test.ts) | Bảo toàn cache `tudien-audio`, bypass cache `audio-pack.*`, kiểm tra `ALLOWED_SHEET_RANGES` & không lộ secret fallback |
 
 ---
 
