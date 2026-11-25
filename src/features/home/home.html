@@ -16,11 +16,11 @@
     <div class="search-main-row">
       <div class="search-input-wrap">
         <label for="word" class="sr-only">Nhập từ cần tra</label>
-        <input type="text" id="word" maxlength="100"
+        <input type="text" id="word" maxlength="100" enterkeyhint="search"
           placeholder="Nhập từ cần tra (ví dụ: rừng, bri, nhà rông, đi học...)" autocomplete="off" list="suggestions"
           aria-label="Nhập từ cần tra cứu">
         <button type="button" id="speechButton" class="speech-button" title="Nhấn để đọc từ cần tra"
-          aria-label="Nhận diện giọng nói để tìm từ vựng">
+          aria-label="Nhận diện giọng nói để tìm từ vựng" aria-pressed="false">
           <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
@@ -49,6 +49,44 @@
       </div>
     </div>
     <datalist id="suggestions"></datalist>
+
+    <div id="voiceFallbackPanel" class="voice-fallback-panel" role="region" aria-label="Hỗ trợ nhận diện giọng nói offline" hidden>
+      <div class="voice-fallback-header">
+        <p id="voiceFallbackMessage" class="voice-fallback-text"></p>
+        <button type="button" id="btnCloseVoiceFallback" class="voice-fallback-close" aria-label="Đóng bảng hướng dẫn giọng nói">
+          <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" x2="6" y1="6" y2="18" />
+            <line x1="6" x2="18" y1="6" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div id="voiceWasmProgress" class="voice-wasm-progress" hidden>
+        <div class="voice-wasm-track">
+          <div id="voiceWasmProgressBar" class="voice-wasm-fill"></div>
+        </div>
+        <span id="voiceWasmProgressText" class="voice-wasm-progress-text">Đang tải AI Whisper WASM... 0%</span>
+      </div>
+      <div class="voice-fallback-actions">
+        <button type="button" id="btnVoiceKeyboard" class="voice-fallback-btn">
+          <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="20" height="16" x="2" y="4" rx="2" />
+            <path d="M7 16h10" />
+          </svg>
+          <span>Dùng mic bàn phím (0 MB)</span>
+        </button>
+        <button type="button" id="btnVoiceWasm" class="voice-fallback-btn voice-fallback-btn-primary">
+          <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" x2="12" y1="15" y2="3" />
+          </svg>
+          <span>Tải &amp; chạy AI Whisper WASM (~45MB)</span>
+        </button>
+      </div>
+    </div>
 
     <!-- XE DANG SPECIAL DIACRITICS BAR (WCAG 2.2 AA Target Size >= 44px) -->
     <div class="diacritics-bar" role="toolbar" aria-label="Bàn phím ký tự đặc biệt Xơ Đăng">

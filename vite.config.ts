@@ -58,7 +58,12 @@ export default defineConfig(({ command }) => ({
                         "'self'",
                         'https://sheets.googleapis.com',
                         'https://script.google.com',
-                        'https://script.googleusercontent.com'
+                        'https://script.googleusercontent.com',
+                        'https://cdn.jsdelivr.net',
+                        'https://huggingface.co',
+                        'https://cdn-lfs.hf.co',
+                        'https://cdn-lfs-us-1.hf.co',
+                        'https://cdn-lfs-eu-1.hf.co'
                     ];
                     const contributeApiUrl = process.env.VITE_CONTRIBUTE_API_URL;
                     if (contributeApiUrl) {
@@ -70,13 +75,16 @@ export default defineConfig(({ command }) => ({
                         } catch {
                         }
                     }
-                    const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob: data:; connect-src ${connectSources.join(' ')}; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:;">`;
+                    const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob: data:; connect-src ${connectSources.join(' ')}; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:;">`;
                     return html.replace(/<head(\s[^>]*)?>/i, (match) => `${match}\n    ${cspMeta}`);
                 }
                 return html;
             }
         }
     ],
+    worker: {
+        format: 'es'
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'src'),

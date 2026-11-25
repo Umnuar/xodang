@@ -9,7 +9,8 @@ export const STORAGE_KEYS = {
     GAME_CURRENT_USER: 'xedang_current_user',
     GAME_CERTIFICATES: 'xedang_certificates',
     SHEETS_CACHE_PREFIX: 'xedang_sheets_cache_',
-    AUDIO_PACK_HASHES: 'xedang_audio_hashes'
+    AUDIO_PACK_HASHES: 'xedang_audio_hashes',
+    STT_WASM_READY: 'xedang_stt_wasm_ready'
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

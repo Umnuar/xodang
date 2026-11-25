@@ -4,7 +4,7 @@
 ### *Bilingual Lexical Platform & Indigenous Language Learning Web PWA*
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Vitest](https://img.shields.io/badge/vitest-116%20passed-22c55e?style=flat-square&logo=vitest)](tests/)
+[![Vitest](https://img.shields.io/badge/vitest-120%20passed-22c55e?style=flat-square&logo=vitest)](tests/)
 [![Rust Tooling](https://img.shields.io/badge/rust%20tests-15%20passed-f97316?style=flat-square&logo=rust)](tools/audio-optimizer/)
 [![PWA Offline-First](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](src/service-worker.ts)
 [![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-0-1e7e48?style=flat-square)](package.json)
@@ -23,7 +23,8 @@
 
 ### Key Engineering Highlights
 - **Zero Frontend Runtime Dependencies:** Authored entirely in strict TypeScript and Native Web APIs (`package.json` contains devDependencies only for type-checking, testing, and Vite bundling).
-- **Route-Level Code Splitting:** Lightweight startup bundle (`83.94 kB` JS / `34.32 kB` CSS initial chunks); `quiz`, `games`, `contribute`, and `chat` load on demand or during browser idle time.
+- **Route-Level Code Splitting:** Lightweight startup bundle (`92.52 kB` JS / `36.51 kB` CSS initial chunks); `quiz`, `games`, `contribute`, `chat`, and the AI speech worker load strictly on demand.
+- **3-Tier Offline Vietnamese Speech-to-Text (`On-Device → Keyboard → Lazy WASM`):** Prioritizes Chrome On-Device Web Speech (`0 KB`, `processLocally: true`), falls back cleanly to standard Web Speech or OS keyboard dictation (`0 MB`), and only lazy-loads a single-threaded **Whisper Tiny (`q8`, WASM)** Web Worker (~`45 MB`, cached in `tudien-stt-runtime`) as an explicit last resort.
 - **Hybrid Audio Pack & Offline-First Sync:**
   - `1,261` native `.webm` recordings compressed via **Rust + FFmpeg Opus VoIP 24 kbps** (`40.38 MB` → `8.23 MiB`, averaging `6.8 KB`/entry) and packed into `audio-pack.bin` + `audio-pack.index.json`.
   - First-time offline caching completes in **a single HTTP request** (`8.23 MiB`) with byte-level streaming progress into `CacheStorage` (`tudien-audio`). Subsequent vocabulary additions or re-recordings use FNV-1a hashes to download only changed/new entries.
@@ -166,7 +167,7 @@ Docker support is included via [services/contribute-api/Dockerfile](services/con
 npx tsc --noEmit
 npx tsc -p tsconfig.node.json --noEmit
 
-# Run all 116 Vitest tests (16 files)
+# Run all 120 Vitest tests (17 files)
 npm test
 
 # Run all 15 Rust unit & integration tests (7 CLI + 8 Axum API)
@@ -179,6 +180,7 @@ cargo test --manifest-path services/contribute-api/Cargo.toml
 | :--- | :--- | :--- |
 | **XSS Prevention** | [tests/security/xss-security.test.ts](tests/security/xss-security.test.ts) | DOM API (`textContent`) rendering across search, chat, quiz, leaderboards, badges & certificates |
 | **Phonetic NFC & Search** | [tests/unit/unicode-nfc.test.ts](tests/unit/unicode-nfc.test.ts), [tests/unit/golden-search.test.ts](tests/unit/golden-search.test.ts) | Unicode diacritic clustering, exact-match parity & accent-insensitive fallback |
+| **3-Tier Vietnamese STT** | [tests/unit/speech.test.ts](tests/unit/speech.test.ts) | On-Device Web Speech priority (`0 KB`), OS keyboard assist cascade, and lazy Whisper WASM last-resort |
 | **Audio Pack & Upload** | [tests/unit/audio.test.ts](tests/unit/audio.test.ts) | Single-request binary pack unpack, hash delta sync, auto-download gating, `FormData` & fallback upload |
 | **Memory & Timer Cleanup** | [tests/integration/memory-leak.test.ts](tests/integration/memory-leak.test.ts) | Cleanup of `requestAnimationFrame`, timeouts, timers, and mic streams across route transitions |
 | **Storage Resilience** | [tests/unit/legacy-storage.test.ts](tests/unit/legacy-storage.test.ts) | Legacy schema migration & safe handling of `SecurityError` / `QuotaExceededError` / malformed JSON |

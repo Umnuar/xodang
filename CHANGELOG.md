@@ -15,14 +15,19 @@ Mọi thay đổi đáng chú ý của dự án **Từ Điển Xơ Đăng – Ti
   - Tự động tải nền qua `requestIdleCallback` khi trình duyệt rảnh, tôn trọng trạng thái mạng (`navigator.onLine`), chế độ tiết kiệm dữ liệu (`saveData`) và kết nối chậm (`2g`).
 - **Tùy chọn Rust Axum Contribute Gateway ([services/contribute-api/](services/contribute-api/)):** HTTP gateway xác thực chữ ký magic bytes thực tế (`WebM`, `MP4/M4A`, `OGG`, `MP3`, `WAV`, `FLAC`), giới hạn tải `10 MB` (`413`), chống Path Traversal, giới hạn tần suất theo IP (`429`), `ALLOWED_ORIGINS`, cấu hình `Dockerfile` chạy bằng user `appuser` không quyền root (`8` integration tests), và chuyển tiếp kiểu **Option A2** sang Google Apps Script.
 - **Tải lên `FormData` & cơ chế Fallback:** Hàm `sendContribution()` trong [src/services/offline-sync.service.ts](src/services/offline-sync.service.ts) hỗ trợ gửi tệp binary `multipart/form-data` tới Gateway hoặc tự động fallback `no-cors` trực tiếp về Google Apps Script khi không đặt `VITE_CONTRIBUTE_API_URL`.
-- **Tài liệu theo dõi phiên bản:** Bổ sung tệp [CHANGELOG.md](CHANGELOG.md) ở thư mục gốc và liên kết từ [README.md](README.md) / [README.en.md](README.en.md).
+- **Nhận diện giọng nói tiếng Việt (`vi-VN`) offline 3 tầng ([src/services/speech.service.ts](src/services/speech.service.ts)):**
+  - *Tầng 1A (`0 KB`, ưu tiên trước):* Web Speech API chạy trực tiếp trên thiết bị (`SpeechRecognition.available` / `install` / `processLocally: true`).
+  - *Tầng 1B (`0 KB`, online):* Tự động fallback sang `SpeechRecognition` đám mây tiêu chuẩn khi trình duyệt chưa có gói cục bộ.
+  - *Tầng 2 (`0 KB`, offline bàn phím):* Bảng hướng dẫn gọn `#voiceFallbackPanel` + `enterkeyhint="search"` hỗ trợ đọc bằng micro bàn phím hệ điều hành (Gboard / iOS / `Win+H` / `Fn`).
+  - *Tầng 3 (`~45 MB` tải theo yêu cầu, phương án cuối):* [whisper-stt.service.ts](src/services/whisper-stt.service.ts) + Web Worker [whisper-stt.worker.ts](src/services/whisper-stt.worker.ts) chạy `onnx-community/whisper-tiny` (`q8`, WASM 1 luồng) qua CDN runtime không thêm npm dependency, lưu cache qua `CacheStorage` (`tudien-stt-runtime`).
+- **Tài liệu & kiểm thử:** Bổ sung [CHANGELOG.md](CHANGELOG.md) và bộ kiểm thử [tests/unit/speech.test.ts](tests/unit/speech.test.ts) (nâng tổng lên `120` tests / `17` files).
 
 ### Thay đổi (Changed)
 - **Nén toàn bộ `1,261` tệp âm thanh `.webm`:** Giảm dung lượng kho âm thanh trong `public/audio/` từ `40.38 MB` (`40,379,824 B`) xuống `8.23 MiB` (`8,626,087 B`, giảm `78.64%`), đồng bộ nhãn nút tải ngoại tuyến trên trang chủ thành `(~9MB)` và cập nhật `softwareVersion` lên `10.0.4`.
 - **Sắp xếp lại cấu trúc mã nguồn & kiểm thử:**
   - Làm phẳng lớp `src/renderer/*` dư thừa từ kiến trúc Electron cũ lên trực tiếp [src/](src/), di chuyển `event-bus.ts` sang [src/utils/event-bus.ts](src/utils/event-bus.ts).
-  - Phân nhóm toàn bộ 16 bộ kiểm thử Vitest và dữ liệu mẫu vào 5 thư mục theo vai trò: `tests/unit/`, `tests/features/`, `tests/integration/`, `tests/security/`, và `tests/fixtures/`.
-- **Tách mã nguồn theo Route (Code-Splitting):** Nạp động các phân hệ `quiz`, `games`, `contribute` và `chat` theo yêu cầu hoặc khi trình duyệt rảnh, giữ gói khởi động trang chủ gọn nhẹ (~`84 kB` JS).
+  - Phân nhóm toàn bộ `17` bộ kiểm thử Vitest và dữ liệu mẫu vào 5 thư mục theo vai trò: `tests/unit/`, `tests/features/`, `tests/integration/`, `tests/security/`, và `tests/fixtures/`.
+- **Tách mã nguồn theo Route (Code-Splitting):** Nạp động các phân hệ `quiz`, `games`, `contribute`, `chat` và mô-đun `whisper-stt` theo yêu cầu, giữ gói khởi động trang chủ gọn nhẹ (`92.52 kB` JS / `26.20 kB` gzip).
 - **Nâng cấp tìm kiếm ngữ âm & bộ đệm ứng dụng:**
   - Lập chỉ mục `WeakMap` theo Unicode NFC cho `DictionaryService`, sử dụng ranh giới từ Unicode (`\p{L}\p{N}`) bảo toàn các tổ hợp dấu Xơ Đăng (`ơ̆`, `ŏ`, `ê̆`) và fallback tìm kiếm không dấu.
   - Bổ sung khớp từ khóa FAQ thông minh cho Chatbot, chuyển sóng âm ghi âm `AudioWaveVisualizer` sang GPU `scaleY()`, tập trung truy cập `localStorage` qua [src/services/storage.service.ts](src/services/storage.service.ts) (an toàn Private Mode), hợp nhất request Google Sheets song song + giữ cache ngoại tuyến bền vững, và loại bỏ màn hình chờ splash giả.

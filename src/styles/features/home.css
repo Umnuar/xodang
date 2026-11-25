@@ -182,6 +182,139 @@ body.dark-mode .search-button {
     background: var(--color-primary-hover);
 }
 
+.voice-fallback-panel {
+    margin-bottom: 0.85rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+}
+
+.voice-fallback-panel[hidden] {
+    display: none;
+}
+
+.voice-fallback-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
+}
+
+.voice-fallback-text {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.voice-fallback-close {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all var(--transition-fast);
+}
+
+.voice-fallback-close:hover {
+    color: var(--text-primary);
+    border-color: var(--border-focus);
+}
+
+.voice-wasm-progress {
+    margin-bottom: 0.7rem;
+}
+
+.voice-wasm-progress[hidden] {
+    display: none;
+}
+
+.voice-wasm-track {
+    width: 100%;
+    height: 6px;
+    background: var(--border-subtle);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+}
+
+.voice-wasm-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--color-primary);
+    transition: width 0.2s ease;
+}
+
+.voice-wasm-progress-text {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.voice-fallback-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.voice-fallback-btn {
+    min-height: 44px;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all var(--transition-fast);
+}
+
+.voice-fallback-btn:hover:not(:disabled) {
+    border-color: var(--border-focus);
+    color: var(--color-primary);
+}
+
+.voice-fallback-btn-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary-hover);
+    color: #ffffff;
+}
+
+body.dark-mode .voice-fallback-btn-primary {
+    color: #0f1012;
+}
+
+.voice-fallback-btn-primary:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    color: #ffffff;
+}
+
+body.dark-mode .voice-fallback-btn-primary:hover:not(:disabled) {
+    color: #0f1012;
+}
+
+.voice-fallback-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 /* ==========================================================================
    DIACRITICS BAR (Ký tự đặc biệt Xơ Đăng — WCAG 2.2 AA Touch Target >= 44px)
    ========================================================================== */

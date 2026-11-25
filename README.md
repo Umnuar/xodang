@@ -4,7 +4,7 @@
 ### *Hệ Thống Tra Cứu Song Ngữ & Nền Tảng Học Ngôn Ngữ Bản Địa Tây Nguyên (Web PWA)*
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Vitest](https://img.shields.io/badge/vitest-116%20passed-22c55e?style=flat-square&logo=vitest)](tests/)
+[![Vitest](https://img.shields.io/badge/vitest-120%20passed-22c55e?style=flat-square&logo=vitest)](tests/)
 [![Rust Tooling](https://img.shields.io/badge/rust%20tests-15%20passed-f97316?style=flat-square&logo=rust)](tools/audio-optimizer/)
 [![PWA Offline-First](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](src/service-worker.ts)
 [![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-0-1e7e48?style=flat-square)](package.json)
@@ -23,7 +23,8 @@
 
 ### Đặc điểm kỹ thuật cốt lõi
 - **Zero Frontend Runtime Dependencies:** 100% TypeScript thuần và Native Web APIs, không phụ thuộc framework runtime bên ngoài (`package.json` chỉ dùng devDependencies để kiểm thử và đóng gói).
-- **Route Code-Splitting:** Trang chủ tải nhẹ (`83.94 kB` JS / `34.32 kB` CSS khởi động); các phân hệ `quiz`, `games`, `contribute` và `chat` chỉ nạp động khi người dùng truy cập hoặc trình duyệt rảnh.
+- **Route Code-Splitting:** Trang chủ tải nhẹ (`92.52 kB` JS / `36.51 kB` CSS khởi động); các phân hệ `quiz`, `games`, `contribute`, `chat` và mô-đun AI giọng nói chỉ nạp động khi người dùng truy cập hoặc kích hoạt.
+- **Nhận diện giọng nói tiếng Việt 3 tầng (`On-Device → Keyboard → Lazy WASM`):** Ưu tiên On-Device Web Speech (`0 KB`, `processLocally: true`), fallback sang Web Speech đám mây hoặc hướng dẫn mic bàn phím hệ điều hành (`0 MB`), và chỉ nạp lazy Web Worker chạy **Whisper Tiny (`q8`, WASM)** qua CDN (~`45 MB`, cache `tudien-stt-runtime`) khi người dùng chọn làm phương án dự phòng cuối.
 - **Hybrid Audio Pack & Offline-First:**
   - `1,261` tệp phát âm bản địa đã được tối ưu bằng **Rust + FFmpeg Opus VoIP 24 kbps** (`40.38 MB` → `8.23 MiB`, TB `6.8 KB`/từ) và đóng gói vào `audio-pack.bin` + `audio-pack.index.json`.
   - Lần đầu tải **1 HTTP request duy nhất** (`8.23 MiB`) với thanh tiến trình theo byte, lưu vào `CacheStorage` `tudien-audio`. Các lần cập nhật về sau đối chiếu hash FNV-1a để chỉ tải phần chênh lệch (delta) khi thêm hoặc thu âm lại từ vựng.
@@ -166,7 +167,7 @@ Hoặc chạy bằng Docker (`services/contribute-api/Dockerfile`). Chi tiết b
 npx tsc --noEmit
 npx tsc -p tsconfig.node.json --noEmit
 
-# Chạy toàn bộ 116 Vitest test cases (16 files)
+# Chạy toàn bộ 120 Vitest test cases (17 files)
 npm test
 
 # Chạy 15 Rust unit & integration tests (7 CLI + 8 Axum API)
@@ -179,6 +180,7 @@ cargo test --manifest-path services/contribute-api/Cargo.toml
 | :--- | :--- | :--- |
 | **Chống XSS** | [tests/security/xss-security.test.ts](tests/security/xss-security.test.ts) | Dữ liệu từ điển, chat, bảng xếp hạng, huy hiệu, chứng chỉ dùng DOM API (`textContent`), vô hiệu hóa `<script>`/`<img onerror>` |
 | **Chuẩn hóa ngữ âm NFC** | [tests/unit/unicode-nfc.test.ts](tests/unit/unicode-nfc.test.ts), [tests/unit/golden-search.test.ts](tests/unit/golden-search.test.ts) | Gom dấu tiếng Việt/Xơ Đăng, tìm kiếm chính xác và fallback không dấu |
+| **Nhận diện giọng nói 3 tầng** | [tests/unit/speech.test.ts](tests/unit/speech.test.ts) | Ưu tiên On-Device Web Speech (`0 KB`), fallback bàn phím và chỉ nạp Whisper WASM ở phương án cuối |
 | **Audio Pack & Upload** | [tests/unit/audio.test.ts](tests/unit/audio.test.ts) | Đóng gói 1 request (`audio-pack.bin`), đồng bộ delta theo hash, lọc điều kiện auto-download, gửi `FormData` & fallback `no-cors` |
 | **Rò rỉ bộ nhớ & Timer** | [tests/integration/memory-leak.test.ts](tests/integration/memory-leak.test.ts) | Hủy animation frame, timeout game, timer quiz và stream ghi âm khi chuyển tab |
 | **Storage & Private Mode** | [tests/unit/legacy-storage.test.ts](tests/unit/legacy-storage.test.ts) | Di trú dữ liệu cũ, chống crash khi `SecurityError`/`QuotaExceededError` hoặc JSON lỗi |

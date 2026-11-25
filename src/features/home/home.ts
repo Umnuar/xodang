@@ -3,7 +3,7 @@ import { getSuggestions, searchDictionary, type DictionaryEntry, type SearchDire
 import { renderWordCards } from './word-card';
 import { showToast } from '@/components/toast';
 import { showLoading, hideLoading } from '@/components/loading-overlay';
-import { isSpeechRecognitionSupported, startSpeechRecognition } from '@/services/speech.service';
+import { startSmartVietnameseSpeech, type SmartSpeechHandle, type SpeechFallbackInfo } from '@/services/speech.service';
 import {
     downloadOfflineAudio,
     filterValidDriveIds,
@@ -11,6 +11,7 @@ import {
     shouldAutoDownloadOfflineAudio
 } from '@/services/offline-sync.service';
 import { getLucideIcon } from '@/utils/icons';
+import { eventBus } from '@/utils/event-bus';
 
 let dictionaryData: DictionaryEntry[] = [];
 
@@ -202,28 +203,161 @@ export async function initHome(): Promise<void> {
         });
     }
 
-    if (speechBtn && wordInput && directionSelect) {
-        if (!isSpeechRecognitionSupported()) {
-            speechBtn.style.display = 'none';
-        } else {
-            speechBtn.addEventListener('click', () => {
-                speechBtn.classList.add('recording');
-                showToast('Đang lắng nghe... Hãy nói từ cần tra', 'info');
+    const voiceFallbackPanel = document.getElementById('voiceFallbackPanel') as HTMLElement | null;
+    const voiceFallbackMessage = document.getElementById('voiceFallbackMessage') as HTMLElement | null;
+    const voiceWasmProgress = document.getElementById('voiceWasmProgress') as HTMLElement | null;
+    const voiceWasmProgressBar = document.getElementById('voiceWasmProgressBar') as HTMLElement | null;
+    const voiceWasmProgressText = document.getElementById('voiceWasmProgressText') as HTMLElement | null;
+    const btnVoiceKeyboard = document.getElementById('btnVoiceKeyboard') as HTMLButtonElement | null;
+    const btnVoiceWasm = document.getElementById('btnVoiceWasm') as HTMLButtonElement | null;
+    const btnCloseVoiceFallback = document.getElementById('btnCloseVoiceFallback') as HTMLButtonElement | null;
 
-                startSpeechRecognition(
-                    (recognizedText: string) => {
-                        speechBtn.classList.remove('recording');
-                        wordInput.value = recognizedText;
-                        executeSearch(recognizedText, directionSelect.value as SearchDirection);
-                    },
-                    (err: string) => {
-                        speechBtn.classList.remove('recording');
-                        showToast(`Lỗi nhận diện giọng nói: ${err}`, 'error');
-                    }
-                );
-            });
+    let activeSpeechHandle: SmartSpeechHandle | null = null;
+
+    const resetSpeechButton = (): void => {
+        if (!speechBtn) return;
+        speechBtn.classList.remove('recording');
+        speechBtn.setAttribute('aria-pressed', 'false');
+    };
+
+    const showVoiceFallbackPanel = (info: SpeechFallbackInfo): void => {
+        if (!wordInput) return;
+        wordInput.focus();
+        if (!voiceFallbackPanel) return;
+        if (voiceFallbackMessage) {
+            voiceFallbackMessage.textContent = info.isWasmCached
+                ? 'Không nhận được giọng nói từ trình duyệt. Hãy bấm mic trên bàn phím (Gboard / iOS / Win+H / Fn — 0 MB) hoặc chạy AI Whisper WASM đã lưu offline.'
+                : 'Trình duyệt hoặc mạng chưa hỗ trợ đọc trực tiếp. Hãy bấm mic trên bàn phím (Gboard / iOS / Win+H / Fn — 0 MB), hoặc tải AI Whisper WASM (~45MB) làm phương án dự phòng offline.';
         }
+        if (btnVoiceWasm) {
+            btnVoiceWasm.disabled = !info.canUseWasm || (!info.isOnline && !info.isWasmCached);
+            const labelSpan = btnVoiceWasm.querySelector('span');
+            if (labelSpan) {
+                labelSpan.textContent = info.isWasmCached
+                    ? 'Chạy AI Whisper WASM (đã lưu)'
+                    : 'Tải & chạy AI Whisper WASM (~45MB)';
+            }
+        }
+        voiceFallbackPanel.hidden = false;
+    };
+
+    const runSpeechCapture = async (forceWasm: boolean): Promise<void> => {
+        if (!speechBtn || !wordInput || !directionSelect) return;
+        if (activeSpeechHandle) {
+            activeSpeechHandle.stop();
+            activeSpeechHandle = null;
+            resetSpeechButton();
+            return;
+        }
+
+        let starting = true;
+        const handle = await startSmartVietnameseSpeech({
+            forceWasm,
+            onTierSelected: (tier) => {
+                if (voiceFallbackPanel && tier !== 'keyboard') {
+                    voiceFallbackPanel.hidden = true;
+                }
+            },
+            onStatus: (message) => {
+                showToast(message, 'info');
+            },
+            onStart: (tier) => {
+                speechBtn.classList.add('recording');
+                speechBtn.setAttribute('aria-pressed', 'true');
+                const toastMessage = tier === 'on-device'
+                    ? 'Đang nghe tiếng Việt offline (trên thiết bị)...'
+                    : tier === 'wasm'
+                        ? 'Đang ghi âm AI offline... Nhấn micro lần nữa để dừng'
+                        : 'Đang lắng nghe... Hãy nói từ cần tra';
+                showToast(toastMessage, 'info');
+            },
+            onProcessing: () => {
+                showToast('Đang chuyển giọng nói thành chữ...', 'info');
+            },
+            onResult: (recognizedText: string) => {
+                starting = false;
+                activeSpeechHandle = null;
+                resetSpeechButton();
+                wordInput.value = recognizedText;
+                executeSearch(recognizedText, directionSelect.value as SearchDirection);
+            },
+            onError: (err: string) => {
+                starting = false;
+                activeSpeechHandle = null;
+                resetSpeechButton();
+                showToast(`Lỗi nhận diện giọng nói: ${err}`, 'error');
+            },
+            onEnd: () => {
+                starting = false;
+                activeSpeechHandle = null;
+                resetSpeechButton();
+            },
+            onFallbackKeyboard: (info) => {
+                starting = false;
+                activeSpeechHandle = null;
+                resetSpeechButton();
+                showVoiceFallbackPanel(info);
+            }
+        });
+
+        if (starting && handle.tier !== 'keyboard') {
+            activeSpeechHandle = handle;
+        }
+    };
+
+    if (speechBtn && wordInput && directionSelect) {
+        speechBtn.addEventListener('click', () => {
+            void runSpeechCapture(false);
+        });
     }
+
+    if (btnVoiceKeyboard && wordInput) {
+        btnVoiceKeyboard.addEventListener('click', () => {
+            if (voiceFallbackPanel) voiceFallbackPanel.hidden = true;
+            wordInput.focus();
+            showToast('Nhấn nút micro trên bàn phím điện thoại hoặc Win+H / Fn để nhập giọng nói.', 'info');
+        });
+    }
+
+    if (btnCloseVoiceFallback && voiceFallbackPanel) {
+        btnCloseVoiceFallback.addEventListener('click', () => {
+            voiceFallbackPanel.hidden = true;
+        });
+    }
+
+    if (btnVoiceWasm) {
+        btnVoiceWasm.addEventListener('click', async () => {
+            btnVoiceWasm.disabled = true;
+            if (voiceWasmProgress) voiceWasmProgress.hidden = false;
+            if (voiceWasmProgressBar) voiceWasmProgressBar.style.width = '0%';
+            if (voiceWasmProgressText) voiceWasmProgressText.textContent = 'Đang khởi tạo AI Whisper WASM (~45MB)...';
+
+            try {
+                const { preloadWhisperModel } = await import('@/services/whisper-stt.service');
+                await preloadWhisperModel((percent: number) => {
+                    if (voiceWasmProgressBar) voiceWasmProgressBar.style.width = `${percent}%`;
+                    if (voiceWasmProgressText) voiceWasmProgressText.textContent = `Đang tải mô hình AI tiếng Việt: ${percent}%`;
+                });
+                if (voiceWasmProgress) voiceWasmProgress.hidden = true;
+                if (voiceFallbackPanel) voiceFallbackPanel.hidden = true;
+                btnVoiceWasm.disabled = false;
+                await runSpeechCapture(true);
+            } catch (err: unknown) {
+                btnVoiceWasm.disabled = false;
+                if (voiceWasmProgress) voiceWasmProgress.hidden = true;
+                const message = err instanceof Error ? err.message : 'Không thể tải mô hình AI Whisper WASM.';
+                showToast(message, 'error');
+            }
+        });
+    }
+
+    eventBus.on('tab:change', (sectionId: string) => {
+        if (sectionId !== 'home' && activeSpeechHandle) {
+            activeSpeechHandle.stop();
+            activeSpeechHandle = null;
+            resetSpeechButton();
+        }
+    });
 
     async function runOfflineAudioSync(isAuto: boolean): Promise<void> {
         if (!btnDownload || !progressContainer || !progressBar || !progressText || !downloadStatus) return;

@@ -70,8 +70,8 @@ Maintainers will not pursue legal action against researchers who conduct good-fa
 
 ### 4.2. Content Security Policy (CSP) & Referrer Policy
 - Production builds in [vite.config.ts](vite.config.ts) automatically inject a strict `<meta http-equiv="Content-Security-Policy">` tag into `dist/index.html`:
-  - `default-src 'self'`, `script-src 'self'`, `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`.
-  - Explicit `connect-src` allowlist (`'self'`, `https://sheets.googleapis.com`, `https://script.google.com`, `https://script.googleusercontent.com`, plus the origin of `VITE_CONTRIBUTE_API_URL` when configured).
+  - `default-src 'self'`, `script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net`, `worker-src 'self' blob:`, `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`.
+  - Explicit `connect-src` allowlist (`'self'`, `https://sheets.googleapis.com`, `https://script.google.com`, `https://script.googleusercontent.com`, `https://cdn.jsdelivr.net`, `https://huggingface.co`, `https://cdn-lfs*.hf.co`, plus the origin of `VITE_CONTRIBUTE_API_URL` when configured).
 - [index.html](index.html) enforces `<meta name="referrer" content="strict-origin-when-cross-origin">`.
 
 ### 4.3. Client-Side DOM XSS Mitigation
@@ -83,7 +83,8 @@ Maintainers will not pursue legal action against researchers who conduct good-fa
 - Hardcoded fallback API secrets are prohibited and checked by [tests/security/smoke.test.ts](tests/security/smoke.test.ts); `.env*` files are excluded via [.gitignore](.gitignore).
 
 ### 4.5. Service Worker Isolation
-- [src/service-worker.ts](src/service-worker.ts) caches only `same-origin` assets and audio resources, evicts stale versioned caches on activation while preserving `tudien-audio`, and explicitly bypasses SW caching for `/audio-pack.bin` and `/audio-pack.index.json` to ensure accurate hash-delta verification ([tests/integration/service-worker.test.ts](tests/integration/service-worker.test.ts)).
+- [src/service-worker.ts](src/service-worker.ts) caches only `same-origin` assets and audio resources, evicts stale versioned caches on activation while preserving `tudien-audio` and `tudien-stt-runtime`, and explicitly bypasses SW caching for `/audio-pack.bin` and `/audio-pack.index.json` to ensure accurate hash-delta verification ([tests/integration/service-worker.test.ts](tests/integration/service-worker.test.ts)).
+- The `tudien-stt-runtime` cache strictly allowlists `https://cdn.jsdelivr.net` requests matching `transformers` or `onnxruntime-web`.
 
 ### 4.6. Rust Contribute Gateway Controls (`services/contribute-api`)
 When deploying the optional [services/contribute-api](services/contribute-api/) backend:

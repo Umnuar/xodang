@@ -83,6 +83,9 @@ describe('PWA Service Worker & Cache Preservation Tests (Rule 8 Compliance)', ()
 
         expect(swSource).toContain("'/audio-pack.bin'");
         expect(swSource).toContain("'/audio-pack.index.json'");
+        expect(swSource).toContain("const STT_RUNTIME_CACHE_NAME = 'tudien-stt-runtime';");
+        expect(swSource).toContain('PRESERVED_CACHES = new Set([CACHE_NAME, AUDIO_CACHE_NAME, STT_RUNTIME_CACHE_NAME])');
+        expect(swSource).toContain("url.origin === 'https://cdn.jsdelivr.net'");
     });
 
     it('uses relative font paths without root-relative /fonts/ prefixes', () => {

@@ -1,5 +1,6 @@
 const CACHE_NAME = 'tudien-modular-v10.0.4';
 const AUDIO_CACHE_NAME = 'tudien-audio';
+const STT_RUNTIME_CACHE_NAME = 'tudien-stt-runtime';
 const OFFLINE_URL = './offline.html';
 
 const STATIC_PRECACHE = [
@@ -47,7 +48,7 @@ sw.addEventListener('install', (event: ExtendableEvent) => {
 });
 
 sw.addEventListener('activate', (event: ExtendableEvent) => {
-    const PRESERVED_CACHES = new Set([CACHE_NAME, AUDIO_CACHE_NAME]);
+    const PRESERVED_CACHES = new Set([CACHE_NAME, AUDIO_CACHE_NAME, STT_RUNTIME_CACHE_NAME]);
 
     event.waitUntil(
         caches.keys().then((keys) => {
@@ -67,6 +68,29 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
     if (event.request.method !== 'GET') return;
 
     const url = new URL(event.request.url);
+
+    if (
+        url.origin === 'https://cdn.jsdelivr.net' &&
+        (url.pathname.includes('transformers') || url.pathname.includes('onnxruntime-web'))
+    ) {
+        event.respondWith(
+            caches.open(STT_RUNTIME_CACHE_NAME).then(async (sttCache) => {
+                const cached = await sttCache.match(event.request);
+                if (cached) return cached;
+
+                try {
+                    const response = await fetch(event.request);
+                    if (response.ok) {
+                        sttCache.put(event.request, response.clone());
+                    }
+                    return response;
+                } catch {
+                    return new Response('', { status: 503, statusText: 'STT Runtime Offline Unavailable' });
+                }
+            })
+        );
+        return;
+    }
 
     if (url.pathname.endsWith('/audio-pack.bin') || url.pathname.endsWith('/audio-pack.index.json')) {
         return;

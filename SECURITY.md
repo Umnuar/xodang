@@ -70,8 +70,8 @@ Nhóm phát triển không khởi kiện hoặc truy cứu đối với các ngh
 
 ### 4.2. Content Security Policy (CSP) & Referrer Hardening
 - Cấu hình build trong [vite.config.ts](vite.config.ts) tự động chèn `<meta http-equiv="Content-Security-Policy">` vào `dist/index.html`:
-  - `default-src 'self'`, `script-src 'self'`, `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`.
-  - `connect-src` giới hạn rõ nguồn gốc hợp lệ (`'self'`, `https://sheets.googleapis.com`, `https://script.google.com`, `https://script.googleusercontent.com` và origin của `VITE_CONTRIBUTE_API_URL` nếu cấu hình).
+  - `default-src 'self'`, `script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net`, `worker-src 'self' blob:`, `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`.
+  - `connect-src` giới hạn rõ nguồn gốc hợp lệ (`'self'`, `https://sheets.googleapis.com`, `https://script.google.com`, `https://script.googleusercontent.com`, `https://cdn.jsdelivr.net`, `https://huggingface.co`, `https://cdn-lfs*.hf.co` và origin của `VITE_CONTRIBUTE_API_URL` nếu cấu hình).
 - [index.html](index.html) khai báo `<meta name="referrer" content="strict-origin-when-cross-origin">`.
 
 ### 4.3. Phòng chống XSS phía Client
@@ -83,7 +83,8 @@ Nhóm phát triển không khởi kiện hoặc truy cứu đối với các ngh
 - Không dùng fallback secret hardcode trong mã nguồn ([tests/security/smoke.test.ts](tests/security/smoke.test.ts)); toàn bộ tệp `.env*` bị chặn qua [.gitignore](.gitignore).
 
 ### 4.5. Cách ly Service Worker Cache
-- [src/service-worker.ts](src/service-worker.ts) chỉ cache tài nguyên `same-origin` và thư mục audio; thực hiện dọn sạch cache phiên bản cũ khi kích hoạt (`tudien-modular-v10.0.4`) nhưng bảo toàn kho âm thanh `tudien-audio`.
+- [src/service-worker.ts](src/service-worker.ts) chỉ cache tài nguyên `same-origin` và thư mục audio; thực hiện dọn sạch cache phiên bản cũ khi kích hoạt (`tudien-modular-v10.0.4`) nhưng bảo toàn kho âm thanh `tudien-audio` và bộ đệm AI giọng nói `tudien-stt-runtime`.
+- Cache `tudien-stt-runtime` chỉ giới hạn whitelist chặt chẽ cho runtime `@huggingface/transformers` / `onnxruntime-web` tải từ `https://cdn.jsdelivr.net`.
 - Tệp gói lớn `/audio-pack.bin` và bảng chỉ mục `/audio-pack.index.json` bỏ qua bộ đệm SW để tránh nhân đôi dung lượng lưu trữ và bảo đảm kiểm tra hash phiên bản luôn chính xác từ mạng ([tests/integration/service-worker.test.ts](tests/integration/service-worker.test.ts)).
 
 ### 4.6. Hardening cho Rust Axum Contribute Gateway (`services/contribute-api`)
