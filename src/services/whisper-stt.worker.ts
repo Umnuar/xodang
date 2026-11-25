@@ -48,7 +48,7 @@ type WorkerOutgoingMessage =
     | { type: 'progress'; percent: number; file: string }
     | { type: 'ready'; requestId: number }
     | { type: 'result'; requestId: number; text: string }
-    | { type: 'error'; requestId: number; message: string };
+    | { type: 'error'; requestId: number; message: string; code?: 'model_load_failed' | 'transcribe_failed' };
 
 const workerScope = globalThis as unknown as {
     postMessage: (message: WorkerOutgoingMessage) => void;
@@ -119,22 +119,28 @@ workerScope.addEventListener('message', (event: MessageEvent<WorkerIncomingMessa
             })
             .catch((err: unknown) => {
                 const message = err instanceof Error ? err.message : 'Không thể tải mô hình AI WASM.';
-                workerScope.postMessage({ type: 'error', requestId: payload.requestId, message });
+                workerScope.postMessage({ type: 'error', requestId: payload.requestId, message, code: 'model_load_failed' });
             });
         return;
     }
 
     if (payload.type === 'transcribe') {
         void getTranscriber()
-            .then((transcriber) => transcriber(payload.audio, { language: 'vietnamese', task: 'transcribe' }))
-            .then((output) => {
-                const raw = Array.isArray(output) ? output[0]?.text : output?.text;
-                const text = (raw || '').replace(/\.$/, '').trim();
-                workerScope.postMessage({ type: 'result', requestId: payload.requestId, text });
-            })
-            .catch((err: unknown) => {
-                const message = err instanceof Error ? err.message : 'Lỗi giải mã giọng nói bằng AI WASM.';
-                workerScope.postMessage({ type: 'error', requestId: payload.requestId, message });
-            });
+            .then(
+                (transcriber) => transcriber(payload.audio, { language: 'vietnamese', task: 'transcribe' })
+                    .then((output) => {
+                        const raw = Array.isArray(output) ? output[0]?.text : output?.text;
+                        const text = (raw || '').replace(/\.$/, '').trim();
+                        workerScope.postMessage({ type: 'result', requestId: payload.requestId, text });
+                    })
+                    .catch((err: unknown) => {
+                        const message = err instanceof Error ? err.message : 'Lỗi giải mã giọng nói bằng AI WASM.';
+                        workerScope.postMessage({ type: 'error', requestId: payload.requestId, message, code: 'transcribe_failed' });
+                    }),
+                (err: unknown) => {
+                    const message = err instanceof Error ? err.message : 'Không thể tải mô hình AI WASM.';
+                    workerScope.postMessage({ type: 'error', requestId: payload.requestId, message, code: 'model_load_failed' });
+                }
+            );
     }
 });

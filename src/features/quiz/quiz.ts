@@ -22,8 +22,26 @@ let currentQuestionIndex = 0;
 let userAnswers: Array<number | null> = [];
 let quizTimerId: ReturnType<typeof setInterval> | null = null;
 let timeElapsedSeconds = 0;
+let isQuizActive = false;
+let isLoadingQuiz = false;
+
+function formatTime(totalSeconds: number): string {
+    const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+    const secs = String(totalSeconds % 60).padStart(2, '0');
+    return `${mins}:${secs}`;
+}
 
 export async function initQuiz(): Promise<void> {
+    allQuestions = [];
+    topicsMap = new Map<string, QuizQuestion[]>();
+    currentTopic = '';
+    currentQuizQuestions = [];
+    currentQuestionIndex = 0;
+    userAnswers = [];
+    timeElapsedSeconds = 0;
+    isQuizActive = false;
+    isLoadingQuiz = false;
+
     const topicSelection = document.getElementById('studyQuizTopicSelection');
     const topicsGrid = document.getElementById('studyQuizTopicsGrid');
     const studyInterface = document.getElementById('studyInterface');
@@ -35,6 +53,8 @@ export async function initQuiz(): Promise<void> {
     const prevCardBtn = document.getElementById('prevCardBtn');
     const nextCardBtn = document.getElementById('nextCardBtn');
     const startQuizBtn = document.getElementById('startQuizBtn');
+    const backToTopicsFromStudyBtn = document.getElementById('backToTopicsFromStudyBtn');
+    const backToTopicsFromQuizBtn = document.getElementById('backToTopicsFromQuizBtn');
 
     const questionText = document.getElementById('questionText');
     const optionsContainer = document.getElementById('optionsContainer');
@@ -54,24 +74,54 @@ export async function initQuiz(): Promise<void> {
     eventBus.on('tab:change', (sectionId: string) => {
         if (sectionId === 'quiz') {
             if (allQuestions.length === 0) {
-                loadQuizData();
+                void loadQuizData();
+            } else if (isQuizActive && quizInterface && quizInterface.style.display !== 'none') {
+                startTimer(false);
             }
         } else {
             stopTimer();
         }
     });
 
+    function renderTopicErrorState(): void {
+        if (!topicsGrid) return;
+        topicsGrid.replaceChildren();
+
+        const errorBox = document.createElement('div');
+        errorBox.className = 'quiz-load-error';
+
+        const msg = document.createElement('p');
+        msg.textContent = 'Không thể tải dữ liệu câu hỏi. Vui lòng kiểm tra kết nối và thử lại.';
+
+        const retryBtn = document.createElement('button');
+        retryBtn.type = 'button';
+        retryBtn.className = 'quiz-retry-load-btn';
+        retryBtn.innerHTML = `${getLucideIcon('rotate-ccw', 'lucide-icon', 16)} <span>Thử lại</span>`;
+        retryBtn.addEventListener('click', () => {
+            void loadQuizData();
+        });
+
+        errorBox.appendChild(msg);
+        errorBox.appendChild(retryBtn);
+        topicsGrid.appendChild(errorBox);
+    }
+
     async function loadQuizData(): Promise<void> {
+        if (isLoadingQuiz) return;
+        isLoadingQuiz = true;
         showLoading('Đang tải câu hỏi trắc nghiệm...');
         try {
             const rawRows = await fetchQuizData();
             allQuestions = parseQuizRows(rawRows);
             topicsMap = groupQuestionsByTopic(allQuestions);
+            flashcardManager.setAllTopics(topicsMap);
             renderTopicGrid();
         } catch (err: unknown) {
             console.error('Failed to load quiz data:', err);
             showToast('Không thể tải dữ liệu câu hỏi.', 'error');
+            renderTopicErrorState();
         } finally {
+            isLoadingQuiz = false;
             hideLoading();
         }
     }
@@ -80,9 +130,15 @@ export async function initQuiz(): Promise<void> {
         if (!topicsGrid) return;
         topicsGrid.replaceChildren();
 
+        if (topicsMap.size === 0) {
+            renderTopicErrorState();
+            return;
+        }
+
         const fragment = document.createDocumentFragment();
         topicsMap.forEach((questions, topicName) => {
-            const card = document.createElement('div');
+            const card = document.createElement('button');
+            card.type = 'button';
             card.className = 'topic-card study-quiz-topic-card';
 
             const iconDiv = document.createElement('div');
@@ -109,7 +165,19 @@ export async function initQuiz(): Promise<void> {
         topicsGrid.appendChild(fragment);
     }
 
+    function returnToTopicSelection(): void {
+        isQuizActive = false;
+        stopTimer();
+        if (studyInterface) studyInterface.style.display = 'none';
+        if (quizInterface) quizInterface.style.display = 'none';
+        if (quizResult) quizResult.style.display = 'none';
+        if (topicSelection) topicSelection.style.display = 'block';
+        flashcardManager.updateOverallProgress();
+    }
+
     function selectTopic(topicName: string): void {
+        isQuizActive = false;
+        stopTimer();
         currentTopic = topicName;
         const topicQuestions = topicsMap.get(topicName) || [];
 
@@ -131,9 +199,38 @@ export async function initQuiz(): Promise<void> {
         flashcardManager.setCards(topicName, topicQuestions);
     }
 
-    // Flashcard Bindings
+    function startQuizForCurrentTopic(): void {
+        const topicQuestions = topicsMap.get(currentTopic) || [];
+        if (topicQuestions.length === 0) {
+            showToast('Chủ đề này chưa có câu hỏi.', 'warning');
+            return;
+        }
+
+        currentQuizQuestions = selectQuizQuestions(topicQuestions, 5);
+        currentQuestionIndex = 0;
+        userAnswers = new Array(currentQuizQuestions.length).fill(null);
+        isQuizActive = true;
+
+        if (topicSelection) topicSelection.style.display = 'none';
+        if (studyInterface) studyInterface.style.display = 'none';
+        if (quizResult) quizResult.style.display = 'none';
+        if (quizInterface) quizInterface.style.display = 'block';
+
+        const quizTopicTitle = document.getElementById('currentQuizTopicTitle');
+        if (quizTopicTitle) quizTopicTitle.textContent = `Chủ đề: ${currentTopic}`;
+
+        startTimer(true);
+        displayQuestion();
+    }
+
     if (flashcardElem) {
         flashcardElem.addEventListener('click', () => flashcardManager.flipCard());
+        flashcardElem.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                flashcardManager.flipCard();
+            }
+        });
     }
     if (flipCardBtn) {
         flipCardBtn.addEventListener('click', (e) => {
@@ -148,35 +245,35 @@ export async function initQuiz(): Promise<void> {
         nextCardBtn.addEventListener('click', () => flashcardManager.nextCard());
     }
 
-    // Start Quiz Button
-    if (startQuizBtn) {
-        startQuizBtn.addEventListener('click', () => {
-            const topicQuestions = topicsMap.get(currentTopic) || [];
-            currentQuizQuestions = selectQuizQuestions(topicQuestions, 5);
-            currentQuestionIndex = 0;
-            userAnswers = new Array(currentQuizQuestions.length).fill(null);
-
-            if (studyInterface) studyInterface.style.display = 'none';
-            if (quizResult) quizResult.style.display = 'none';
-            if (quizInterface) quizInterface.style.display = 'block';
-
-            const quizTopicTitle = document.getElementById('currentQuizTopicTitle');
-            if (quizTopicTitle) quizTopicTitle.textContent = `Chủ đề: ${currentTopic}`;
-
-            startTimer();
-            displayQuestion();
+    if (backToTopicsFromStudyBtn) {
+        backToTopicsFromStudyBtn.addEventListener('click', () => {
+            returnToTopicSelection();
+        });
+    }
+    if (backToTopicsFromQuizBtn) {
+        backToTopicsFromQuizBtn.addEventListener('click', () => {
+            returnToTopicSelection();
         });
     }
 
-    function startTimer(): void {
+    if (startQuizBtn) {
+        startQuizBtn.addEventListener('click', () => {
+            startQuizForCurrentTopic();
+        });
+    }
+
+    function startTimer(reset: boolean = true): void {
         if (quizTimerId) clearInterval(quizTimerId);
-        timeElapsedSeconds = 0;
+        if (reset) {
+            timeElapsedSeconds = 0;
+            if (quizTimer) {
+                quizTimer.textContent = '00:00';
+            }
+        }
         quizTimerId = setInterval(() => {
             timeElapsedSeconds++;
             if (quizTimer) {
-                const mins = String(Math.floor(timeElapsedSeconds / 60)).padStart(2, '0');
-                const secs = String(timeElapsedSeconds % 60).padStart(2, '0');
-                quizTimer.textContent = `${mins}:${secs}`;
+                quizTimer.textContent = formatTime(timeElapsedSeconds);
             }
         }, 1000);
     }
@@ -186,6 +283,32 @@ export async function initQuiz(): Promise<void> {
             clearInterval(quizTimerId);
             quizTimerId = null;
         }
+    }
+
+    function updateSubmitButtonState(): void {
+        if (!submitQuizBtn) return;
+        const total = currentQuizQuestions.length;
+        const answered = userAnswers.filter((ans) => ans !== null).length;
+        const labelSpan = submitQuizBtn.querySelector('span');
+        if (labelSpan) {
+            labelSpan.textContent = total > 0 ? `Nộp bài (${answered}/${total})` : 'Nộp bài';
+        }
+        submitQuizBtn.disabled = false;
+    }
+
+    function selectOption(optIndex: number): void {
+        userAnswers[currentQuestionIndex] = optIndex + 1;
+        if (!optionsContainer) return;
+
+        const optionButtons = optionsContainer.querySelectorAll<HTMLButtonElement>('.option');
+        optionButtons.forEach((btn, idx) => {
+            const isSelected = idx === optIndex;
+            btn.classList.toggle('selected', isSelected);
+            btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+            btn.tabIndex = isSelected ? 0 : -1;
+        });
+
+        updateSubmitButtonState();
     }
 
     function displayQuestion(): void {
@@ -198,11 +321,20 @@ export async function initQuiz(): Promise<void> {
         questionText.textContent = q.question;
         optionsContainer.replaceChildren();
 
+        const selectedAnswer = userAnswers[currentQuestionIndex];
+        const activeFocusIndex = selectedAnswer !== null && selectedAnswer >= 1 && selectedAnswer <= q.options.length
+            ? selectedAnswer - 1
+            : 0;
+
         const fragment = document.createDocumentFragment();
         q.options.forEach((optText, optIndex) => {
-            const optionDiv = document.createElement('div');
-            const isSelected = userAnswers[currentQuestionIndex] === optIndex + 1;
-            optionDiv.className = `option ${isSelected ? 'selected' : ''}`;
+            const optionBtn = document.createElement('button');
+            optionBtn.type = 'button';
+            optionBtn.setAttribute('role', 'radio');
+            const isSelected = selectedAnswer === optIndex + 1;
+            optionBtn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+            optionBtn.tabIndex = optIndex === activeFocusIndex ? 0 : -1;
+            optionBtn.className = `option ${isSelected ? 'selected' : ''}`;
 
             const labelSpan = document.createElement('span');
             labelSpan.className = 'option-label';
@@ -212,22 +344,42 @@ export async function initQuiz(): Promise<void> {
             textSpan.className = 'option-text';
             textSpan.textContent = optText;
 
-            optionDiv.appendChild(labelSpan);
-            optionDiv.appendChild(textSpan);
+            optionBtn.appendChild(labelSpan);
+            optionBtn.appendChild(textSpan);
 
-            optionDiv.addEventListener('click', () => {
-                userAnswers[currentQuestionIndex] = optIndex + 1;
-                displayQuestion(); // re-render to reflect selection
+            optionBtn.addEventListener('click', () => {
+                selectOption(optIndex);
             });
 
-            fragment.appendChild(optionDiv);
+            optionBtn.addEventListener('keydown', (e: KeyboardEvent) => {
+                const optionButtons = Array.from(optionsContainer.querySelectorAll<HTMLButtonElement>('.option'));
+                const count = optionButtons.length;
+                if (count === 0) return;
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    const nextIdx = (optIndex + 1) % count;
+                    selectOption(nextIdx);
+                    optionButtons[nextIdx]?.focus();
+                } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    const prevIdx = (optIndex - 1 + count) % count;
+                    selectOption(prevIdx);
+                    optionButtons[prevIdx]?.focus();
+                } else if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    selectOption(optIndex);
+                }
+            });
+
+            fragment.appendChild(optionBtn);
         });
 
         optionsContainer.appendChild(fragment);
 
         if (prevQuestionBtn) prevQuestionBtn.disabled = currentQuestionIndex === 0;
         if (nextQuestionBtn) nextQuestionBtn.disabled = currentQuestionIndex === currentQuizQuestions.length - 1;
-        if (submitQuizBtn) submitQuizBtn.disabled = userAnswers.includes(null);
+        updateSubmitButtonState();
     }
 
     if (prevQuestionBtn) {
@@ -250,17 +402,21 @@ export async function initQuiz(): Promise<void> {
 
     if (submitQuizBtn) {
         submitQuizBtn.addEventListener('click', () => {
-            if (userAnswers.includes(null)) {
-                showToast('Vui lòng trả lời tất cả các câu hỏi trước khi nộp bài!', 'warning');
+            const firstUnansweredIndex = userAnswers.findIndex((ans) => ans === null);
+            if (firstUnansweredIndex !== -1) {
+                currentQuestionIndex = firstUnansweredIndex;
+                displayQuestion();
+                showToast(`Vui lòng trả lời câu ${firstUnansweredIndex + 1} trước khi nộp bài!`, 'warning');
                 return;
             }
+            isQuizActive = false;
             stopTimer();
             showQuizResults();
         });
     }
 
     function showQuizResults(): void {
-        const answersAsNumbers = userAnswers.map(a => a ?? -1);
+        const answersAsNumbers = userAnswers.map((a) => a ?? -1);
         const { score, total, title, description, details } = evaluateQuiz(currentQuizQuestions, answersAsNumbers);
 
         if (quizInterface) quizInterface.style.display = 'none';
@@ -269,6 +425,7 @@ export async function initQuiz(): Promise<void> {
         const finalScore = document.getElementById('finalScore');
         const maxScore = document.getElementById('maxScore');
         const resultTopic = document.getElementById('resultTopic');
+        const resultTime = document.getElementById('resultTime');
         const resultTitle = document.getElementById('resultTitle');
         const resultDesc = document.getElementById('resultDescription');
         const resultDetails = document.getElementById('resultDetails');
@@ -276,6 +433,7 @@ export async function initQuiz(): Promise<void> {
         if (finalScore) finalScore.textContent = String(score);
         if (maxScore) maxScore.textContent = `/${total}`;
         if (resultTopic) resultTopic.textContent = `Chủ đề: ${currentTopic}`;
+        if (resultTime) resultTime.textContent = `Thời gian hoàn thành: ${formatTime(timeElapsedSeconds)}`;
         if (resultTitle) resultTitle.textContent = title;
         if (resultDesc) resultDesc.textContent = description;
 
@@ -312,17 +470,13 @@ export async function initQuiz(): Promise<void> {
     if (retryQuizBtn) {
         retryQuizBtn.addEventListener('click', () => {
             stopTimer();
-            selectTopic(currentTopic);
+            startQuizForCurrentTopic();
         });
     }
 
     if (newTopicBtn) {
         newTopicBtn.addEventListener('click', () => {
-            stopTimer();
-            if (studyInterface) studyInterface.style.display = 'none';
-            if (quizInterface) quizInterface.style.display = 'none';
-            if (quizResult) quizResult.style.display = 'none';
-            if (topicSelection) topicSelection.style.display = 'block';
+            returnToTopicSelection();
         });
     }
 

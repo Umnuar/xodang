@@ -1,39 +1,51 @@
 <section id="game" class="container" aria-label="Khu vực trò chơi giáo dục tiếng Xơ Đăng">
-    <!-- Game Hub (Menu Selection) -->
     <div id="gameHubView" class="game-hub">
         <header class="game-hub-header">
             <h1>Trò Chơi Tiếng Xơ Đăng</h1>
             <p class="game-subtitle">Ôn từ vựng qua 4 trò chơi tương tác: lật thẻ ghi nhớ, hứng từ vựng, bảo vệ buôn làng và nông trại số.</p>
-            
-            <!-- Hồ sơ người học & Thanh công cụ có nhãn -->
+
             <div class="game-user-bar">
-                <div class="game-user-info">
-                    <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    <span id="gameCurrentUserName">Người học Xơ Đăng</span>
+                <div class="game-user-profile">
+                    <div class="game-user-info">
+                        <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <span id="gameCurrentUserName">Người học Xơ Đăng</span>
+                        <button type="button" id="btnEditPlayerName" class="game-edit-name-btn" aria-label="Đổi tên người chơi" title="Đổi tên người chơi">
+                            <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 20h9"/>
+                                <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>
+                            </svg>
+                            <span>Đổi tên</span>
+                        </button>
+                    </div>
+                    <form id="playerNameForm" class="game-name-editor" hidden>
+                        <input type="text" id="playerNameInput" class="game-name-input" maxlength="32" placeholder="Nhập tên của bạn..." aria-label="Tên người chơi mới" required>
+                        <button type="submit" class="game-name-btn game-name-save-btn">Lưu</button>
+                        <button type="button" id="btnCancelPlayerName" class="game-name-btn">Hủy</button>
+                    </form>
                 </div>
                 <div class="game-sound-controls">
-                    <button id="btnOpenLeaderboard" class="game-chip-btn" aria-label="Bảng vàng thành tích" title="Xem bảng vàng thành tích">
+                    <button type="button" id="btnOpenLeaderboard" class="game-chip-btn" aria-label="Bảng vàng thành tích" title="Xem bảng vàng thành tích">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
                         </svg>
                         <span class="chip-label">Bảng vàng</span>
                     </button>
-                    <button id="btnOpenBadges" class="game-chip-btn" aria-label="Bộ sưu tập huy hiệu" title="Xem bộ sưu tập huy hiệu">
+                    <button type="button" id="btnOpenBadges" class="game-chip-btn" aria-label="Bộ sưu tập huy hiệu" title="Xem bộ sưu tập huy hiệu">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><circle cx="12" cy="17" r="5"/>
                         </svg>
                         <span class="chip-label">Huy hiệu</span>
                     </button>
-                    <button id="btnOpenCertificates" class="game-chip-btn" aria-label="Kho chứng nhận tốt nghiệp" title="Xem kho chứng nhận tốt nghiệp">
+                    <button type="button" id="btnOpenCertificates" class="game-chip-btn" aria-label="Kho chứng nhận tốt nghiệp" title="Xem kho chứng nhận tốt nghiệp">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
                         </svg>
                         <span class="chip-label">Chứng nhận</span>
                     </button>
-                    <button id="toggleGameSfx" class="game-chip-btn sfx-btn" aria-label="Bật/Tắt âm thanh hiệu ứng" title="Bật/Tắt âm thanh hiệu ứng">
+                    <button type="button" id="toggleGameSfx" class="game-chip-btn sfx-btn" aria-label="Bật/Tắt âm thanh hiệu ứng" aria-pressed="true" title="Bật/Tắt âm thanh hiệu ứng">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
                         </svg>
@@ -44,29 +56,27 @@
         </header>
 
         <div class="game-cards-grid">
-            <!-- Game 1 -->
-            <div class="game-select-card" data-game="game1" role="button" tabindex="0" aria-label="Chơi game Lật Thẻ Trí Nhớ">
+            <article class="game-select-card" data-game="game1">
                 <div class="game-card-icon">
                     <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
                         <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
                     </svg>
                 </div>
-                <h3>Lật Thẻ Trí Nhớ</h3>
+                <h2>Lật Thẻ Trí Nhớ</h2>
                 <p>Tìm và lật mở các cặp thẻ từ vựng Xơ Đăng – Tiếng Việt tương ứng.</p>
                 <div class="game-card-footer">
                     <span class="game-tag">Trí nhớ</span>
-                    <button class="game-play-btn" data-game="game1" aria-label="Bắt đầu chơi Lật Thẻ Trí Nhớ">
+                    <button type="button" class="game-play-btn" data-game="game1" aria-label="Bắt đầu chơi Lật Thẻ Trí Nhớ">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polygon points="6 3 20 12 6 21 6 3"/>
                         </svg>
                         <span>Chơi ngay</span>
                     </button>
                 </div>
-            </div>
+            </article>
 
-            <!-- Game 2 -->
-            <div class="game-select-card" data-game="game2" role="button" tabindex="0" aria-label="Chơi game Mưa Từ Vựng">
+            <article class="game-select-card" data-game="game2">
                 <div class="game-card-icon">
                     <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
@@ -75,41 +85,39 @@
                         <path d="M12 16v6"/>
                     </svg>
                 </div>
-                <h3>Mưa Từ Vựng</h3>
+                <h2>Mưa Từ Vựng</h2>
                 <p>Nhanh tay điều khiển giỏ hứng chính xác từ ngữ đang rơi xuống.</p>
                 <div class="game-card-footer">
                     <span class="game-tag">Phản xạ</span>
-                    <button class="game-play-btn" data-game="game2" aria-label="Bắt đầu chơi Mưa Từ Vựng">
+                    <button type="button" class="game-play-btn" data-game="game2" aria-label="Bắt đầu chơi Mưa Từ Vựng">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polygon points="6 3 20 12 6 21 6 3"/>
                         </svg>
                         <span>Chơi ngay</span>
                     </button>
                 </div>
-            </div>
+            </article>
 
-            <!-- Game 3 -->
-            <div class="game-select-card" data-game="game3" role="button" tabindex="0" aria-label="Chơi game Bảo Vệ Làng">
+            <article class="game-select-card" data-game="game3">
                 <div class="game-card-icon">
                     <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
                     </svg>
                 </div>
-                <h3>Bảo Vệ Làng</h3>
+                <h2>Bảo Vệ Làng</h2>
                 <p>Bắn trúng các mục tiêu từ ngữ chính xác để bảo vệ buôn làng Xơ Đăng.</p>
                 <div class="game-card-footer">
                     <span class="game-tag">Tập trung</span>
-                    <button class="game-play-btn" data-game="game3" aria-label="Bắt đầu chơi Bảo Vệ Làng">
+                    <button type="button" class="game-play-btn" data-game="game3" aria-label="Bắt đầu chơi Bảo Vệ Làng">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polygon points="6 3 20 12 6 21 6 3"/>
                         </svg>
                         <span>Chơi ngay</span>
                     </button>
                 </div>
-            </div>
+            </article>
 
-            <!-- Game 4 -->
-            <div class="game-select-card" data-game="game4" role="button" tabindex="0" aria-label="Chơi game Nông Trại Số">
+            <article class="game-select-card" data-game="game4">
                 <div class="game-card-icon">
                     <svg class="lucide-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M7 20h10"/>
@@ -118,35 +126,46 @@
                         <path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>
                     </svg>
                 </div>
-                <h3>Nông Trại Số</h3>
+                <h2>Nông Trại Số</h2>
                 <p>Dùng vốn từ vựng để gieo trồng và thu hoạch những vụ mùa bội thu.</p>
                 <div class="game-card-footer">
                     <span class="game-tag">Khám phá</span>
-                    <button class="game-play-btn" data-game="game4" aria-label="Bắt đầu chơi Nông Trại Số">
+                    <button type="button" class="game-play-btn" data-game="game4" aria-label="Bắt đầu chơi Nông Trại Số">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polygon points="6 3 20 12 6 21 6 3"/>
                         </svg>
                         <span>Chơi ngay</span>
                     </button>
                 </div>
-            </div>
+            </article>
         </div>
     </div>
 
-    <!-- Active Game Screen (Initially Hidden) -->
     <div id="gameActiveView" class="game-active-view" style="display: none;">
         <div class="game-active-topbar">
-            <button id="btnExitGame" class="game-btn-back">
+            <button type="button" id="btnExitGame" class="game-btn-back" aria-label="Quay lại menu trò chơi">
                 <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
                 </svg>
-                <span>Menu trò chơi</span>
+                <span>Menu<span class="game-back-extra"> trò chơi</span></span>
             </button>
             <div class="game-active-title-wrap">
-                <h3 id="activeGameTitle">Tên trò chơi</h3>
+                <h2 id="activeGameTitle">Tên trò chơi</h2>
                 <span class="game-level-tag">Level <span id="activeGameLevel">1</span></span>
             </div>
             <div class="game-active-stats">
+                <div id="gameProgressWrap" class="stat-pill progress-pill" hidden>
+                    <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span id="gameProgressText">0/0</span>
+                </div>
+                <div id="gameComboBadge" class="stat-pill combo-pill" hidden>
+                    <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                    </svg>
+                    <span id="gameComboText">x0</span>
+                </div>
                 <div class="stat-pill">
                     <svg class="lucide-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -159,15 +178,42 @@
                     </svg>
                     <span id="activeGameLives">3</span>
                 </div>
+                <button type="button" id="btnSpeakTarget" class="game-hud-icon-btn" aria-label="Nghe phát âm từ mục tiêu" title="Nghe phát âm" hidden>
+                    <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                    <span>Nghe</span>
+                </button>
+                <button type="button" id="btnPauseGame" class="game-hud-icon-btn" aria-label="Tạm dừng trò chơi" aria-pressed="false" title="Tạm dừng" hidden>
+                    <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect width="4" height="16" x="6" y="4"/><rect width="4" height="16" x="14" y="4"/>
+                    </svg>
+                    <span>Tạm dừng</span>
+                </button>
             </div>
         </div>
 
-        <div id="gameStage" class="game-stage">
-            <!-- Game Canvas or Grid mounted dynamically here -->
+        <div class="game-arena-shell">
+            <div id="vocabPreviewPanel" class="vocab-preview-panel" role="region" aria-label="Xem nhanh từ vựng màn chơi" style="display: none;">
+                <div class="vocab-preview-header">
+                    <h3>Làm quen từ vựng Level <span id="vocabPreviewLevel">1</span></h3>
+                    <p>Nghe phát âm và ghi nhớ nhanh các từ vựng trước khi vào màn chơi tốc độ.</p>
+                </div>
+                <ul id="vocabPreviewList" class="vocab-preview-list"></ul>
+                <div class="vocab-preview-actions">
+                    <button type="button" id="btnStartFromPreview" class="game-modal-btn btn-primary">
+                        <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polygon points="6 3 20 12 6 21 6 3"/>
+                        </svg>
+                        <span>Bắt đầu ngay</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="gameStage" class="game-stage"></div>
         </div>
 
-        <!-- Result / Level Complete Modal -->
-        <div id="gameOverModal" class="game-modal" style="display: none;">
+        <div id="gameOverModal" class="game-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display: none;">
             <div class="game-modal-card">
                 <div id="modalIcon" class="modal-icon">
                     <svg class="lucide-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -180,26 +226,30 @@
                     <span>Tổng điểm:</span>
                     <strong id="modalFinalScore">0</strong>
                 </div>
+                <div id="modalReviewSection" class="modal-review-section" hidden>
+                    <h4 id="modalReviewHeading">Từ cần ôn lại</h4>
+                    <ul id="modalReviewList" class="modal-review-list"></ul>
+                </div>
                 <div class="modal-actions">
-                    <button id="btnNextLevel" class="modal-btn btn-primary">
+                    <button type="button" id="btnNextLevel" class="game-modal-btn btn-primary">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/>
                         </svg>
                         <span>Màn kế tiếp</span>
                     </button>
-                    <button id="btnGetCertificate" class="modal-btn btn-gold" style="display: none;">
+                    <button type="button" id="btnGetCertificate" class="game-modal-btn btn-gold" style="display: none;">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
                         </svg>
                         <span>Nhận Chứng Nhận</span>
                     </button>
-                    <button id="btnReplayLevel" class="modal-btn btn-secondary">
+                    <button type="button" id="btnReplayLevel" class="game-modal-btn btn-secondary">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
                         </svg>
                         <span>Chơi lại</span>
                     </button>
-                    <button id="btnBackToMenu" class="modal-btn btn-outline">
+                    <button type="button" id="btnBackToMenu" class="game-modal-btn btn-outline">
                         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
                         </svg>

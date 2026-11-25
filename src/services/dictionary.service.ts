@@ -157,14 +157,22 @@ export function getSuggestions(
 
     const isVietToEthnic = direction === 'viet_to_ethnic';
     const indexed = getIndexedDictionary(dictionary);
-    const suggestions = new Set<string>();
+    const suggestions: string[] = [];
+    const seen = new Set<string>();
+
+    const addSuggestion = (display: string): boolean => {
+        const key = display.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        suggestions.push(display);
+        return suggestions.length >= maxResults;
+    };
 
     for (const item of indexed) {
         const display = isVietToEthnic ? item.vietNfc : item.ethnicNfc;
         const lower = isVietToEthnic ? item.vietLower : item.ethnicLower;
         if (display && lower.startsWith(raw)) {
-            suggestions.add(display);
-            if (suggestions.size >= maxResults) return Array.from(suggestions);
+            if (addSuggestion(display)) return suggestions;
         }
     }
 
@@ -174,11 +182,10 @@ export function getSuggestions(
             const display = isVietToEthnic ? item.vietNfc : item.ethnicNfc;
             const foldedTarget = isVietToEthnic ? item.vietFolded : item.ethnicFolded;
             if (display && foldedTarget.startsWith(folded)) {
-                suggestions.add(display);
-                if (suggestions.size >= maxResults) break;
+                if (addSuggestion(display)) break;
             }
         }
     }
 
-    return Array.from(suggestions);
+    return suggestions;
 }

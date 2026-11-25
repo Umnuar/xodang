@@ -1,5 +1,7 @@
 export interface BatchQueueItem {
     name: string;
+    vietnamese?: string;
+    xodang?: string;
     blob: Blob;
     size: string;
     type: 'recording' | 'upload';
@@ -33,6 +35,18 @@ export class BatchQueueManager {
         this.onStateChange?.();
     }
 
+    updateLabels(index: number, labels: { vietnamese?: string; xodang?: string }): boolean {
+        const item = this.items[index];
+        if (!item) return false;
+        if (labels.vietnamese !== undefined) {
+            item.vietnamese = labels.vietnamese;
+        }
+        if (labels.xodang !== undefined) {
+            item.xodang = labels.xodang;
+        }
+        return true;
+    }
+
     removeAt(index: number): BatchQueueItem | null {
         if (index < 0 || index >= this.items.length) return null;
         if (this.playingIndex === index) {
@@ -57,7 +71,7 @@ export class BatchQueueManager {
         this.onStateChange?.();
     }
 
-    play(index: number, onEnded?: () => void): boolean {
+    play(index: number, onEnded?: () => void, onError?: (message: string) => void): boolean {
         if (index < 0 || index >= this.items.length) return false;
         if (this.playingIndex === index) {
             this.stopPlayback();
@@ -74,12 +88,24 @@ export class BatchQueueManager {
             this.stopPlayback();
             onEnded?.();
         };
+        this.audioPlayer.onerror = () => {
+            const wasPlaying = this.playingIndex !== -1;
+            this.stopPlayback();
+            onEnded?.();
+            if (wasPlaying) {
+                onError?.('Không thể phát tệp âm thanh này trên trình duyệt hiện tại.');
+            }
+        };
         this.audioPlayer.src = item.audioUrl;
         const playPromise = this.audioPlayer.play();
         if (playPromise && typeof playPromise.catch === 'function') {
             playPromise.catch(() => {
+                const wasPlaying = this.playingIndex !== -1;
                 this.stopPlayback();
                 onEnded?.();
+                if (wasPlaying) {
+                    onError?.('Không thể phát tệp âm thanh này trên trình duyệt hiện tại.');
+                }
             });
         }
         this.onStateChange?.();

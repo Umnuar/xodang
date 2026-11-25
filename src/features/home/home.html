@@ -5,20 +5,29 @@
   <div itemprop="description" content="Ứng dụng PWA học tiếng Xơ Đăng miễn phí với từ điển tương tác"
     style="display:none;"></div>
 
-  <!-- HOME HEADER (Clean, dignified, left-aligned) -->
   <header class="home-header">
     <h1>Tra Cứu Từ Điển Xơ Đăng</h1>
     <p class="home-subtitle">Từ điển số hóa hỗ trợ cộng đồng tự học ngôn ngữ bản địa Xơ Đăng – Tiếng Việt.</p>
   </header>
 
-  <!-- SEARCH FORM (Above-the-fold, instant access) -->
   <form id="searchForm" class="search-form-clean" role="search" aria-label="Tra cứu từ điển Xơ Đăng">
     <div class="search-main-row">
       <div class="search-input-wrap">
-        <label for="word" class="sr-only">Nhập từ cần tra</label>
-        <input type="text" id="word" maxlength="100" enterkeyhint="search"
-          placeholder="Nhập từ cần tra (ví dụ: rừng, bri, nhà rông, đi học...)" autocomplete="off" list="suggestions"
-          aria-label="Nhập từ cần tra cứu">
+        <div class="search-combobox-wrap">
+          <label for="word" class="sr-only">Nhập từ cần tra</label>
+          <input type="text" id="word" maxlength="100" enterkeyhint="search"
+            placeholder="Nhập từ cần tra (ví dụ: rừng, bri, nhà rông, đi học...)" autocomplete="off"
+            role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions"
+            aria-label="Nhập từ cần tra cứu">
+          <button type="button" id="clearSearchBtn" class="clear-search-btn" aria-label="Xóa từ khóa" hidden>
+            <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" x2="6" y1="6" y2="18" />
+              <line x1="6" x2="18" y1="6" y2="18" />
+            </svg>
+          </button>
+          <ul id="suggestions" class="suggestions-listbox" role="listbox" aria-label="Gợi ý từ khóa" hidden></ul>
+        </div>
         <button type="button" id="speechButton" class="speech-button" title="Nhấn để đọc từ cần tra"
           aria-label="Nhận diện giọng nói để tìm từ vựng" aria-pressed="false">
           <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -48,7 +57,6 @@
         </button>
       </div>
     </div>
-    <datalist id="suggestions"></datalist>
 
     <div id="voiceFallbackPanel" class="voice-fallback-panel" role="region" aria-label="Hỗ trợ nhận diện giọng nói offline" hidden>
       <div class="voice-fallback-header">
@@ -88,7 +96,6 @@
       </div>
     </div>
 
-    <!-- XE DANG SPECIAL DIACRITICS BAR (WCAG 2.2 AA Target Size >= 44px) -->
     <div class="diacritics-bar" role="toolbar" aria-label="Bàn phím ký tự đặc biệt Xơ Đăng">
       <span class="diacritics-label">
         <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -120,7 +127,6 @@
     </div>
   </form>
 
-  <!-- ONE-LINE LEXICAL SUMMARY (Replaces bloated Bento cards without losing any data) -->
   <div class="lexical-summary-bar" role="region" aria-label="Thống kê dữ liệu từ điển">
     <span class="summary-item"><strong id="stat-words">1000+</strong> từ chuẩn</span>
     <span class="summary-dot" aria-hidden="true">•</span>
@@ -132,7 +138,6 @@
     <span id="dictionary-count" style="display:none;">1000+ từ vựng chuẩn</span>
   </div>
 
-  <!-- QUICK SUGGESTIONS CHIPS -->
   <div class="suggestions-chips-container" aria-label="Gợi ý tra cứu nhanh">
     <span class="chips-label">
       <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -142,7 +147,7 @@
       </svg>
       <span>Gợi ý:</span>
     </span>
-    <div class="chips-list">
+    <div class="chips-list" id="quickChipsList">
       <button type="button" class="suggest-chip" data-query="xin chào">Xin chào</button>
       <button type="button" class="suggest-chip" data-query="cảm ơn">Cảm ơn</button>
       <button type="button" class="suggest-chip" data-query="nhà">Nhà</button>
@@ -155,7 +160,7 @@
 
   <div class="search-status" id="searchStatus" aria-live="polite"></div>
 
-  <div class="loading" id="loading" style="display:none" role="status">
+  <div class="home-loading" id="loading" style="display:none" role="status">
     <svg class="lucide-icon spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -163,7 +168,6 @@
     <span>Đang tải dữ liệu từ điển...</span>
   </div>
 
-  <!-- RESULT SECTION -->
   <section aria-live="polite">
     <div class="result-container" id="resultContainer">
       <div id="result">
@@ -185,7 +189,6 @@
     </div>
   </section>
 
-  <!-- OFFLINE AUDIO DOWNLOAD CARD (Compact utility card placed cleanly below primary search flow) -->
   <div class="offline-download-card">
     <div class="offline-card-header">
       <div class="offline-card-icon" aria-hidden="true">
@@ -203,9 +206,8 @@
       </div>
     </div>
 
-    <!-- Progress Bar (Hiện khi tải) -->
     <div class="download-progress-container" id="download-progress-container" style="display: none;" role="progressbar"
-      aria-valuemin="0" aria-valuemax="100">
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
       <div class="download-progress-header">
         <span id="download-progress-text">Đang tải: 0/0 (0%)</span>
         <span>Vui lòng không đóng trang web...</span>
@@ -215,7 +217,7 @@
       </div>
     </div>
 
-    <button id="btn-download-offline" class="btn-download-offline" aria-label="Tải âm thanh offline">
+    <button type="button" id="btn-download-offline" class="btn-download-offline" aria-label="Tải âm thanh offline">
       <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

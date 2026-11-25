@@ -1,5 +1,12 @@
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
-import { setRawStorageItem } from './storage.service';
+import { removeStorageItem, setRawStorageItem } from './storage.service';
+
+export class WasmModelLoadError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'WasmModelLoadError';
+    }
+}
 
 export interface WasmVoiceCallbacks {
     onStart?: () => void;
@@ -7,6 +14,8 @@ export interface WasmVoiceCallbacks {
     onResult?: (transcript: string) => void;
     onEnd?: () => void;
     onError?: (error: string) => void;
+    onModelLoadError?: (error: string) => void;
+    signal?: AbortSignal;
 }
 
 export interface WasmCaptureSession {
@@ -18,7 +27,7 @@ type WorkerResponse =
     | { type: 'progress'; percent: number; file: string }
     | { type: 'ready'; requestId: number }
     | { type: 'result'; requestId: number; text: string }
-    | { type: 'error'; requestId: number; message: string };
+    | { type: 'error'; requestId: number; message: string; code?: 'model_load_failed' | 'transcribe_failed' };
 
 const TARGET_SAMPLE_RATE = 16000;
 const MAX_CAPTURE_MS = 6000;
@@ -71,8 +80,12 @@ export async function resampleAudioBlobTo16kMono(blob: Blob): Promise<Float32Arr
 }
 
 export async function preloadWhisperModel(
-    onProgress?: (percent: number, file: string) => void
+    onProgress?: (percent: number, file: string) => void,
+    signal?: AbortSignal
 ): Promise<void> {
+    if (signal?.aborted) {
+        throw new DOMException('Aborted', 'AbortError');
+    }
     if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
         void navigator.storage.persist().catch(() => false);
     }
@@ -84,6 +97,12 @@ export async function preloadWhisperModel(
         const cleanup = () => {
             worker.removeEventListener('message', handleMessage);
             worker.removeEventListener('error', handleError);
+            signal?.removeEventListener('abort', handleAbort);
+        };
+
+        const handleAbort = () => {
+            cleanup();
+            reject(new DOMException('Aborted', 'AbortError'));
         };
 
         const handleMessage = (event: MessageEvent<WorkerResponse>) => {
@@ -100,22 +119,29 @@ export async function preloadWhisperModel(
                 resolve();
             } else if (data.type === 'error') {
                 cleanup();
-                reject(new Error(data.message));
+                removeStorageItem(STORAGE_KEYS.STT_WASM_READY);
+                reject(new WasmModelLoadError(data.message));
             }
         };
 
         const handleError = (err: ErrorEvent) => {
             cleanup();
-            reject(new Error(err.message || 'Lỗi tải AI Whisper WASM Worker.'));
+            removeStorageItem(STORAGE_KEYS.STT_WASM_READY);
+            reject(new WasmModelLoadError(err.message || 'Lỗi tải AI Whisper WASM Worker.'));
         };
 
+        signal?.addEventListener('abort', handleAbort, { once: true });
         worker.addEventListener('message', handleMessage);
         worker.addEventListener('error', handleError);
         worker.postMessage({ type: 'preload', requestId });
     });
 }
 
-function transcribePcmInWorker(audio: Float32Array): Promise<string> {
+function transcribePcmInWorker(audio: Float32Array, signal?: AbortSignal): Promise<string> {
+    if (signal?.aborted) {
+        return Promise.reject(new DOMException('Aborted', 'AbortError'));
+    }
+
     const worker = getOrCreateWorker();
     const requestId = nextRequestId++;
 
@@ -123,6 +149,12 @@ function transcribePcmInWorker(audio: Float32Array): Promise<string> {
         const cleanup = () => {
             worker.removeEventListener('message', handleMessage);
             worker.removeEventListener('error', handleError);
+            signal?.removeEventListener('abort', handleAbort);
+        };
+
+        const handleAbort = () => {
+            cleanup();
+            reject(new DOMException('Aborted', 'AbortError'));
         };
 
         const handleMessage = (event: MessageEvent<WorkerResponse>) => {
@@ -133,6 +165,11 @@ function transcribePcmInWorker(audio: Float32Array): Promise<string> {
                 resolve(data.text);
             } else if (data.type === 'error') {
                 cleanup();
+                if (data.code === 'model_load_failed') {
+                    removeStorageItem(STORAGE_KEYS.STT_WASM_READY);
+                    reject(new WasmModelLoadError(data.message));
+                    return;
+                }
                 reject(new Error(data.message));
             }
         };
@@ -142,6 +179,7 @@ function transcribePcmInWorker(audio: Float32Array): Promise<string> {
             reject(new Error(err.message || 'Lỗi xử lý AI Whisper WASM.'));
         };
 
+        signal?.addEventListener('abort', handleAbort, { once: true });
         worker.addEventListener('message', handleMessage);
         worker.addEventListener('error', handleError);
         worker.postMessage({ type: 'transcribe', requestId, audio }, [audio.buffer]);
@@ -157,6 +195,11 @@ function selectSupportedMimeType(): string {
 }
 
 export async function startWasmVoiceCapture(callbacks: WasmVoiceCallbacks): Promise<WasmCaptureSession> {
+    if (callbacks.signal?.aborted) {
+        callbacks.onEnd?.();
+        return { stop: () => {}, cancel: () => {} };
+    }
+
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
         const msg = 'Trình duyệt không hỗ trợ ghi âm micro cho AI WASM.';
         callbacks.onError?.(msg);
@@ -174,8 +217,20 @@ export async function startWasmVoiceCapture(callbacks: WasmVoiceCallbacks): Prom
             }
         });
     } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Không có quyền truy cập microphone.';
-        callbacks.onError?.(msg);
+        if (!callbacks.signal?.aborted) {
+            const msg = err instanceof Error ? err.message : 'Không có quyền truy cập microphone.';
+            callbacks.onError?.(msg);
+        }
+        callbacks.onEnd?.();
+        return { stop: () => {}, cancel: () => {} };
+    }
+
+    const stopTracks = () => {
+        stream.getTracks().forEach((track) => track.stop());
+    };
+
+    if (callbacks.signal?.aborted) {
+        stopTracks();
         callbacks.onEnd?.();
         return { stop: () => {}, cancel: () => {} };
     }
@@ -186,15 +241,30 @@ export async function startWasmVoiceCapture(callbacks: WasmVoiceCallbacks): Prom
     let cancelled = false;
     let stopTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const stopTracks = () => {
-        stream.getTracks().forEach((track) => track.stop());
-    };
-
     const clearStopTimer = () => {
         if (stopTimer !== null) {
             clearTimeout(stopTimer);
             stopTimer = null;
         }
+    };
+
+    const cancelSession = () => {
+        cancelled = true;
+        clearStopTimer();
+        if (recorder.state !== 'inactive') {
+            recorder.stop();
+        } else {
+            stopTracks();
+        }
+    };
+
+    const onAbort = () => {
+        cancelSession();
+    };
+    callbacks.signal?.addEventListener('abort', onAbort, { once: true });
+
+    const cleanupAbort = () => {
+        callbacks.signal?.removeEventListener('abort', onAbort);
     };
 
     recorder.addEventListener('dataavailable', (event: BlobEvent) => {
@@ -206,7 +276,10 @@ export async function startWasmVoiceCapture(callbacks: WasmVoiceCallbacks): Prom
     recorder.addEventListener('error', () => {
         clearStopTimer();
         stopTracks();
-        callbacks.onError?.('Lỗi khi ghi âm thanh.');
+        cleanupAbort();
+        if (!cancelled && !callbacks.signal?.aborted) {
+            callbacks.onError?.('Lỗi khi ghi âm thanh.');
+        }
         callbacks.onEnd?.();
     });
 
@@ -214,21 +287,27 @@ export async function startWasmVoiceCapture(callbacks: WasmVoiceCallbacks): Prom
         clearStopTimer();
         stopTracks();
 
-        if (cancelled || chunks.length === 0) {
+        if (cancelled || callbacks.signal?.aborted || chunks.length === 0) {
+            cleanupAbort();
             callbacks.onEnd?.();
             return;
         }
 
         const recordedBlob = new Blob(chunks, { type: recorder.mimeType || mimeType || 'audio/webm' });
         if (recordedBlob.size === 0) {
+            cleanupAbort();
             callbacks.onEnd?.();
             return;
         }
 
         callbacks.onProcessing?.();
         void resampleAudioBlobTo16kMono(recordedBlob)
-            .then((pcm) => transcribePcmInWorker(pcm))
+            .then((pcm) => {
+                if (cancelled || callbacks.signal?.aborted) return '';
+                return transcribePcmInWorker(pcm, callbacks.signal);
+            })
             .then((text) => {
+                if (cancelled || callbacks.signal?.aborted) return;
                 if (text) {
                     callbacks.onResult?.(text);
                 } else {
@@ -236,10 +315,16 @@ export async function startWasmVoiceCapture(callbacks: WasmVoiceCallbacks): Prom
                 }
             })
             .catch((err: unknown) => {
+                if (cancelled || callbacks.signal?.aborted) return;
+                if (err instanceof WasmModelLoadError && callbacks.onModelLoadError) {
+                    callbacks.onModelLoadError(err.message);
+                    return;
+                }
                 const msg = err instanceof Error ? err.message : 'Lỗi nhận diện bằng AI Whisper WASM.';
                 callbacks.onError?.(msg);
             })
             .finally(() => {
+                cleanupAbort();
                 callbacks.onEnd?.();
             });
     });
@@ -263,14 +348,6 @@ export async function startWasmVoiceCapture(callbacks: WasmVoiceCallbacks): Prom
                 stopTracks();
             }
         },
-        cancel: () => {
-            cancelled = true;
-            clearStopTimer();
-            if (recorder.state !== 'inactive') {
-                recorder.stop();
-            } else {
-                stopTracks();
-            }
-        }
+        cancel: cancelSession
     };
 }

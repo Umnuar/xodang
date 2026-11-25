@@ -90,7 +90,7 @@ export async function sendContribution(data: {
     const targetUrl = (data.endpointUrl || APP_CONFIG.CONTRIBUTE_API_URL || APP_CONFIG.CONTRIBUTE_URL).trim();
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.REQUEST_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.UPLOAD_TIMEOUT_MS);
 
     try {
         if (!isAppsScriptEndpoint(targetUrl)) {
@@ -352,7 +352,8 @@ export async function hasOfflineAudioUpdates(
         const cache = await caches.open(APP_CONFIG.AUDIO_CACHE_NAME);
         const cachedFilenames = await getCachedAudioFilenameSet(cache);
         const storedHashes = getStorageItemByKey<Record<string, string>>(STORAGE_KEYS.AUDIO_PACK_HASHES, {});
-        const packIndex = await fetchAudioPackIndex();
+        const isOnline = typeof navigator === 'undefined' || navigator.onLine !== false;
+        const packIndex = isOnline ? await fetchAudioPackIndex() : null;
         let upToDate = 0;
         for (const id of validIds) {
             if (isEntryUpToDate(id, cachedFilenames, storedHashes, packIndex)) {
@@ -401,12 +402,12 @@ async function fetchIndividualAudioIds(
                             storedHashes[id] = entry[2];
                         }
                         added++;
+                        loaded++;
+                        notifyProgress(loaded, total, Math.round((loaded / total) * 100));
                     }
                 } catch {
                 }
             }
-            loaded++;
-            notifyProgress(loaded, total, Math.round((loaded / total) * 100));
         }
     }
 
@@ -539,6 +540,9 @@ export async function downloadOfflineAudio(
     const total = validIds.length;
     if (typeof window === 'undefined' || !('caches' in window) || total === 0) {
         return { cached: 0, total };
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return getOfflineAudioStatus(validIds);
     }
 
     if (onProgress) {

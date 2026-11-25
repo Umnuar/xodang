@@ -1,7 +1,7 @@
 import '@/styles/features/chat.css';
 import { fetchChatData } from '@/services/sheets.service';
 import {
-    DEFAULT_FAQ_ITEMS,
+    getInitialFaqItems,
     parseFaqRows,
     findFaqAnswer,
     pickRandomFaqSuggestions,
@@ -9,13 +9,12 @@ import {
 } from '@/services/faq.service';
 import { getLucideIcon } from '@/utils/icons';
 import { hasOpenedChat, setHasOpenedChat } from '@/services/storage.service';
+import { eventBus } from '@/utils/event-bus';
 
 export function createSuggestionButton(questionText: string, onClick: (q: string) => void): HTMLButtonElement {
     const btn = document.createElement('button');
-    btn.className = 'hashtag';
-    btn.style.fontSize = '0.8rem';
-    btn.style.padding = '6px 12px';
-    btn.style.cursor = 'pointer';
+    btn.type = 'button';
+    btn.className = 'chat-suggestion-btn';
     btn.textContent = questionText;
     btn.addEventListener('click', () => onClick(questionText));
     return btn;
@@ -30,24 +29,45 @@ export function initChat(autoOpen: boolean = false): void {
     const chatInput = document.getElementById('chatInput') as HTMLInputElement | null;
     const sendChatBtn = document.getElementById('sendChatBtn');
 
-    let faqs: BotFAQ[] = [];
+    let faqs: BotFAQ[] = getInitialFaqItems();
     let isChatOpen = false;
     const usedQuestions = new Set<string>();
+
+    if (chatMessages) {
+        chatMessages.setAttribute('role', 'log');
+        chatMessages.setAttribute('aria-live', 'polite');
+    }
+
+    if (chatToggleBtn) {
+        chatToggleBtn.setAttribute('aria-controls', 'chatWindow');
+        chatToggleBtn.setAttribute('aria-expanded', 'false');
+    }
 
     async function loadFaqs(): Promise<void> {
         try {
             const rawRows = await fetchChatData();
-            faqs = parseFaqRows(rawRows);
+            const loadedFaqs = parseFaqRows(rawRows);
+            if (loadedFaqs.length > 0) {
+                faqs = loadedFaqs;
+            }
         } catch (err: unknown) {
             console.error('Failed to load chat FAQs:', err);
-            faqs = [...DEFAULT_FAQ_ITEMS];
+            if (faqs.length === 0) {
+                faqs = getInitialFaqItems();
+            }
         }
-        displayWelcome();
+        if (chatMessages && chatMessages.children.length === 0) {
+            displayWelcome();
+        }
     }
 
-    function toggleChat(forceOpen?: boolean): void {
+    function toggleChat(forceOpen?: boolean, returnFocus: boolean = false): void {
         if (!chatWindow) return;
         isChatOpen = forceOpen !== undefined ? forceOpen : !isChatOpen;
+
+        if (chatToggleBtn) {
+            chatToggleBtn.setAttribute('aria-expanded', String(isChatOpen));
+        }
 
         if (isChatOpen) {
             chatWindow.classList.add('active');
@@ -56,6 +76,9 @@ export function initChat(autoOpen: boolean = false): void {
             if (chatInput) chatInput.focus();
         } else {
             chatWindow.classList.remove('active');
+            if (returnFocus && chatToggleBtn) {
+                chatToggleBtn.focus();
+            }
         }
     }
 
@@ -67,12 +90,21 @@ export function initChat(autoOpen: boolean = false): void {
     }
 
     if (closeChatBtn) {
-        closeChatBtn.addEventListener('click', () => toggleChat(false));
+        closeChatBtn.addEventListener('click', () => toggleChat(false, true));
     }
 
-    if (autoOpen) {
-        toggleChat(true);
-    }
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && isChatOpen) {
+            e.preventDefault();
+            toggleChat(false, true);
+        }
+    });
+
+    eventBus.on('tab:change', () => {
+        if (isChatOpen && window.innerWidth <= 768) {
+            toggleChat(false, false);
+        }
+    });
 
     function formatCurrentTime(): string {
         const now = new Date();
@@ -101,23 +133,23 @@ export function initChat(autoOpen: boolean = false): void {
 
     function showTypingIndicator(): HTMLElement | null {
         if (!chatMessages) return null;
+        chatMessages.querySelectorAll('.typing-indicator').forEach(el => el.remove());
 
         const typingDiv = document.createElement('div');
         typingDiv.className = 'typing-indicator';
-        typingDiv.id = 'typingIndicator';
-        typingDiv.innerHTML = `
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-        `;
+        typingDiv.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 3; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'typing-dot';
+            typingDiv.appendChild(dot);
+        }
         chatMessages.appendChild(typingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         return typingDiv;
     }
 
     function displayWelcome(): void {
-        if (!chatMessages) return;
-        chatMessages.replaceChildren();
+        if (!chatMessages || chatMessages.children.length > 0) return;
 
         displayMessage('Xin chào! Tôi là trợ lý tiếng Xơ Đăng. Tôi có thể giúp bạn tìm hiểu về ngôn ngữ và văn hóa Xơ Đăng.', 'bot');
 
@@ -190,5 +222,9 @@ export function initChat(autoOpen: boolean = false): void {
         });
     }
 
-    loadFaqs();
+    displayWelcome();
+    if (autoOpen) {
+        toggleChat(true);
+    }
+    void loadFaqs();
 }

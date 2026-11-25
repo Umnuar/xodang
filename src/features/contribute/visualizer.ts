@@ -76,7 +76,7 @@ export class AudioWaveVisualizer {
                         bar.style.transform = `scaleY(${scale.toFixed(2)})`;
                     });
                 } else {
-                    const minScale = isPlaying ? 0.2 : 0.2;
+                    const minScale = 0.2;
                     const range = isPlaying ? 0.6 : 0.8;
                     this.bars.forEach((bar) => {
                         const scale = Math.random() * range + minScale;

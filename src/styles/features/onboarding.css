@@ -1,12 +1,10 @@
-/* ===== ONBOARDING MODAL STYLES (DIRECTION A: QUIET PUBLICATION) ===== */
-
 .onboarding-modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
+    inset: 0;
+    width: auto;
     height: 100vh;
-    z-index: 10000;
+    height: 100dvh;
+    z-index: var(--z-modal);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -16,11 +14,8 @@
 
 .onboarding-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.55);
+    inset: 0;
+    background: var(--bg-overlay, rgba(0, 0, 0, 0.55));
 }
 
 .onboarding-card {
@@ -33,6 +28,9 @@
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
     width: 100%;
     max-width: 480px;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
     padding: 1.75rem;
     text-align: center;
     box-sizing: border-box;
@@ -90,6 +88,7 @@
     color: var(--color-primary);
 }
 
+.onboarding-slide h2,
 .onboarding-slide h3 {
     font-size: 1.25rem;
     margin: 0 0 0.5rem;
@@ -137,6 +136,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 4px;
     margin-top: 0.75rem;
 }
 
@@ -152,6 +152,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     color: var(--text-primary);
     transition: background-color 0.15s, border-color 0.15s;
     box-sizing: border-box;
@@ -176,21 +177,45 @@
 .onboarding-dots {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
 }
 
 .onboarding-dot {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-full, 9999px);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.onboarding-dot::after {
+    content: '';
     width: 8px;
     height: 8px;
     border-radius: 4px;
     background: var(--border-default);
-    cursor: pointer;
     transition: width 0.15s, background-color 0.15s;
 }
 
-.onboarding-dot.active {
+.onboarding-dot.active::after {
     width: 20px;
     background: var(--color-primary);
+}
+
+.onboarding-dot:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -4px;
 }
 
 .onboarding-start-btn {
@@ -201,7 +226,7 @@
     border: 1px solid transparent;
     border-radius: var(--radius-md, 6px);
     background: var(--color-primary, #1e7e48);
-    color: #ffffff;
+    color: var(--text-inverse);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -222,7 +247,6 @@
     outline-offset: 2px;
 }
 
-/* Mobile Adjustments */
 @media (max-width: 480px) {
     .onboarding-card {
         padding: 1.25rem 1rem;
@@ -231,5 +255,11 @@
     .onboarding-features {
         padding: 0.625rem 0.75rem;
         font-size: 0.82rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .onboarding-dot::after {
+        transition: none;
     }
 }

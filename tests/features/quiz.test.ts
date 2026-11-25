@@ -42,24 +42,37 @@ describe('Quiz Service Unit Tests', () => {
         expect(grouped.get('Thiên nhiên')?.length).toBe(4);
     });
 
-    it('selects requested count of questions from pool', () => {
+    it('selects requested count of questions from pool and shuffles options while preserving correctAnswer mapping', () => {
         const questions = parseQuizRows(rawRows);
+        const expectedCorrectTextById = new Map(
+            questions.map((q) => [q.id, q.options[q.correctAnswer - 1]])
+        );
+        const expectedOptionsById = new Map(
+            questions.map((q) => [q.id, q.options])
+        );
+
         const selected = selectQuizQuestions(questions, 3);
         expect(selected.length).toBe(3);
+
+        for (const q of selected) {
+            expect(q.options.length).toBe(4);
+            expect(new Set(q.options)).toEqual(new Set(expectedOptionsById.get(q.id)));
+            expect(q.correctAnswer).toBeGreaterThanOrEqual(1);
+            expect(q.correctAnswer).toBeLessThanOrEqual(q.options.length);
+            expect(q.options[q.correctAnswer - 1]).toBe(expectedCorrectTextById.get(q.id));
+        }
     });
 
     it('evaluates quiz answers and calculates accurate score and messages', () => {
         const questions = parseQuizRows(rawRows).slice(0, 5);
-        // Correct answers are [1, 2, 3, 1, 3]
-        // User answers 4 correctly out of 5:
-        const userAnswers = [1, 2, 3, 1, 4]; // 5th is wrong (4 instead of 3)
+        const userAnswers = [1, 2, 3, 1, 4];
 
         const summary = evaluateQuiz(questions, userAnswers);
 
         expect(summary.score).toBe(4);
         expect(summary.total).toBe(5);
         expect(summary.percentage).toBe(80);
-        expect(summary.title).toBe('Rất tốt! 👏');
+        expect(summary.title).toBe('Rất tốt!');
         expect(summary.details.length).toBe(5);
         expect(summary.details[0].isCorrect).toBe(true);
         expect(summary.details[4].isCorrect).toBe(false);
@@ -73,13 +86,13 @@ describe('Quiz Service Unit Tests', () => {
 
         expect(summary.score).toBe(5);
         expect(summary.percentage).toBe(100);
-        expect(summary.title).toBe('Xuất sắc! 🎉');
+        expect(summary.title).toBe('Xuất sắc!');
     });
 
     it('evaluates 2-question and 10-question pools using percentage thresholds', () => {
         const twoQuestions = parseQuizRows(rawRows).slice(0, 2);
-        expect(evaluateQuiz(twoQuestions, [1, 2]).title).toBe('Xuất sắc! 🎉');
-        expect(evaluateQuiz(twoQuestions, [1, 1]).title).toBe('Cần cố gắng thêm! 📚');
+        expect(evaluateQuiz(twoQuestions, [1, 2]).title).toBe('Xuất sắc!');
+        expect(evaluateQuiz(twoQuestions, [1, 1]).title).toBe('Cần cố gắng thêm!');
 
         const tenQuestions = Array.from({ length: 10 }, (_, idx) => ({
             id: String(idx + 1),
@@ -91,9 +104,9 @@ describe('Quiz Service Unit Tests', () => {
         const eightRight = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2];
         const sixRight = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2];
         const fiveRight = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2];
-        expect(evaluateQuiz(tenQuestions, eightRight).title).toBe('Rất tốt! 👏');
-        expect(evaluateQuiz(tenQuestions, sixRight).title).toBe('Khá tốt! 👍');
-        expect(evaluateQuiz(tenQuestions, fiveRight).title).toBe('Cần cố gắng thêm! 📚');
+        expect(evaluateQuiz(tenQuestions, eightRight).title).toBe('Rất tốt!');
+        expect(evaluateQuiz(tenQuestions, sixRight).title).toBe('Khá tốt!');
+        expect(evaluateQuiz(tenQuestions, fiveRight).title).toBe('Cần cố gắng thêm!');
     });
 
     it('maps 1-indexed correctAnswer accurately to flashcard answer text', () => {
@@ -155,13 +168,43 @@ describe('Quiz UI Controller Tests', () => {
         expect(document.getElementById('quizTimer')?.textContent).toBe('00:03');
 
         eventBus.emit('tab:change', 'quiz');
-        const options = document.querySelectorAll('#optionsContainer .option');
-        (options[0] as HTMLElement).click();
+
+        const expectedAnswersByQuestion: Record<string, string> = {
+            Q1: 'A1',
+            Q2: 'B2'
+        };
+        const expectedOptionsByQuestion: Record<string, string[]> = {
+            Q1: ['A1', 'B1', 'C1', 'D1'],
+            Q2: ['A2', 'B2', 'C2', 'D2']
+        };
+
+        const selectCorrectOptionForCurrentQuestion = (): string => {
+            const qText = document.getElementById('questionText')?.textContent?.trim() ?? '';
+            expect(qText in expectedAnswersByQuestion).toBe(true);
+            const optionElements = Array.from(document.querySelectorAll('#optionsContainer .option'));
+            expect(optionElements.length).toBe(4);
+            const renderedOptionTexts = optionElements.map(
+                (el) => el.querySelector('.option-text')?.textContent?.trim() ?? ''
+            );
+            expect(new Set(renderedOptionTexts)).toEqual(new Set(expectedOptionsByQuestion[qText]));
+            const targetText = expectedAnswersByQuestion[qText];
+            const matchingOption = optionElements.find(
+                (el) => el.querySelector('.option-text')?.textContent?.trim() === targetText
+            ) as HTMLElement | undefined;
+            expect(matchingOption).toBeDefined();
+            matchingOption!.click();
+            return qText;
+        };
+
+        const firstQuestion = selectCorrectOptionForCurrentQuestion();
         document.getElementById('nextQuestionBtn')!.click();
-        (document.querySelectorAll('#optionsContainer .option')[1] as HTMLElement).click();
+        const secondQuestion = selectCorrectOptionForCurrentQuestion();
+        expect(secondQuestion).not.toBe(firstQuestion);
+
         document.getElementById('submitQuizBtn')!.click();
 
         expect(document.getElementById('finalScore')?.textContent).toBe('2');
         expect(document.getElementById('maxScore')?.textContent).toBe('/2');
+        expect(document.getElementById('resultTitle')?.textContent).toBe('Xuất sắc!');
     });
 });

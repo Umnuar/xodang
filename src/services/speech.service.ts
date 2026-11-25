@@ -11,10 +11,12 @@ export interface SpeechRecognitionCallbacks {
 export interface SpeechRecognitionInstance {
     start: () => void;
     stop: () => void;
+    cancel?: () => void;
     isSupported: boolean;
 }
 
 export type SpeechTier = 'on-device' | 'cloud' | 'keyboard' | 'wasm';
+export type SpeechState = 'idle' | 'starting' | 'listening' | 'processing';
 export type SpeechAvailability = 'available' | 'downloadable' | 'downloading' | 'unavailable';
 
 export interface SpeechTierResolutionInput {
@@ -34,6 +36,7 @@ export interface SpeechFallbackInfo {
 
 export interface SmartSpeechCallbacks {
     onTierSelected?: (tier: SpeechTier) => void;
+    onStateChange?: (state: SpeechState) => void;
     onStatus?: (message: string) => void;
     onStart?: (tier: SpeechTier) => void;
     onProcessing?: (tier: SpeechTier) => void;
@@ -42,11 +45,14 @@ export interface SmartSpeechCallbacks {
     onError?: (error: string) => void;
     onFallbackKeyboard?: (info: SpeechFallbackInfo) => void;
     forceWasm?: boolean;
+    signal?: AbortSignal;
 }
 
 export interface SmartSpeechHandle {
     readonly tier: SpeechTier;
+    readonly state: SpeechState;
     stop: () => void;
+    cancel: () => void;
 }
 
 interface SpeechRecognitionConstructor {
@@ -141,7 +147,7 @@ export function createSpeechRecognizer(
 ): SpeechRecognitionInstance {
     const SpeechRecognitionClass = getSpeechRecognitionConstructor();
     if (!SpeechRecognitionClass) {
-        return { start: () => {}, stop: () => {}, isSupported: false };
+        return { start: () => {}, stop: () => {}, cancel: () => {}, isSupported: false };
     }
 
     const recognition = new SpeechRecognitionClass();
@@ -184,6 +190,17 @@ export function createSpeechRecognizer(
                 return;
             }
         },
+        cancel: () => {
+            try {
+                if (typeof recognition.abort === 'function') {
+                    recognition.abort();
+                } else {
+                    recognition.stop();
+                }
+            } catch {
+                return;
+            }
+        },
         isSupported: true
     };
 }
@@ -205,23 +222,64 @@ export function startSpeechRecognition(
 
 export async function startSmartVietnameseSpeech(callbacks: SmartSpeechCallbacks): Promise<SmartSpeechHandle> {
     let activeTier: SpeechTier = 'keyboard';
-    let stopped = false;
+    let currentState: SpeechState = 'starting';
+    let cancelled = Boolean(callbacks.signal?.aborted);
+    let stopped = cancelled;
     let activeStop: () => void = () => {};
+    let activeCancel: () => void = () => {};
+
+    const setState = (next: SpeechState): void => {
+        if (currentState !== next) {
+            currentState = next;
+            callbacks.onStateChange?.(next);
+        }
+    };
+
+    const isCancelled = (): boolean => cancelled || Boolean(callbacks.signal?.aborted);
+
+    const performCancel = (): void => {
+        cancelled = true;
+        stopped = true;
+        setState('idle');
+        activeCancel();
+    };
+
+    const onAbort = (): void => {
+        performCancel();
+    };
+    callbacks.signal?.addEventListener('abort', onAbort, { once: true });
+
+    const cleanupAbort = (): void => {
+        callbacks.signal?.removeEventListener('abort', onAbort);
+    };
 
     const createHandle = (): SmartSpeechHandle => ({
         get tier() {
             return activeTier;
         },
+        get state() {
+            return currentState;
+        },
         stop: () => {
             stopped = true;
             activeStop();
-        }
+        },
+        cancel: performCancel
     });
 
     const isNavigatorOnline = (): boolean => (typeof navigator === 'undefined' ? true : navigator.onLine);
 
+    if (isCancelled()) {
+        setState('idle');
+        cleanupAbort();
+        return createHandle();
+    }
+
     const triggerKeyboardFallback = (reason: string): void => {
+        if (isCancelled()) return;
         activeTier = 'keyboard';
+        setState('idle');
+        cleanupAbort();
         callbacks.onTierSelected?.('keyboard');
         callbacks.onFallbackKeyboard?.({
             reason,
@@ -232,29 +290,88 @@ export async function startSmartVietnameseSpeech(callbacks: SmartSpeechCallbacks
     };
 
     const triggerWasmTier = async (): Promise<void> => {
-        if (stopped) return;
+        if (stopped || isCancelled()) {
+            setState('idle');
+            cleanupAbort();
+            return;
+        }
         activeTier = 'wasm';
         callbacks.onTierSelected?.('wasm');
         try {
             const { startWasmVoiceCapture } = await import('./whisper-stt.service');
-            if (stopped) return;
+            if (stopped || isCancelled()) {
+                setState('idle');
+                cleanupAbort();
+                return;
+            }
             const session = await startWasmVoiceCapture({
-                onStart: () => callbacks.onStart?.('wasm'),
-                onProcessing: () => callbacks.onProcessing?.('wasm'),
-                onResult: (transcript) => callbacks.onResult?.(transcript, 'wasm'),
-                onError: (error) => callbacks.onError?.(error),
-                onEnd: () => callbacks.onEnd?.()
+                signal: callbacks.signal,
+                onStart: () => {
+                    if (isCancelled()) return;
+                    setState('listening');
+                    callbacks.onStart?.('wasm');
+                },
+                onProcessing: () => {
+                    if (isCancelled()) return;
+                    setState('processing');
+                    callbacks.onProcessing?.('wasm');
+                },
+                onResult: (transcript) => {
+                    if (isCancelled()) return;
+                    setState('idle');
+                    cleanupAbort();
+                    callbacks.onResult?.(transcript, 'wasm');
+                },
+                onModelLoadError: () => {
+                    if (isCancelled()) return;
+                    setWasmSpeechCached(false);
+                    triggerKeyboardFallback('wasm-load-failed');
+                },
+                onError: (error) => {
+                    if (isCancelled()) return;
+                    setState('idle');
+                    cleanupAbort();
+                    callbacks.onError?.(error);
+                },
+                onEnd: () => {
+                    setState('idle');
+                    cleanupAbort();
+                    if (!isCancelled()) {
+                        callbacks.onEnd?.();
+                    }
+                }
             });
             activeStop = () => session.stop();
+            activeCancel = () => session.cancel();
+            if (isCancelled()) {
+                session.cancel();
+            }
         } catch (err: unknown) {
+            if (isCancelled()) {
+                setState('idle');
+                cleanupAbort();
+                return;
+            }
+            setWasmSpeechCached(false);
+            if (!isNavigatorOnline()) {
+                triggerKeyboardFallback('wasm-load-failed');
+                callbacks.onEnd?.();
+                return;
+            }
             const message = err instanceof Error ? err.message : 'Không thể khởi chạy AI Whisper WASM.';
+            setState('idle');
+            cleanupAbort();
             callbacks.onError?.(message);
             callbacks.onEnd?.();
         }
     };
 
     const runCloudTier = (): void => {
-        if (stopped) return;
+        if (stopped || isCancelled()) {
+            setState('idle');
+            cleanupAbort();
+            return;
+        }
         activeTier = 'cloud';
         callbacks.onTierSelected?.('cloud');
         let ended = false;
@@ -263,15 +380,29 @@ export async function startSmartVietnameseSpeech(callbacks: SmartSpeechCallbacks
         const emitEndOnce = () => {
             if (!ended && !cascaded) {
                 ended = true;
-                callbacks.onEnd?.();
+                setState('idle');
+                cleanupAbort();
+                if (!isCancelled()) {
+                    callbacks.onEnd?.();
+                }
             }
         };
 
         const recognizer = createSpeechRecognizer(
             {
-                onStart: () => callbacks.onStart?.('cloud'),
-                onResult: (transcript) => callbacks.onResult?.(transcript, 'cloud'),
+                onStart: () => {
+                    if (isCancelled()) return;
+                    setState('listening');
+                    callbacks.onStart?.('cloud');
+                },
+                onResult: (transcript) => {
+                    if (isCancelled()) return;
+                    setState('idle');
+                    cleanupAbort();
+                    callbacks.onResult?.(transcript, 'cloud');
+                },
                 onError: (error) => {
+                    if (isCancelled()) return;
                     if (CASCADE_ERRORS.has(error)) {
                         cascaded = true;
                         recognizer.stop();
@@ -292,6 +423,7 @@ export async function startSmartVietnameseSpeech(callbacks: SmartSpeechCallbacks
         );
 
         activeStop = () => recognizer.stop();
+        activeCancel = () => (recognizer.cancel ? recognizer.cancel() : recognizer.stop());
         recognizer.start();
     };
 
@@ -306,7 +438,11 @@ export async function startSmartVietnameseSpeech(callbacks: SmartSpeechCallbacks
 
     const hasWebSpeech = isSpeechRecognitionSupported();
     const onDeviceStatus = hasWebSpeech ? await checkOnDeviceVietnameseAvailability() : 'unavailable';
-    if (stopped) return createHandle();
+    if (stopped || isCancelled()) {
+        setState('idle');
+        cleanupAbort();
+        return createHandle();
+    }
 
     const preferredTier = resolvePreferredSpeechTier({
         hasWebSpeech,
@@ -323,7 +459,11 @@ export async function startSmartVietnameseSpeech(callbacks: SmartSpeechCallbacks
         if (onDeviceStatus === 'downloadable') {
             callbacks.onStatus?.('Đang tải gói giọng nói tiếng Việt trên thiết bị...');
             const installed = await installOnDeviceVietnamesePack();
-            if (stopped) return createHandle();
+            if (stopped || isCancelled()) {
+                setState('idle');
+                cleanupAbort();
+                return createHandle();
+            }
             if (!installed) {
                 if (isNavigatorOnline()) {
                     runCloudTier();
@@ -341,15 +481,29 @@ export async function startSmartVietnameseSpeech(callbacks: SmartSpeechCallbacks
         const emitEndOnce = () => {
             if (!ended && !cascaded) {
                 ended = true;
-                callbacks.onEnd?.();
+                setState('idle');
+                cleanupAbort();
+                if (!isCancelled()) {
+                    callbacks.onEnd?.();
+                }
             }
         };
 
         const recognizer = createSpeechRecognizer(
             {
-                onStart: () => callbacks.onStart?.('on-device'),
-                onResult: (transcript) => callbacks.onResult?.(transcript, 'on-device'),
+                onStart: () => {
+                    if (isCancelled()) return;
+                    setState('listening');
+                    callbacks.onStart?.('on-device');
+                },
+                onResult: (transcript) => {
+                    if (isCancelled()) return;
+                    setState('idle');
+                    cleanupAbort();
+                    callbacks.onResult?.(transcript, 'on-device');
+                },
                 onError: (error) => {
+                    if (isCancelled()) return;
                     if (CASCADE_ERRORS.has(error)) {
                         cascaded = true;
                         recognizer.stop();
@@ -372,6 +526,7 @@ export async function startSmartVietnameseSpeech(callbacks: SmartSpeechCallbacks
         );
 
         activeStop = () => recognizer.stop();
+        activeCancel = () => (recognizer.cancel ? recognizer.cancel() : recognizer.stop());
         recognizer.start();
         return createHandle();
     }

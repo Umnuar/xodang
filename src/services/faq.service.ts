@@ -1,4 +1,5 @@
 import { normalizeUnicodeNFC, stripDiacritics } from './dictionary.service';
+import { snapshotFallback } from '@snapshot/data';
 
 export interface FaqItem {
     question: string;
@@ -114,6 +115,13 @@ export function getRandomFaqSuggestions(
     const selected = shuffled.slice(0, count);
     selected.forEach(q => usedQuestions.add(q.question));
     return selected;
+}
+
+export function getInitialFaqItems(): FaqItem[] {
+    if (snapshotFallback?.chat && snapshotFallback.chat.length > 0) {
+        return parseFaqRows(snapshotFallback.chat);
+    }
+    return [...DEFAULT_FAQ_ITEMS];
 }
 
 export type BotFAQ = FaqItem;

@@ -2,6 +2,29 @@ import type { DictionaryEntry, SearchDirection } from '@/services/dictionary.ser
 import { getAudioUrl } from '@/services/offline-sync.service';
 import { getLucideIcon } from '@/utils/icons';
 
+function cleanOptionalText(value?: string): string {
+    const trimmed = (value || '').trim();
+    if (!trimmed) return '';
+    const lower = trimmed.toLowerCase();
+    if (lower === 'null' || lower === 'undefined') return '';
+    return trimmed;
+}
+
+function getMatchTypeMeta(matchType?: string): { label: string; className: string } {
+    switch (matchType) {
+        case 'exact':
+            return { label: 'Từ chính xác', className: 'match-type exact-match-type' };
+        case 'accent_insensitive':
+            return { label: 'Khớp không dấu', className: 'match-type fuzzy-match-type' };
+        case 'partial':
+            return { label: 'Khớp một phần', className: 'match-type fuzzy-match-type' };
+        case 'fuzzy':
+            return { label: 'Gần đúng', className: 'match-type fuzzy-match-type' };
+        default:
+            return { label: 'Khớp từ khóa', className: 'match-type fuzzy-match-type' };
+    }
+}
+
 export function createWordCard(entry: DictionaryEntry, direction: SearchDirection): HTMLElement {
     const isVietToEthnic = direction === 'viet_to_ethnic';
 
@@ -11,12 +34,11 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
     const targetLabel = isVietToEthnic ? 'Tiếng Xơ Đăng' : 'Tiếng Việt';
 
     const card = document.createElement('div');
-    card.className = 'word-card exact-match';
+    card.className = entry.matchType === 'exact' ? 'word-card exact-match' : 'word-card';
 
     const wordDisplay = document.createElement('div');
     wordDisplay.className = 'word-display';
 
-    // 1. Source Word Item
     const sourceItem = document.createElement('div');
     sourceItem.className = 'word-display-item';
 
@@ -26,23 +48,23 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
     const sourceLabelText = document.createTextNode(`${sourceLabel}: `);
     sourceLabelDiv.appendChild(sourceLabelText);
 
+    const matchMeta = getMatchTypeMeta(entry.matchType);
     const matchTypeSpan = document.createElement('span');
-    matchTypeSpan.className = 'match-type exact-match-type';
-    matchTypeSpan.textContent = 'Từ chính xác';
+    matchTypeSpan.className = matchMeta.className;
+    matchTypeSpan.textContent = matchMeta.label;
     sourceLabelDiv.appendChild(matchTypeSpan);
 
     const sourceValueDiv = document.createElement('div');
     sourceValueDiv.className = 'word-display-value';
     const sourceHighlight = document.createElement('span');
     sourceHighlight.className = 'highlight-word';
-    sourceHighlight.textContent = sourceWord; // Safe textContent
+    sourceHighlight.textContent = sourceWord;
     sourceValueDiv.appendChild(sourceHighlight);
 
     sourceItem.appendChild(sourceLabelDiv);
     sourceItem.appendChild(sourceValueDiv);
     wordDisplay.appendChild(sourceItem);
 
-    // 2. Target Word Item
     const targetItem = document.createElement('div');
     targetItem.className = 'word-display-item';
 
@@ -55,15 +77,15 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
     targetValueDiv.className = 'word-display-value';
     const targetTextSpan = document.createElement('span');
     targetTextSpan.className = 'word-text';
-    targetTextSpan.textContent = targetWord; // Safe textContent
+    targetTextSpan.textContent = targetWord;
     targetValueDiv.appendChild(targetTextSpan);
 
     targetItem.appendChild(targetLabelDiv);
     targetItem.appendChild(targetValueDiv);
     wordDisplay.appendChild(targetItem);
 
-    // 3. Pronunciation Item (if present)
-    if (entry.pronunciation && entry.pronunciation.trim() !== '') {
+    const pronunciation = cleanOptionalText(entry.pronunciation);
+    if (pronunciation) {
         const pronItem = document.createElement('div');
         pronItem.className = 'word-display-item';
 
@@ -76,7 +98,7 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
         pronValueDiv.className = 'word-display-value';
         const pronSpan = document.createElement('span');
         pronSpan.className = 'pronunciation';
-        pronSpan.textContent = entry.pronunciation; // Safe textContent
+        pronSpan.textContent = pronunciation;
         pronValueDiv.appendChild(pronSpan);
 
         pronItem.appendChild(pronLabelDiv);
@@ -111,7 +133,20 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
 
         const audioInfo = document.createElement('div');
         audioInfo.className = 'audio-info';
-        audioInfo.textContent = 'Phát âm chuẩn người bản địa Xơ đăng';
+        audioInfo.textContent = 'Phát âm chuẩn người bản địa Xơ Đăng';
+
+        const handleAudioError = () => {
+            if (audioContainer.querySelector('.audio-error-note')) return;
+            const note = document.createElement('div');
+            note.className = 'audio-error-note';
+            note.setAttribute('role', 'status');
+            note.textContent = typeof navigator !== 'undefined' && navigator.onLine === false
+                ? 'Chưa có âm thanh ngoại tuyến cho từ này. Hãy tải Gói phát âm ngoại tuyến khi có mạng.'
+                : 'Không thể phát âm thanh (tệp chưa sẵn sàng hoặc trình duyệt Safari cũ chưa hỗ trợ định dạng WebM).';
+            audioContainer.appendChild(note);
+        };
+        sourceElem.addEventListener('error', handleAudioError);
+        audioElem.addEventListener('error', handleAudioError);
 
         audioContainer.appendChild(audioTitle);
         audioContainer.appendChild(audioElem);
@@ -119,8 +154,9 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
         card.appendChild(audioContainer);
     }
 
-    // 5. Example Section (if present)
-    if ((entry.exampleViet && entry.exampleViet.trim() !== '') || (entry.exampleEthnic && entry.exampleEthnic.trim() !== '')) {
+    const exampleViet = cleanOptionalText(entry.exampleViet);
+    const exampleEthnic = cleanOptionalText(entry.exampleEthnic);
+    if (exampleViet || exampleEthnic) {
         const exampleSec = document.createElement('div');
         exampleSec.className = 'example-section';
 
@@ -132,7 +168,7 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
         const exampleContent = document.createElement('div');
         exampleContent.className = 'example-content';
 
-        if (entry.exampleViet && entry.exampleViet.trim() !== '') {
+        if (exampleViet) {
             const exVietDiv = document.createElement('div');
             exVietDiv.className = 'example-viet';
 
@@ -142,14 +178,14 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
 
             const exVietText = document.createElement('span');
             exVietText.className = 'word-text';
-            exVietText.textContent = entry.exampleViet; // Safe textContent
+            exVietText.textContent = exampleViet;
 
             exVietDiv.appendChild(exVietLabel);
             exVietDiv.appendChild(exVietText);
             exampleContent.appendChild(exVietDiv);
         }
 
-        if (entry.exampleEthnic && entry.exampleEthnic.trim() !== '') {
+        if (exampleEthnic) {
             const exEthDiv = document.createElement('div');
             exEthDiv.className = 'example-ethnic';
 
@@ -159,7 +195,7 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
 
             const exEthText = document.createElement('span');
             exEthText.className = 'word-text';
-            exEthText.textContent = entry.exampleEthnic; // Safe textContent
+            exEthText.textContent = exampleEthnic;
 
             exEthDiv.appendChild(exEthLabel);
             exEthDiv.appendChild(exEthText);

@@ -1,9 +1,3 @@
-/* ==========================================================================
-   HOME FEATURE STYLES — DIRECTION A (QUIET PUBLICATION)
-   Zero "AI slop", above-the-fold search, 44px touch targets, calm editorial aesthetic
-   ========================================================================== */
-
-/* Header Area (Clean, Left-aligned, Dignified) */
 .home-header {
     margin-bottom: 1.25rem;
     text-align: left;
@@ -23,9 +17,6 @@
     max-width: 720px;
 }
 
-/* ==========================================================================
-   SEARCH FORM (Above-the-Fold, Instant Access)
-   ========================================================================== */
 .search-form-clean {
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
@@ -33,6 +24,11 @@
     padding: 1.25rem;
     margin-bottom: 1rem;
     box-shadow: var(--shadow-sm);
+}
+
+:root.dark-mode .search-form-clean,
+body.dark-mode .search-form-clean {
+    background: var(--bg-surface-elevated);
 }
 
 .search-main-row {
@@ -51,13 +47,21 @@
     min-width: 0;
 }
 
+.search-combobox-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
 .search-input-wrap input[type="text"] {
     flex: 1;
     min-width: 0;
     width: 100%;
     height: 48px;
     min-height: 48px;
-    padding: 0.65rem 1rem;
+    padding: 0.65rem 3rem 0.65rem 1rem;
     border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     font-size: 1rem;
@@ -70,17 +74,82 @@
 .search-input-wrap input[type="text"]:focus {
     border-color: var(--border-focus);
     box-shadow: 0 0 0 3px var(--color-primary-glow);
-    outline: none;
 }
 
-.search-input-wrap input[type="text"]::-webkit-calendar-picker-indicator {
+.clear-search-btn {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    opacity: 0.75;
-    transition: opacity var(--transition-fast);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.search-input-wrap input[type="text"]::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
+.clear-search-btn[hidden] {
+    display: none;
+}
+
+.clear-search-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-surface-hover);
+}
+
+.suggestions-listbox {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: var(--z-nav);
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.suggestions-listbox[hidden] {
+    display: none;
+}
+
+:root.dark-mode .suggestions-listbox,
+body.dark-mode .suggestions-listbox {
+    background: var(--bg-surface-elevated);
+}
+
+.suggestion-option {
+    min-height: 44px;
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.suggestion-option:hover,
+.suggestion-option[aria-selected="true"] {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 600;
 }
 
 .speech-button {
@@ -121,6 +190,8 @@
     animation: speech-pulse 1.2s infinite alternate;
 }
 
+:root.dark-mode .speech-button.recording,
+:root.dark-mode .speech-button.listening,
 body.dark-mode .speech-button.recording,
 body.dark-mode .speech-button.listening {
     color: #f87171;
@@ -138,6 +209,12 @@ body.dark-mode .speech-button.listening {
     gap: 0.65rem;
     flex: 0 0 auto;
     align-items: center;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.direction-select-wrap {
+    min-width: 0;
 }
 
 .direction-select-wrap select {
@@ -159,7 +236,7 @@ body.dark-mode .speech-button.listening {
     min-height: 48px;
     padding: 0 1.35rem;
     background: var(--color-primary);
-    color: #ffffff;
+    color: var(--text-inverse);
     border: 1px solid var(--color-primary-hover);
     border-radius: var(--radius-md);
     font-weight: 600;
@@ -172,10 +249,6 @@ body.dark-mode .speech-button.listening {
     transition: background-color var(--transition-fast);
     white-space: nowrap;
     box-sizing: border-box;
-}
-
-body.dark-mode .search-button {
-    color: #0f1012;
 }
 
 .search-button:hover {
@@ -294,20 +367,12 @@ body.dark-mode .search-button {
 .voice-fallback-btn-primary {
     background: var(--color-primary);
     border-color: var(--color-primary-hover);
-    color: #ffffff;
-}
-
-body.dark-mode .voice-fallback-btn-primary {
-    color: #0f1012;
+    color: var(--text-inverse);
 }
 
 .voice-fallback-btn-primary:hover:not(:disabled) {
     background: var(--color-primary-hover);
-    color: #ffffff;
-}
-
-body.dark-mode .voice-fallback-btn-primary:hover:not(:disabled) {
-    color: #0f1012;
+    color: var(--text-inverse);
 }
 
 .voice-fallback-btn:disabled {
@@ -315,9 +380,6 @@ body.dark-mode .voice-fallback-btn-primary:hover:not(:disabled) {
     cursor: not-allowed;
 }
 
-/* ==========================================================================
-   DIACRITICS BAR (Ký tự đặc biệt Xơ Đăng — WCAG 2.2 AA Touch Target >= 44px)
-   ========================================================================== */
 .diacritics-bar {
     display: flex;
     align-items: center;
@@ -372,16 +434,9 @@ body.dark-mode .voice-fallback-btn-primary:hover:not(:disabled) {
 
 .diacritic-btn:active {
     background: var(--color-primary);
-    color: #ffffff;
+    color: var(--text-inverse);
 }
 
-body.dark-mode .diacritic-btn:active {
-    color: #0f1012;
-}
-
-/* ==========================================================================
-   ONE-LINE LEXICAL SUMMARY (Replaces Bloated Bento Stats)
-   ========================================================================== */
 .lexical-summary-bar {
     display: flex;
     align-items: center;
@@ -412,9 +467,6 @@ body.dark-mode .diacritic-btn:active {
     user-select: none;
 }
 
-/* ==========================================================================
-   SUGGESTION CHIPS
-   ========================================================================== */
 .suggestions-chips-container {
     display: flex;
     align-items: center;
@@ -440,13 +492,16 @@ body.dark-mode .diacritic-btn:active {
 
 .suggest-chip {
     padding: 0.4rem 0.75rem;
-    min-height: 36px;
+    min-height: 44px;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     background: var(--bg-surface);
     color: var(--text-secondary);
     font-size: 0.85rem;
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all var(--transition-fast);
 }
@@ -457,9 +512,6 @@ body.dark-mode .diacritic-btn:active {
     background: var(--color-primary-light);
 }
 
-/* ==========================================================================
-   SEARCH STATUS & LOADING
-   ========================================================================== */
 .search-status {
     font-size: 0.9rem;
     color: var(--text-secondary);
@@ -467,7 +519,7 @@ body.dark-mode .diacritic-btn:active {
     font-weight: 500;
 }
 
-.loading {
+.home-loading {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -480,14 +532,6 @@ body.dark-mode .diacritic-btn:active {
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* ==========================================================================
-   RESULT SECTION & WORD CARDS
-   ========================================================================== */
 .result-container {
     margin-bottom: 1.5rem;
 }
@@ -499,6 +543,11 @@ body.dark-mode .diacritic-btn:active {
     border: 1px dashed var(--border-default);
     border-radius: var(--radius-md);
     color: var(--text-secondary);
+}
+
+:root.dark-mode .no-result,
+body.dark-mode .no-result {
+    background: var(--bg-surface-elevated);
 }
 
 .no-result-icon {
@@ -526,7 +575,6 @@ body.dark-mode .diacritic-btn:active {
     color: var(--text-tertiary);
 }
 
-/* Flat Clean Word Card */
 .word-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
@@ -535,6 +583,11 @@ body.dark-mode .diacritic-btn:active {
     margin-bottom: 1rem;
     box-shadow: var(--shadow-sm);
     transition: border-color var(--transition-fast);
+}
+
+:root.dark-mode .word-card,
+body.dark-mode .word-card {
+    background: var(--bg-surface-elevated);
 }
 
 .word-card:hover {
@@ -576,6 +629,16 @@ body.dark-mode .diacritic-btn:active {
     margin-left: 0.4rem;
 }
 
+.match-type.fuzzy-match-type {
+    background: var(--color-secondary-light);
+    color: #9c4215;
+}
+
+:root.dark-mode .match-type.fuzzy-match-type,
+body.dark-mode .match-type.fuzzy-match-type {
+    color: var(--color-secondary);
+}
+
 .word-display-value {
     font-size: 1.25rem;
     color: var(--text-primary);
@@ -586,25 +649,32 @@ body.dark-mode .diacritic-btn:active {
     font-weight: 700;
     color: var(--color-primary);
     letter-spacing: -0.01em;
+    line-height: 1.6;
 }
 
 .word-text {
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--text-primary);
+    line-height: 1.6;
 }
 
 .pronunciation {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--font-sans);
     font-size: 1.05rem;
-    color: var(--color-secondary);
+    line-height: 1.6;
+    color: #9c4215;
     background: var(--color-secondary-light);
     padding: 0.2rem 0.5rem;
     border-radius: var(--radius-sm);
     display: inline-block;
 }
 
-/* Audio Player */
+:root.dark-mode .pronunciation,
+body.dark-mode .pronunciation {
+    color: var(--color-secondary);
+}
+
 .audio-player-container {
     background: var(--bg-surface-elevated);
     border: 1px solid var(--border-subtle);
@@ -612,6 +682,11 @@ body.dark-mode .diacritic-btn:active {
     padding: 0.85rem 1rem;
     margin-top: 0.85rem;
     margin-bottom: 0.85rem;
+}
+
+:root.dark-mode .audio-player-container,
+body.dark-mode .audio-player-container {
+    background: var(--bg-surface);
 }
 
 .audio-player-title {
@@ -627,7 +702,43 @@ body.dark-mode .diacritic-btn:active {
     margin-top: 0.4rem;
 }
 
-/* Example Section */
+.audio-error-note {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-danger-light);
+    color: #b91c1c;
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+:root.dark-mode .audio-error-note,
+body.dark-mode .audio-error-note {
+    color: var(--color-danger);
+}
+
+.error-retry-btn {
+    margin-top: 0.65rem;
+    min-height: 44px;
+    padding: 0.45rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-danger);
+    background: var(--bg-surface);
+    color: var(--color-danger);
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.error-retry-btn:hover {
+    background: var(--bg-surface-hover);
+}
+
 .example-section {
     border-top: 1px solid var(--border-subtle);
     padding-top: 0.85rem;
@@ -659,9 +770,6 @@ body.dark-mode .diacritic-btn:active {
     font-size: 0.88rem;
 }
 
-/* ==========================================================================
-   OFFLINE DOWNLOAD CARD (Utility Card Below Results)
-   ========================================================================== */
 .offline-download-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
@@ -669,6 +777,11 @@ body.dark-mode .diacritic-btn:active {
     padding: 1.25rem;
     margin-top: 2rem;
     margin-bottom: 1.5rem;
+}
+
+:root.dark-mode .offline-download-card,
+body.dark-mode .offline-download-card {
+    background: var(--bg-surface-elevated);
 }
 
 .offline-card-header {
@@ -759,9 +872,6 @@ body.dark-mode .diacritic-btn:active {
     transition: width 0.2s ease;
 }
 
-/* ==========================================================================
-   MOBILE RESPONSIVENESS (360px - 768px)
-   ========================================================================== */
 @media (max-width: 768px) {
     .home-header h1 {
         font-size: 1.35rem;
@@ -788,11 +898,14 @@ body.dark-mode .diacritic-btn:active {
     .search-controls-wrap {
         width: 100%;
         display: flex;
+        flex-wrap: wrap;
+        min-width: 0;
         gap: 0.5rem;
     }
 
     .direction-select-wrap {
-        flex: 1 1 auto;
+        flex: 1 1 160px;
+        min-width: 0;
     }
 
     .direction-select-wrap select {

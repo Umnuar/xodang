@@ -1,13 +1,8 @@
-/**
- * Quiz Service
- * Handles quiz questions extraction, topic grouping, question selection, and score calculation.
- */
-
 export interface QuizQuestion {
     id: string;
     question: string;
     options: string[];
-    correctAnswer: number; // 1-indexed (1, 2, 3, 4)
+    correctAnswer: number;
     topic: string;
 }
 
@@ -28,27 +23,49 @@ export interface QuizSummary {
     details: QuizEvaluationItem[];
 }
 
-/**
- * Parses raw Google Sheet rows into QuizQuestion array.
- */
-export function parseQuizRows(rows: string[][]): QuizQuestion[] {
-    return rows.map((row, index) => ({
-        id: row[0] || String(index + 1),
-        question: row[1] || 'Câu hỏi',
-        options: [
-            row[2] || '',
-            row[3] || '',
-            row[4] || '',
-            row[5] || ''
-        ],
-        correctAnswer: parseInt(row[6], 10) || 1,
-        topic: (row[7] || 'Khác').trim()
-    })).filter(q => q.question && q.options.some(opt => opt.length > 0));
+function parseCorrectAnswer(rawAnswer: string | undefined, optionCount: number): number {
+    if (optionCount <= 0) return 1;
+    const normalized = (rawAnswer ?? '').trim().toUpperCase();
+    let parsed = 1;
+    if (/^[A-D]$/.test(normalized)) {
+        parsed = normalized.charCodeAt(0) - 64;
+    } else {
+        const numeric = Number.parseInt(normalized, 10);
+        if (!Number.isNaN(numeric)) {
+            parsed = numeric;
+        }
+    }
+    if (parsed < 1 || parsed > optionCount) {
+        return 1;
+    }
+    return parsed;
 }
 
-/**
- * Groups questions by their topic name.
- */
+export function parseQuizRows(rows: string[][]): QuizQuestion[] {
+    const questions: QuizQuestion[] = [];
+    rows.forEach((row, index) => {
+        const question = (row[1] ?? '').trim();
+        const options = [row[2], row[3], row[4], row[5]]
+            .map((opt) => (opt ?? '').trim())
+            .filter((opt) => opt.length > 0);
+        if (!question || options.length === 0) return;
+
+        const rawId = (row[0] ?? '').trim();
+        const id = rawId || String(index + 1);
+        const correctAnswer = parseCorrectAnswer(row[6], options.length);
+        const topic = (row[7] ?? '').trim() || 'Khác';
+
+        questions.push({
+            id,
+            question,
+            options,
+            correctAnswer,
+            topic
+        });
+    });
+    return questions;
+}
+
 export function groupQuestionsByTopic(questions: QuizQuestion[]): Map<string, QuizQuestion[]> {
     const topics = new Map<string, QuizQuestion[]>();
     for (const q of questions) {
@@ -61,25 +78,43 @@ export function groupQuestionsByTopic(questions: QuizQuestion[]): Map<string, Qu
     return topics;
 }
 
-/**
- * Selects up to `count` questions randomly from a topic pool.
- */
-export function selectQuizQuestions(pool: QuizQuestion[], count: number = 5): QuizQuestion[] {
-    if (pool.length <= count) {
-        return [...pool];
+export function shuffleQuestionOptions(question: QuizQuestion): QuizQuestion {
+    if (question.options.length <= 1) {
+        return {
+            ...question,
+            options: [...question.options],
+            correctAnswer: 1
+        };
     }
-    // Fisher-Yates shuffle copy
+
+    const indexed = question.options.map((text, idx) => ({
+        text,
+        isCorrect: idx + 1 === question.correctAnswer
+    }));
+
+    for (let i = indexed.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+    }
+
+    const newCorrectIndex = indexed.findIndex((item) => item.isCorrect);
+    return {
+        ...question,
+        options: indexed.map((item) => item.text),
+        correctAnswer: newCorrectIndex >= 0 ? newCorrectIndex + 1 : 1
+    };
+}
+
+export function selectQuizQuestions(pool: QuizQuestion[], count: number = 5): QuizQuestion[] {
     const shuffled = [...pool];
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    return shuffled.slice(0, count);
+    const selected = shuffled.length <= count ? shuffled : shuffled.slice(0, count);
+    return selected.map(shuffleQuestionOptions);
 }
 
-/**
- * Evaluates user answers and returns a complete score summary.
- */
 export function evaluateQuiz(
     questions: QuizQuestion[],
     userAnswers: (number | null)[]
@@ -111,16 +146,16 @@ export function evaluateQuiz(
     let description = '';
 
     if (total > 0 && percentage === 100) {
-        title = 'Xuất sắc! 🎉';
+        title = 'Xuất sắc!';
         description = 'Bạn đã trả lời đúng tất cả các câu hỏi!';
     } else if (percentage >= 80) {
-        title = 'Rất tốt! 👏';
+        title = 'Rất tốt!';
         description = 'Bạn đã nắm rất vững kiến thức phần này.';
     } else if (percentage >= 60) {
-        title = 'Khá tốt! 👍';
+        title = 'Khá tốt!';
         description = 'Bạn đã vượt qua bài kiểm tra. Hãy ôn tập thêm để đạt điểm cao hơn!';
     } else {
-        title = 'Cần cố gắng thêm! 📚';
+        title = 'Cần cố gắng thêm!';
         description = 'Hãy xem lại các câu trả lời sai và ôn tập lại nhé!';
     }
 
