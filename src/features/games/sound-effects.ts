@@ -1,22 +1,65 @@
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import { getRawStorageItem, setRawStorageItem } from '@/services/storage.service';
 
+interface ToneStep {
+    freq: number;
+    type: OscillatorType;
+    duration: number;
+    gain: number;
+    offset: number;
+}
+
 class SoundEffectsEngine {
     private ctx: AudioContext | null = null;
+    private masterGain: GainNode | null = null;
+    private activeOscillators = new Set<OscillatorNode>();
+    private baseVolume = 1;
 
-    private getContext(): AudioContext | null {
-        if (!this.isEnabled()) return null;
-        if (typeof window === 'undefined') return null;
+    private ensureAudioGraph(): { ctx: AudioContext; masterGain: GainNode } | null {
+        if (!this.isEnabled() || typeof window === 'undefined') return null;
+
         if (!this.ctx) {
-            const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            if (AudioCtx) {
-                this.ctx = new AudioCtx();
+            const AudioCtx =
+                window.AudioContext ||
+                (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+            if (!AudioCtx) return null;
+            this.ctx = new AudioCtx();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(this.baseVolume, this.ctx.currentTime);
+            this.masterGain.connect(this.ctx.destination);
+        }
+
+        if (!this.masterGain && this.ctx) {
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(this.baseVolume, this.ctx.currentTime);
+            this.masterGain.connect(this.ctx.destination);
+        }
+
+        if (!this.ctx || !this.masterGain) return null;
+        return { ctx: this.ctx, masterGain: this.masterGain };
+    }
+
+    private async ensureRunningContext(ctx: AudioContext): Promise<boolean> {
+        if ((ctx.state as string) === 'running') {
+            return true;
+        }
+        try {
+            await ctx.resume();
+            return (ctx.state as string) === 'running';
+        } catch {
+            return false;
+        }
+    }
+
+    private stopActiveOscillators(): void {
+        for (const osc of this.activeOscillators) {
+            try {
+                osc.stop();
+                osc.disconnect();
+            } catch {
             }
         }
-        if (this.ctx && this.ctx.state === 'suspended') {
-            this.ctx.resume().catch(() => {});
-        }
-        return this.ctx;
+        this.activeOscillators.clear();
     }
 
     isEnabled(): boolean {
@@ -25,81 +68,134 @@ class SoundEffectsEngine {
 
     setEnabled(enabled: boolean): void {
         setRawStorageItem(STORAGE_KEYS.GAME_SFX, String(enabled));
+        if (!enabled) {
+            this.stopActiveOscillators();
+            if (this.masterGain && this.ctx) {
+                const now = this.ctx.currentTime;
+                this.masterGain.gain.cancelScheduledValues(now);
+                this.masterGain.gain.setValueAtTime(0, now);
+            }
+            if (this.ctx && (this.ctx.state as string) === 'running') {
+                void this.ctx.suspend().catch(() => {});
+            }
+            return;
+        }
+
+        if (this.masterGain && this.ctx) {
+            const now = this.ctx.currentTime;
+            this.masterGain.gain.cancelScheduledValues(now);
+            this.masterGain.gain.setValueAtTime(this.baseVolume, now);
+        }
     }
 
-    /**
-     * Play tone at specified frequency
-     */
-    private playTone(freq: number, type: OscillatorType, duration: number, gainVal: number = 0.15): void {
-        const ctx = this.getContext();
-        if (!ctx) return;
+    duckForAudio(durationMs: number): void {
+        if (!this.isEnabled() || durationMs <= 0) return;
+        const graph = this.ensureAudioGraph();
+        if (!graph) return;
+        const { ctx, masterGain } = graph;
+        const now = ctx.currentTime;
+        const durationSec = Math.max(0.05, durationMs / 1000);
 
         try {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, ctx.currentTime);
-
-            gain.gain.setValueAtTime(gainVal, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start();
-            osc.stop(ctx.currentTime + duration);
+            masterGain.gain.cancelScheduledValues(now);
+            masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+            masterGain.gain.linearRampToValueAtTime(0.15, now + 0.03);
+            masterGain.gain.setValueAtTime(0.15, now + durationSec);
+            masterGain.gain.linearRampToValueAtTime(this.baseVolume, now + durationSec + 0.08);
         } catch {
-            // Audio error suppression
+        }
+    }
+
+    private async playSequence(steps: ToneStep[]): Promise<void> {
+        if (!this.isEnabled()) return;
+        const graph = this.ensureAudioGraph();
+        if (!graph) return;
+
+        const { ctx, masterGain } = graph;
+        const isRunning = await this.ensureRunningContext(ctx);
+        if (!isRunning || !this.isEnabled()) return;
+
+        try {
+            const baseTime = ctx.currentTime;
+            for (const step of steps) {
+                const startTime = baseTime + step.offset;
+                const stopTime = startTime + step.duration;
+                const osc = ctx.createOscillator();
+                const noteGain = ctx.createGain();
+
+                osc.type = step.type;
+                osc.frequency.setValueAtTime(step.freq, startTime);
+
+                noteGain.gain.setValueAtTime(step.gain, startTime);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, stopTime);
+
+                osc.connect(noteGain);
+                noteGain.connect(masterGain);
+
+                this.activeOscillators.add(osc);
+                osc.onended = () => {
+                    this.activeOscillators.delete(osc);
+                    try {
+                        osc.disconnect();
+                        noteGain.disconnect();
+                    } catch {
+                    }
+                };
+
+                osc.start(startTime);
+                osc.stop(stopTime);
+            }
+        } catch {
         }
     }
 
     click(): void {
-        this.playTone(600, 'sine', 0.05, 0.1);
+        void this.playSequence([
+            { freq: 600, type: 'sine', duration: 0.05, gain: 0.1, offset: 0 }
+        ]);
     }
 
     match(): void {
-        const ctx = this.getContext();
-        if (!ctx) return;
-        try {
-            // Arpeggio chime
-            this.playTone(523.25, 'triangle', 0.1, 0.15); // C5
-            setTimeout(() => this.playTone(659.25, 'triangle', 0.1, 0.15), 80); // E5
-            setTimeout(() => this.playTone(783.99, 'triangle', 0.2, 0.2), 160); // G5
-        } catch {}
+        void this.playSequence([
+            { freq: 523.25, type: 'triangle', duration: 0.1, gain: 0.15, offset: 0 },
+            { freq: 659.25, type: 'triangle', duration: 0.1, gain: 0.15, offset: 0.08 },
+            { freq: 783.99, type: 'triangle', duration: 0.2, gain: 0.2, offset: 0.16 }
+        ]);
     }
 
     success(): void {
-        const ctx = this.getContext();
-        if (!ctx) return;
-        try {
-            this.playTone(587.33, 'sine', 0.1, 0.15); // D5
-            setTimeout(() => this.playTone(880.00, 'sine', 0.25, 0.2), 100); // A5
-        } catch {}
+        void this.playSequence([
+            { freq: 587.33, type: 'sine', duration: 0.1, gain: 0.15, offset: 0 },
+            { freq: 880, type: 'sine', duration: 0.25, gain: 0.2, offset: 0.1 }
+        ]);
     }
 
     wrong(): void {
-        const ctx = this.getContext();
-        if (!ctx) return;
-        try {
-            this.playTone(220, 'sawtooth', 0.18, 0.15);
-            setTimeout(() => this.playTone(180, 'sawtooth', 0.2, 0.15), 100);
-        } catch {}
+        void this.playSequence([
+            { freq: 220, type: 'sawtooth', duration: 0.18, gain: 0.15, offset: 0 },
+            { freq: 180, type: 'sawtooth', duration: 0.2, gain: 0.15, offset: 0.1 }
+        ]);
     }
 
     shoot(): void {
-        this.playTone(800, 'square', 0.08, 0.08);
+        void this.playSequence([
+            { freq: 800, type: 'square', duration: 0.08, gain: 0.08, offset: 0 }
+        ]);
     }
 
     catch(): void {
-        this.playTone(700, 'sine', 0.12, 0.15);
+        void this.playSequence([
+            { freq: 700, type: 'sine', duration: 0.12, gain: 0.15, offset: 0 }
+        ]);
     }
 
     levelUp(): void {
-        const notes = [440, 554.37, 659.25, 880];
-        notes.forEach((freq, idx) => {
-            setTimeout(() => this.playTone(freq, 'triangle', 0.15, 0.2), idx * 70);
-        });
+        void this.playSequence([
+            { freq: 440, type: 'triangle', duration: 0.15, gain: 0.2, offset: 0 },
+            { freq: 554.37, type: 'triangle', duration: 0.15, gain: 0.2, offset: 0.07 },
+            { freq: 659.25, type: 'triangle', duration: 0.15, gain: 0.2, offset: 0.14 },
+            { freq: 880, type: 'triangle', duration: 0.18, gain: 0.2, offset: 0.21 }
+        ]);
     }
 }
 

@@ -2,293 +2,329 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <title>Ứng dụng đang offline | Học tập tiếng Xơ đăng</title>
+    <meta name="theme-color" content="#1e7e48">
+    <title>Ứng dụng đang offline | Học tập tiếng Xơ Đăng</title>
+    <script src="./theme-init.js"></script>
+    <link rel="stylesheet" href="./fonts/be-vietnam-pro/be-vietnam-pro.css">
     <style>
+        :root {
+            color-scheme: light dark;
+            --off-bg: #fbfbfa;
+            --off-surface: #ffffff;
+            --off-elevated: #f4f4f0;
+            --off-text: #1c1917;
+            --off-text-sec: #57534e;
+            --off-text-muted: #6b6661;
+            --off-border: #e7e5e4;
+            --off-primary: #1e7e48;
+            --off-primary-hover: #166534;
+            --off-secondary: #9c4215;
+            --off-secondary-hover: #7c3410;
+            --off-tertiary: #2c5282;
+            --off-tertiary-hover: #1e3a5f;
+            --off-inverse: #ffffff;
+        }
+
+        :root.dark-mode,
+        body.dark-mode {
+            color-scheme: dark;
+            --off-bg: #0f1012;
+            --off-surface: #17181b;
+            --off-elevated: #1f2124;
+            --off-text: #e8e8ea;
+            --off-text-sec: #a0a3a8;
+            --off-text-muted: #8b909a;
+            --off-border: rgba(255, 255, 255, 0.12);
+            --off-primary: #34d399;
+            --off-primary-hover: #10b981;
+            --off-secondary: #fbbf24;
+            --off-secondary-hover: #f59e0b;
+            --off-tertiary: #60a5fa;
+            --off-tertiary-hover: #3b82f6;
+            --off-inverse: #0f1012;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not(.light-mode) {
+                --off-bg: #0f1012;
+                --off-surface: #17181b;
+                --off-elevated: #1f2124;
+                --off-text: #e8e8ea;
+                --off-text-sec: #a0a3a8;
+                --off-text-muted: #8b909a;
+                --off-border: rgba(255, 255, 255, 0.12);
+                --off-primary: #34d399;
+                --off-primary-hover: #10b981;
+                --off-secondary: #fbbf24;
+                --off-secondary-hover: #f59e0b;
+                --off-tertiary: #60a5fa;
+                --off-tertiary-hover: #3b82f6;
+                --off-inverse: #0f1012;
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f0fdf4 0%, #e2e8f0 100%);
+            font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--off-bg);
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
             text-align: center;
-            color: #1e293b;
+            color: var(--off-text);
+            line-height: 1.6;
         }
-        
+
         .container {
-            background: rgba(255, 255, 255, 0.96);
-            border-radius: 24px;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.06);
+            background: var(--off-surface);
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
             padding: 40px;
             max-width: 620px;
             width: 100%;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            backdrop-filter: blur(12px);
+            border: 1px solid var(--off-border);
         }
-        
+
         .logo {
-            font-size: 3.8rem;
-            color: #1e7e48;
+            color: var(--off-primary);
             margin-bottom: 16px;
             animation: pulse 2.5s infinite;
         }
-        
+
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
+            50% { transform: scale(1.06); }
             100% { transform: scale(1); }
         }
-        
+
         h1 {
-            color: #1e293b;
-            margin-bottom: 12px;
-            font-size: 2.2rem;
-            font-weight: 800;
+            color: var(--off-text);
+            margin-bottom: 10px;
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.25;
         }
-        
+
         .subtitle {
-            color: #c05621;
-            font-size: 1.5rem;
-            margin-bottom: 24px;
+            color: var(--off-secondary);
+            font-size: 1.25rem;
+            margin-bottom: 20px;
             font-weight: 700;
         }
-        
-        .message {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 24px;
-            color: #475569;
-        }
-        
+
         .offline-icon {
-            font-size: 70px;
-            color: #c05621;
-            margin: 20px 0;
+            color: var(--off-secondary);
+            margin: 16px 0;
         }
-        
+
+        .message {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 22px;
+            color: var(--off-text-sec);
+        }
+
         .features {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 22px;
-            margin: 24px 0;
+            background: var(--off-elevated);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
             text-align: left;
-            border: 1px solid #e2e8f0;
-            border-left: 5px solid #1e7e48;
+            border: 1px solid var(--off-border);
+            border-left: 4px solid var(--off-primary);
         }
-        
-        .features h3 {
-            color: #1e7e48;
-            margin-bottom: 14px;
+
+        .features h2 {
+            color: var(--off-primary);
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 700;
         }
-        
+
         .features ul {
             list-style: none;
             padding-left: 0;
         }
-        
+
         .features li {
-            padding: 8px 0;
-            color: #334155;
+            padding: 7px 0;
+            color: var(--off-text);
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1rem;
+            font-size: 0.96rem;
         }
-        
-        .features li i {
-            color: #1e7e48;
-            min-width: 22px;
+
+        .features li svg {
+            color: var(--off-primary);
+            flex-shrink: 0;
         }
-        
+
         .actions {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
             justify-content: center;
-            margin-top: 28px;
+            margin-top: 26px;
         }
-        
+
         .btn {
-            background: #1e7e48;
-            color: white;
+            background: var(--off-primary);
+            color: var(--off-inverse);
             border: none;
-            min-height: 48px;
-            padding: 12px 26px;
-            border-radius: 30px;
-            font-size: 1rem;
+            min-height: 44px;
+            padding: 12px 22px;
+            border-radius: 9999px;
+            font-family: inherit;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: background 0.2s ease, transform 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             text-decoration: none;
             min-width: 180px;
             justify-content: center;
-            box-shadow: 0 4px 14px rgba(30, 126, 72, 0.25);
         }
-        
+
         .btn:hover {
-            background: #155724;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(30, 126, 72, 0.35);
+            background: var(--off-primary-hover);
+            transform: translateY(-1px);
         }
-        
+
+        .btn:focus-visible,
+        .footer a:focus-visible {
+            outline: 2px solid var(--off-primary);
+            outline-offset: 2px;
+        }
+
         .btn-secondary {
-            background: #2c5282;
-            box-shadow: 0 4px 14px rgba(44, 82, 130, 0.25);
+            background: var(--off-tertiary);
         }
-        
+
         .btn-secondary:hover {
-            background: #1a365d;
-            box-shadow: 0 6px 20px rgba(44, 82, 130, 0.35);
+            background: var(--off-tertiary-hover);
         }
-        
+
         .btn-tertiary {
-            background: #c05621;
-            box-shadow: 0 4px 14px rgba(192, 86, 33, 0.25);
+            background: var(--off-secondary);
         }
-        
+
         .btn-tertiary:hover {
-            background: #9c4215;
-            box-shadow: 0 6px 20px rgba(192, 86, 33, 0.35);
+            background: var(--off-secondary-hover);
         }
-        
+
         .status-indicator {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-top: 16px;
-            padding: 10px 20px;
-            border-radius: 25px;
+            margin-top: 14px;
+            padding: 10px 18px;
+            border-radius: 9999px;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
         }
-        
+
         .offline-status {
-            background: rgba(192, 86, 33, 0.12);
-            color: #c05621;
-            border: 1px solid rgba(192, 86, 33, 0.3);
+            background: rgba(192, 86, 33, 0.14);
+            color: var(--off-secondary);
+            border: 1px solid rgba(192, 86, 33, 0.35);
         }
-        
+
         .online-status {
-            background: rgba(30, 126, 72, 0.12);
-            color: #1e7e48;
-            border: 1px solid rgba(30, 126, 72, 0.3);
+            background: rgba(30, 126, 72, 0.14);
+            color: var(--off-primary);
+            border: 1px solid rgba(30, 126, 72, 0.35);
             display: none;
         }
-        
+
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1e7e48;
+            border: 4px solid var(--off-border);
+            border-top: 4px solid var(--off-primary);
             border-radius: 50%;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 18px auto;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .footer {
-            margin-top: 36px;
-            padding-top: 18px;
-            border-top: 1px solid #e2e8f0;
-            font-size: 0.85rem;
-            color: #64748b;
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        
-        .footer a {
-            color: #1e7e48;
-            text-decoration: none;
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .offline-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: min(360px, calc(100vw - 32px));
+            padding: 14px 20px;
+            color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             font-weight: 600;
+            font-size: 0.92rem;
+            animation: slideIn 0.3s ease;
         }
-        
-        @media (max-width: 600px) {
-            .container {
-                padding: 28px 18px;
-            }
-            
-            h1 {
-                font-size: 1.85rem;
-            }
-            
-            .subtitle {
-                font-size: 1.3rem;
-            }
-            
-            .btn {
-                width: 100%;
-                margin-bottom: 6px;
-            }
-            
-            .actions {
-                flex-direction: column;
-            }
+
+        .offline-toast.success {
+            background: #15803d;
         }
-        
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-                color: #f8fafc;
-            }
-            
-            .container {
-                background: rgba(30, 41, 59, 0.96);
-                border-color: #334155;
-                color: #f8fafc;
-            }
-            
-            h1 {
-                color: #f8fafc;
-            }
-            
-            .message {
-                color: #94a3b8;
-            }
-            
-            .features {
-                background: #0f172a;
-                border-color: #334155;
-                border-left-color: #4ade80;
-            }
-            
-            .features h3 {
-                color: #4ade80;
-            }
-            
-            .features li {
-                color: #f8fafc;
-            }
-            
-            .features li i {
-                color: #4ade80;
-            }
-            
-            .footer {
-                border-top-color: #334155;
-                color: #94a3b8;
-            }
+
+        .offline-toast.info {
+            background: #0369a1;
+        }
+
+        .offline-toast.warning {
+            background: #b45309;
+        }
+
+        .offline-toast.error {
+            background: #b91c1c;
+        }
+
+        .footer {
+            margin-top: 32px;
+            padding-top: 18px;
+            border-top: 1px solid var(--off-border);
+            font-size: 0.85rem;
+            color: var(--off-text-muted);
+        }
+
+        .footer a {
+            color: var(--off-primary);
+            text-decoration: underline;
+            font-weight: 600;
         }
 
         .offline-svg-icon {
@@ -300,50 +336,84 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 26px 18px;
+            }
+
+            h1 {
+                font-size: 1.7rem;
+            }
+
+            .subtitle {
+                font-size: 1.15rem;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .logo,
+            .spinner,
+            .offline-toast {
+                animation: none !important;
+            }
+
+            .btn {
+                transition: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <main class="container">
         <div class="logo">
             <svg class="offline-svg-icon" width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         </div>
-        
+
         <h1>Từ Điển Xơ Đăng</h1>
-        <div class="subtitle">Ứng dụng đang offline</div>
-        
+        <p class="subtitle">Ứng dụng đang offline</p>
+
         <div class="offline-icon">
             <svg class="offline-svg-icon" width="48" height="48" viewBox="0 0 24 24" aria-hidden="true"><line x1="2" x2="22" y1="2" y2="22"/><path d="M12 20h.01"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/><path d="M5 12.859a10 10 0 0 1 5.17-2.69"/><path d="M19 12.859a10 10 0 0 0-2.007-1.523"/><path d="M2 8.82a15 15 0 0 1 4.177-2.643"/><path d="M22 8.82a15 15 0 0 0-11.288-3.764"/></svg>
         </div>
-        
+
         <div class="message">
             <p>Không có kết nối mạng. Vui lòng kiểm tra kết nối internet của bạn và thử lại.</p>
             <p>Từ điển vẫn hoạt động với dữ liệu đã tải về trước đó.</p>
         </div>
-        
-        <div id="statusIndicator" class="status-indicator offline-status">
+
+        <div id="statusIndicator" class="status-indicator offline-status" role="status" aria-live="polite">
             <svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
             <span>Đang offline - Mất kết nối internet</span>
         </div>
-        
-        <div id="onlineStatus" class="status-indicator online-status">
+
+        <div id="onlineStatus" class="status-indicator online-status" role="status" aria-live="polite">
             <svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <span>Đã kết nối lại! Đang tải ứng dụng...</span>
         </div>
-        
-        <div class="features">
-            <h3><svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Tính năng vẫn hoạt động khi offline:</h3>
+
+        <section class="features" aria-label="Tính năng hoạt động ngoại tuyến">
+            <h2><svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Tính năng vẫn hoạt động khi offline:</h2>
             <ul>
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Tra cứu từ vựng đã lưu cache</li>
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Xem trang giới thiệu và hướng dẫn</li>
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> Làm bài trắc nghiệm đã tải</li>
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Xem lịch sử tra cứu gần đây</li>
-                <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg> Thu âm từ vựng mới (lưu tạm)</li>
+                <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg> Thu âm từ vựng mới (lưu hàng đợi)</li>
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Xem các ví dụ đã tải về</li>
             </ul>
-        </div>
-        
-        <div class="features">
-            <h3><svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> Cần kết nối mạng để:</h3>
+        </section>
+
+        <section class="features" aria-label="Tính năng cần kết nối mạng">
+            <h2><svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> Cần kết nối mạng để:</h2>
             <ul>
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Tải từ vựng và âm thanh mới</li>
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Sử dụng trợ lý chat AI</li>
@@ -352,186 +422,175 @@
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Nghe phát âm từ Google Drive</li>
                 <li><svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg> Gửi từ vựng đã đóng góp</li>
             </ul>
-        </div>
-        
+        </section>
+
         <div class="actions">
-            <button class="btn" onclick="window.location.reload()">
+            <button type="button" id="btnRetryConnection" class="btn">
                 <svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> Thử lại kết nối
             </button>
-            
-            <button class="btn btn-secondary" onclick="window.history.back()">
+
+            <button type="button" id="btnHistoryBack" class="btn btn-secondary">
                 <svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Quay lại trang trước
             </button>
-            
-            <button class="btn btn-tertiary" onclick="window.location.href = './'">
+
+            <button type="button" id="btnGoOfflineHome" class="btn btn-tertiary">
                 <svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Về trang chủ offline
             </button>
         </div>
-        
-        <div class="footer">
+
+        <footer class="footer">
             <p><svg class="offline-svg-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg> Ứng dụng Từ Điển Xơ Đăng được thiết kế để hoạt động tốt cả khi offline.</p>
             <p>Dữ liệu sẽ tự động đồng bộ khi có kết nối mạng trở lại.</p>
             <p style="margin-top: 10px;">
-                <svg class="offline-svg-icon" width="14" height="14" viewBox="0 0 24 24" style="color: #e74c3c;" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg> 
-                Phi lợi nhuận vì mục đích cộng đồng | 
+                <svg class="offline-svg-icon" width="14" height="14" viewBox="0 0 24 24" style="color: #dc2626;" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                Phi lợi nhuận vì mục đích cộng đồng |
                 <a href="mailto:baotruongminh201@gmail.com">Liên hệ hỗ trợ</a>
             </p>
-        </div>
-    </div>
+        </footer>
+    </main>
+
+    <div id="offlineToastRegion" aria-live="polite"></div>
 
     <script>
-        // Kiểm tra và xử lý trạng thái mạng
-        const statusIndicator = document.getElementById('statusIndicator');
-        const onlineStatus = document.getElementById('onlineStatus');
-        
-        // Hàm kiểm tra trạng thái mạng
-        function updateOnlineStatus() {
-            if (navigator.onLine) {
-                // Đã online
-                statusIndicator.style.display = 'none';
-                onlineStatus.style.display = 'flex';
-                
-                // Hiển thị spinner
-                const container = document.querySelector('.container');
-                const spinner = document.createElement('div');
-                spinner.className = 'spinner';
-                container.insertBefore(spinner, document.querySelector('.actions'));
-                
-                // Tự động reload sau 3 giây (bỏ qua khi ở chế độ preview kiểm thử)
-                if (!window.location.search.includes('preview')) {
-                    setTimeout(() => {
-                        window.location.href = './';
-                    }, 3000);
+        (function () {
+            try {
+                if (localStorage.getItem('darkMode') === 'false') {
+                    document.documentElement.classList.add('light-mode');
                 }
-                
-                // Thông báo
-                showNotification('Đã kết nối lại! Ứng dụng sẽ tự động tải lại...', 'success');
-            } else {
-                // Vẫn offline
-                statusIndicator.style.display = 'flex';
-                onlineStatus.style.display = 'none';
+            } catch (_e) {
             }
-        }
-        
-        // Lắng nghe sự kiện thay đổi trạng thái mạng
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        
-        // Kiểm tra ngay khi trang được tải
-        updateOnlineStatus();
-        
-        // Hàm hiển thị thông báo
-        function showNotification(message, type) {
-            // Tạo toast
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
-                color: white;
-                border-radius: 8px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-                z-index: 10000;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-weight: 600;
-                animation: slideIn 0.3s ease;
-            `;
-            
-            const iconSvg = type === 'success' 
-                ? '<svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
-                : '<svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>';
-            toast.innerHTML = `
-                ${iconSvg}
-                <span>${message}</span>
-            `;
-            
-            document.body.appendChild(toast);
-            
-            // Tự động xóa sau 3 giây
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-            
-            // Thêm animation CSS
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
+
+            var statusIndicator = document.getElementById('statusIndicator');
+            var onlineStatus = document.getElementById('onlineStatus');
+            var toastRegion = document.getElementById('offlineToastRegion');
+            var reloadTimeoutId = null;
+
+            function showNotification(message, type) {
+                var toast = document.createElement('div');
+                var validType = type === 'success' || type === 'info' || type === 'warning' || type === 'error' ? type : 'info';
+                toast.className = 'offline-toast ' + validType;
+                toast.setAttribute('role', 'status');
+
+                var svgMarkup = validType === 'success'
+                    ? '<svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+                    : '<svg class="offline-svg-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>';
+
+                toast.innerHTML = svgMarkup;
+                var textSpan = document.createElement('span');
+                textSpan.textContent = message;
+                toast.appendChild(textSpan);
+
+                (toastRegion || document.body).appendChild(toast);
+
+                setTimeout(function () {
+                    toast.style.animation = 'slideOut 0.3s ease forwards';
+                    setTimeout(function () {
+                        toast.remove();
+                    }, 300);
+                }, 3000);
+            }
+
+            function updateOnlineStatus() {
+                var container = document.querySelector('.container');
+                if (navigator.onLine) {
+                    statusIndicator.style.display = 'none';
+                    onlineStatus.style.display = 'flex';
+
+                    if (container && !container.querySelector('.spinner')) {
+                        var spinner = document.createElement('div');
+                        spinner.className = 'spinner';
+                        spinner.setAttribute('aria-label', 'Đang tải lại ứng dụng');
+                        container.insertBefore(spinner, document.querySelector('.actions'));
+                    }
+
+                    if (!window.location.search.includes('preview') && reloadTimeoutId === null) {
+                        reloadTimeoutId = setTimeout(function () {
+                            window.location.href = './';
+                        }, 3000);
+                    }
+
+                    showNotification('Đã kết nối lại! Ứng dụng sẽ tự động tải lại...', 'success');
+                } else {
+                    statusIndicator.style.display = 'flex';
+                    onlineStatus.style.display = 'none';
+                    if (container) {
+                        var existingSpinner = container.querySelector('.spinner');
+                        if (existingSpinner) {
+                            existingSpinner.remove();
+                        }
+                    }
+                    if (reloadTimeoutId !== null) {
+                        clearTimeout(reloadTimeoutId);
+                        reloadTimeoutId = null;
+                    }
                 }
-                @keyframes slideOut {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
+            }
+
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+
+            document.getElementById('btnRetryConnection')?.addEventListener('click', function () {
+                window.location.reload();
+            });
+            document.getElementById('btnHistoryBack')?.addEventListener('click', function () {
+                window.history.back();
+            });
+            document.getElementById('btnGoOfflineHome')?.addEventListener('click', function () {
+                window.location.href = './';
+            });
+
+            updateOnlineStatus();
+
+            setInterval(function () {
+                if (!navigator.onLine) {
+                    fetch('./?ping=' + Date.now(), {
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                    }).then(function () {
+                        updateOnlineStatus();
+                    }).catch(function () {
+                    });
                 }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        // Thử kết nối lại sau mỗi 30 giây
-        setInterval(() => {
-            if (!navigator.onLine) {
-                // Thử fetch một request nhỏ để kiểm tra kết nối
-                fetch('./?ping=' + Date.now(), { 
-                    method: 'HEAD',
-                    mode: 'no-cors',
-                    cache: 'no-cache'
-                }).then(() => {
-                    // Nếu thành công, cập nhật trạng thái
-                    updateOnlineStatus();
-                }).catch(() => {
-                    // Vẫn offline
-                    console.log('Vẫn offline...');
-                });
-            }
-        }, 30000);
-        
-        // Lưu ý cho người dùng về tính năng offline
-        document.addEventListener('DOMContentLoaded', function() {
-            // Kiểm tra xem có phải lần đầu vào offline page không
-            const isFirstVisit = !sessionStorage.getItem('offlinePageVisited');
-            
-            if (isFirstVisit) {
-                sessionStorage.setItem('offlinePageVisited', 'true');
-                showNotification(
-                    '💡 Mẹo: Ứng dụng sẽ tự động đồng bộ khi online trở lại', 
-                    'info'
-                );
-            }
-            
-            // Thêm khả năng cài đặt PWA nếu chưa cài
-            if ('serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window) {
-                let deferredPrompt;
-                
-                window.addEventListener('beforeinstallprompt', (e) => {
-                    e.preventDefault();
-                    deferredPrompt = e;
-                    
-                    // Hiển thị nút cài đặt
-                    const installBtn = document.createElement('button');
-                    installBtn.className = 'btn';
-                    installBtn.style.marginTop = '10px';
-                    installBtn.style.background = '#9b59b6';
-                    installBtn.innerHTML = '<svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Cài đặt ứng dụng';
-                    installBtn.onclick = () => {
-                        installBtn.style.display = 'none';
-                        deferredPrompt.prompt();
-                        deferredPrompt.userChoice.then((choiceResult) => {
-                            if (choiceResult.outcome === 'accepted') {
-                                showNotification('Ứng dụng đã được cài đặt!', 'success');
-                            }
-                            deferredPrompt = null;
+            }, 30000);
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var isFirstVisit = !sessionStorage.getItem('offlinePageVisited');
+                if (isFirstVisit) {
+                    sessionStorage.setItem('offlinePageVisited', 'true');
+                    showNotification('Mẹo: Ứng dụng sẽ tự động đồng bộ khi online trở lại', 'info');
+                }
+
+                if ('serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window) {
+                    var deferredPrompt = null;
+                    window.addEventListener('beforeinstallprompt', function (e) {
+                        e.preventDefault();
+                        deferredPrompt = e;
+
+                        var actions = document.querySelector('.actions');
+                        if (!actions || document.getElementById('offlineInstallBtn')) return;
+
+                        var installBtn = document.createElement('button');
+                        installBtn.type = 'button';
+                        installBtn.id = 'offlineInstallBtn';
+                        installBtn.className = 'btn';
+                        installBtn.innerHTML = '<svg class="offline-svg-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Cài đặt ứng dụng';
+                        installBtn.addEventListener('click', function () {
+                            if (!deferredPrompt) return;
+                            installBtn.style.display = 'none';
+                            deferredPrompt.prompt();
+                            deferredPrompt.userChoice.then(function (choiceResult) {
+                                if (choiceResult.outcome === 'accepted') {
+                                    showNotification('Ứng dụng đã được cài đặt!', 'success');
+                                }
+                                deferredPrompt = null;
+                            });
                         });
-                    };
-                    
-                    document.querySelector('.actions').appendChild(installBtn);
-                });
-            }
-        });
+                        actions.appendChild(installBtn);
+                    });
+                }
+            });
+        })();
     </script>
 </body>
 </html>

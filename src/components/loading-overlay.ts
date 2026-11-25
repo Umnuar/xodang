@@ -1,8 +1,3 @@
-/**
- * Loading Overlay Component
- * Controls full-screen or section-level loading spinners.
- */
-
 export function showLoading(message: string = 'Đang xử lý...'): void {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
@@ -11,6 +6,9 @@ export function showLoading(message: string = 'Đang xử lý...'): void {
     if (loadingText) {
         loadingText.textContent = message;
     }
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.setAttribute('aria-hidden', 'false');
     overlay.classList.remove('hidden');
 }
 
@@ -18,5 +16,6 @@ export function hideLoading(): void {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
         overlay.classList.add('hidden');
+        overlay.setAttribute('aria-hidden', 'true');
     }
 }

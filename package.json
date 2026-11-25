@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "snapshot": "node --loader ts-node/esm scripts/generate-snapshot.ts"
+    "snapshot": "vite-node scripts/generate-snapshot.ts"
   },
   "devDependencies": {
     "happy-dom": "^17.1.0",

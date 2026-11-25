@@ -1,5 +1,7 @@
 :root {
-    /* Brand & Heritage Colors (Direction A - Central Highlands Palette) */
+    color-scheme: light;
+    --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
     --color-primary: #1e7e48;
     --color-primary-hover: #166534;
     --color-primary-light: #e8f5e9;
@@ -13,16 +15,16 @@
     --color-tertiary-hover: #2a4365;
     --color-tertiary-light: #ebf8ff;
 
-    /* Semantic & Surface Colors - Direction A (Warm Paper / Calm Editorial) */
     --bg-canvas: #fbfbfa;
     --bg-surface: #ffffff;
     --bg-surface-elevated: #f4f4f0;
     --bg-surface-hover: #f5f5f3;
     --bg-surface-subtle: #f8f8f6;
+    --bg-overlay: rgba(28, 25, 23, 0.72);
 
     --text-primary: #1c1917;
     --text-secondary: #57534e;
-    --text-tertiary: #78716c;
+    --text-tertiary: #6b6661;
     --text-inverse: #ffffff;
 
     --border-subtle: #e7e5e4;
@@ -30,27 +32,34 @@
     --border-strong: #a8a29e;
     --border-focus: #1e7e48;
 
-    /* Feedback */
     --color-success: #16a34a;
     --color-warning: #d97706;
+    --color-warning-light: #fffbeb;
     --color-danger: #dc2626;
+    --color-danger-bg: #dc2626;
+    --color-danger-light: #fef2f2;
     --color-info: #0284c7;
 
-    /* Shadows & Elevation - Minimalist (Maximum 1 subtle level, 0 glow) */
+    --z-nav: 100;
+    --z-fab: 200;
+    --z-chat: 300;
+    --z-offline: 400;
+    --z-modal: 1000;
+    --z-loading: 1100;
+    --z-toast: 1200;
+
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
     --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 10px 15px -3px rgba(0, 0, 0, 0.06);
     --shadow-glow: none;
 
-    /* Radii - Direction A (Strictly 4px - 6px, no bloated card pills) */
     --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 8px;
     --radius-xl: 12px;
     --radius-full: 9999px;
 
-    /* Spacing Units */
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
@@ -61,15 +70,12 @@
     --space-10: 40px;
     --space-12: 48px;
 
-    /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Tap Target Standard (WCAG 2.5.5 / 2.5.8) */
     --tap-target-min: 44px;
 
-    /* Backward Compatible Aliases */
     --primary-color: #1e7e48;
     --secondary-color: #1e7e48;
     --accent-color: #c05621;
@@ -81,8 +87,10 @@
     --chat-secondary: #166534;
 }
 
+:root.dark-mode,
 body.dark-mode {
-    /* Brand & Heritage Colors - Graphite Dark Palette */
+    color-scheme: dark;
+
     --color-primary: #34d399;
     --color-primary-hover: #10b981;
     --color-primary-light: rgba(52, 211, 153, 0.12);
@@ -96,40 +104,37 @@ body.dark-mode {
     --color-tertiary-hover: #3b82f6;
     --color-tertiary-light: rgba(96, 165, 250, 0.12);
 
-    /* Surfaces & Elevation - Graphite (Pure Neutral Dark, No Color Tint) */
     --bg-canvas: #0f1012;
     --bg-surface: #17181b;
     --bg-surface-elevated: #1f2124;
     --bg-surface-hover: #27292d;
     --bg-surface-subtle: #141518;
-    --bg-card-dark: #17181b;
+    --bg-overlay: rgba(15, 16, 18, 0.85);
 
-    /* Typography Colors - Graphite */
     --text-primary: #e8e8ea;
     --text-secondary: #a0a3a8;
-    --text-tertiary: #7f838c;
+    --text-tertiary: #8b909a;
     --text-inverse: #0f1012;
 
-    /* Hairline & Component Borders */
     --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-default: rgba(255, 255, 255, 0.14);
+    --border-default: rgba(255, 255, 255, 0.12);
     --border-strong: rgba(255, 255, 255, 0.22);
     --border-focus: #34d399;
 
-    /* Feedback & Semantic */
     --color-success: #34d399;
     --color-warning: #fbbf24;
+    --color-warning-light: rgba(251, 191, 36, 0.12);
     --color-danger: #f87171;
+    --color-danger-bg: #dc2626;
+    --color-danger-light: rgba(248, 113, 113, 0.12);
     --color-info: #60a5fa;
 
-    /* Shadows - Graphite Elevation */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.45);
     --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.5);
     --shadow-xl: 0 10px 20px rgba(0, 0, 0, 0.6);
     --shadow-glow: none;
 
-    /* Backward Compatible Aliases - Graphite */
     --primary-color: #34d399;
     --secondary-color: #34d399;
     --accent-color: #fbbf24;

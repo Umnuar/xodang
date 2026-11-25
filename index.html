@@ -2,24 +2,21 @@
 <html lang="vi" prefix="og: https://ogp.me/ns#">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Hệ thống tra cứu từ điển, nghiên cứu và bảo tồn ngôn ngữ Xơ Đăng trên nền tảng PWA</title>
 
     <meta name="description" content="Hệ thống học và tra cứu tiếng Xơ Đăng trực tuyến dành cho người học tiếng dân tộc, các nhà nghiên cứu và các nhà phát triển bảo tồn ngôn ngữ. Từ điển tương tác, bài học sinh động, trắc nghiệm thông minh, trò chơi giáo dục. Ứng dụng PWA học offline, hỗ trợ phát âm chuẩn, hoàn toàn miễn phí.">
     <meta name="keywords" content="học tiếng xơ đăng, tiếng xê đăng, học tiếng dân tộc thiểu số, từ điển xơ đăng, ứng dụng học tiếng xơ đăng, học tiếng xơ đăng online, bài tập tiếng xơ đăng, pwa học tiếng dân tộc, nghiên cứu ngôn ngữ xơ đăng, bảo tồn ngôn ngữ dân tộc">
 
-    <!-- Additional SEO Meta -->
     <meta name="thumbnail" content="https://umnuar.github.io/xodang/Thumnail.jpg">
     <meta property="og:updated_time" content="2025-12-26T00:00:00+07:00">
     <meta property="og:locale:alternate" content="vi_VN">
     <meta property="og:locale:alternate" content="en_US">
 
-    <!-- Additional Twitter Meta -->
     <meta name="twitter:domain" content="umnuar.github.io">
     <meta name="twitter:site:id" content="@hocxodang">
 
-    <!-- Article Meta -->
     <meta property="article:published_time" content="2025-12-26T00:00:00+07:00">
     <meta property="article:modified_time" content="2025-12-26T00:00:00+07:00">
     <meta property="article:author" content="Dự án Bảo Tồn Ngôn Ngữ Xơ Đăng">
@@ -30,16 +27,15 @@
     <meta name="language" content="Vietnamese">
     <meta name="revisit-after" content="7 days">
 
-    <!-- PWA Manifest -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1e7e48">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Học Tiếng Xơ Đăng">
     <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+    <script src="./theme-init.js"></script>
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://umnuar.github.io/xodang/">
     <meta property="og:title" content="Hệ thống tra cứu từ điển, nghiên cứu và bảo tồn ngôn ngữ Xơ Đăng trên nền tảng PWA">
@@ -52,7 +48,6 @@
     <meta property="og:locale" content="vi_VN">
     <meta property="og:site_name" content="Học Tiếng Xơ Đăng">
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@hocxodang">
     <meta name="twitter:creator" content="@hocxodang">
@@ -60,14 +55,11 @@
     <meta name="twitter:description" content="Ứng dụng PWA học tiếng Xơ Đăng miễn phí - Từ điển tương tác, bài học sinh động, nghiên cứu và bảo tồn ngôn ngữ">
     <meta name="twitter:image" content="https://umnuar.github.io/xodang/og-image-1200x630.jpg">
 
-    <!-- Canonical & Sitemap -->
     <link rel="canonical" href="https://umnuar.github.io/xodang/">
     <link rel="sitemap" type="application/xml" href="https://umnuar.github.io/xodang/sitemap.xml">
 
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="./icons/icon-192x192.png">
 
-    <!-- Schema Markup: WebApplication -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -110,7 +102,6 @@
     }
     </script>
 
-    <!-- Schema: Course -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -130,7 +121,6 @@
     }
     </script>
 
-    <!-- Schema: BreadcrumbList -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -158,7 +148,6 @@
     }
     </script>
 
-    <!-- Schema: FAQPage -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -208,7 +197,6 @@
     }
     </script>
 
-    <!-- Schema: Organization -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -230,31 +218,32 @@
     }
     </script>
 
-    <link rel="stylesheet" href="./fonts/jakarta/jakarta.css">
+    <link rel="stylesheet" href="./fonts/be-vietnam-pro/be-vietnam-pro.css">
     <link rel="stylesheet" href="/src/styles/index.css">
 </head>
 <body>
-    <!-- Splash Loading Overlay -->
-    <div id="app-loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:99999; display:none; justify-content:center; align-items:center; flex-direction:column;">
+    <div id="app-loading" style="position:fixed;inset:0;background:var(--bg-canvas,#fbfbfa);color:var(--text-primary,#1c1917);z-index:99999;display:none;justify-content:center;align-items:center;flex-direction:column;">
         <div class="spinner"></div>
-        <div class="loading-bar-container" style="width:200px; height:4px; background:#eee; margin-top:20px; border-radius:2px;">
-            <div class="loading-bar" style="width:0%; height:100%; background:#27ae60; transition:width 0.3s;"></div>
+        <div class="loading-bar-container" style="width:200px;height:4px;background:var(--border-subtle,#e7e5e4);margin-top:20px;border-radius:2px;">
+            <div class="loading-bar" style="width:0%;height:100%;background:var(--color-primary,#1e7e48);transition:width 0.3s;"></div>
         </div>
-        <p style="margin-top:10px; color:#27ae60;">Đang khởi động...</p>
+        <p style="margin-top:10px;color:var(--color-primary,#1e7e48);">Đang khởi động...</p>
     </div>
 
-    <!-- Application Shell with Matching Skeleton for CLS < 0.05 -->
     <div id="app">
         <section id="home" class="container active">
-            <h1 style="min-height: 40px;">Tra Cứu Tiếng Xơ Đăng - Tiếng Việt</h1>
-            <div class="intro-content">
-                <p style="min-height: 48px;">Hệ thống hỗ trợ học và tra cứu tiếng Xơ Đăng (Xê Đăng) trên nền tảng PWA phục vụ người học, nhà nghiên cứu và nhà phát triển bảo tồn di sản với 1000+ từ vựng chuẩn và các mẫu câu ví dụ minh họa cụ thể, hỗ trợ phát âm và dịch thuật chính xác.</p>
-                <div class="dictionary-stats">
-                    <div class="stat-item"><div class="stat-number">1000+</div><div class="stat-label">Từ vựng</div></div>
-                    <div class="stat-item"><div class="stat-number">1000+</div><div class="stat-label">File âm thanh</div></div>
-                    <div class="stat-item"><div class="stat-number">2000+</div><div class="stat-label">Ví dụ</div></div>
-                    <div class="stat-item"><div class="stat-number">100+</div><div class="stat-label">Câu hỏi ôn tập</div></div>
-                </div>
+            <header class="home-header">
+                <h1>Tra Cứu Từ Điển Xơ Đăng</h1>
+                <p class="home-subtitle">Từ điển số hóa hỗ trợ cộng đồng tự học ngôn ngữ bản địa Xơ Đăng – Tiếng Việt.</p>
+            </header>
+            <div class="lexical-summary-bar" role="region" aria-label="Thống kê dữ liệu từ điển">
+                <span class="summary-item"><strong id="stat-words">1000+</strong> từ chuẩn</span>
+                <span class="summary-dot" aria-hidden="true">•</span>
+                <span class="summary-item"><strong id="stat-audio">1000+</strong> phát âm bản địa</span>
+                <span class="summary-dot" aria-hidden="true">•</span>
+                <span class="summary-item"><strong id="stat-examples">2000+</strong> ví dụ song ngữ</span>
+                <span class="summary-dot" aria-hidden="true">•</span>
+                <span class="summary-item"><strong id="stat-questions">100+</strong> câu ôn tập</span>
             </div>
             <div style="min-height: 180px; display: flex; align-items: center; justify-content: center;">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary, #1e7e48); animation: spin 1s linear infinite;" aria-label="Đang tải">
@@ -264,7 +253,6 @@
         </section>
     </div>
 
-    <!-- Application Entry Point -->
     <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

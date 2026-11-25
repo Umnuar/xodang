@@ -1,7 +1,5 @@
-/**
- * PWA Install Modal Component Controller
- * Event delegation for modal closing and platform-aware installation prompts.
- */
+import { closeAccessibleModal, openAccessibleModal } from '@/utils/modal-a11y';
+import { showToast } from '@/components/toast';
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;
@@ -14,6 +12,7 @@ export function closeInstallModal(): void {
     const modal = document.getElementById('installGuideModal');
     if (modal) {
         modal.style.display = 'none';
+        closeAccessibleModal(modal);
     }
 }
 
@@ -28,33 +27,43 @@ export function openInstallModal(guideType: 'ios' | 'warning'): void {
     if (warningGuide) warningGuide.style.display = guideType === 'warning' ? 'block' : 'none';
 
     modal.style.display = 'flex';
+    const closeBtn = modal.querySelector<HTMLElement>('.modal-close-btn');
+    openAccessibleModal(modal, {
+        onClose: closeInstallModal,
+        initialFocus: closeBtn,
+        labelledById: guideType === 'ios' ? 'installModalHeading' : 'warningTitle'
+    });
 }
 
 export function initInstallModal(): void {
     const installBtn = document.getElementById('installButton');
     const modal = document.getElementById('installGuideModal');
 
-    // Environment detection
     const ua = navigator.userAgent || '';
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
     const isInApp = /FBAN|FBAV|Instagram|Zalo/i.test(ua);
 
-    // If already installed in standalone mode, hide install button
-    if (isStandalone && installBtn) {
+    if (installBtn && (isStandalone || (!isInApp && !isIOS && !deferredPrompt))) {
         installBtn.style.display = 'none';
     }
 
-    // Capture PWA install prompt
     window.addEventListener('beforeinstallprompt', (e: Event) => {
         e.preventDefault();
         deferredPrompt = e as BeforeInstallPromptEvent;
-        if (installBtn) {
-            installBtn.style.display = 'flex';
+        if (installBtn && !isStandalone) {
+            installBtn.style.display = 'inline-flex';
         }
     });
 
-    // Install Button Click Handler
+    window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        if (installBtn) {
+            installBtn.style.display = 'none';
+        }
+        closeInstallModal();
+    });
+
     if (installBtn) {
         installBtn.addEventListener('click', async () => {
             if (isInApp) {
@@ -67,6 +76,8 @@ export function initInstallModal(): void {
                 const choice = await deferredPrompt.userChoice;
                 if (choice.outcome === 'accepted') {
                     installBtn.style.display = 'none';
+                } else {
+                    showToast('Bạn có thể cài đặt ứng dụng từ thanh địa chỉ trình duyệt bất kỳ lúc nào.', 'info');
                 }
                 deferredPrompt = null;
                 return;
@@ -77,8 +88,7 @@ export function initInstallModal(): void {
                 return;
             }
 
-            // Desktop / General fallback
-            openInstallModal('warning');
+            showToast('Trình duyệt hiện tại chưa hỗ trợ cài đặt nhanh.', 'info');
         });
     }
 

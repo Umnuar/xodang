@@ -13,10 +13,9 @@
             </div>
         </a>
 
-        <!-- Desktop Navigation Links -->
-        <ul class="desktop-menu" role="menubar">
-            <li role="none">
-                <a href="#home" class="menu-link active" data-section="home" role="menuitem">
+        <ul class="desktop-menu">
+            <li>
+                <a href="#home" class="menu-link active" data-section="home" aria-current="page">
                     <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="11" cy="11" r="8"/>
                         <path d="m21 21-4.3-4.3"/>
@@ -24,8 +23,8 @@
                     <span>Tra từ</span>
                 </a>
             </li>
-            <li role="none">
-                <a href="#quiz" class="menu-link" data-section="quiz" role="menuitem">
+            <li>
+                <a href="#quiz" class="menu-link" data-section="quiz">
                     <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
                         <path d="M22 10v6"/>
@@ -34,8 +33,8 @@
                     <span>Học & Thi</span>
                 </a>
             </li>
-            <li role="none">
-                <a href="#game" class="menu-link" data-section="game" role="menuitem">
+            <li>
+                <a href="#game" class="menu-link" data-section="game">
                     <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="6" x2="10" y1="12" y2="12"/>
                         <line x1="8" x2="8" y1="10" y2="14"/>
@@ -46,8 +45,8 @@
                     <span>Trò chơi</span>
                 </a>
             </li>
-            <li role="none">
-                <a href="#contribute" class="menu-link" data-section="contribute" role="menuitem">
+            <li>
+                <a href="#contribute" class="menu-link" data-section="contribute">
                     <svg class="lucide-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
                         <path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.18 0l1.71 1.71"/>
@@ -57,50 +56,56 @@
             </li>
         </ul>
 
-        <!-- Action Controls -->
         <div class="navbar-actions">
-            <button id="darkModeToggle" class="theme-toggle-btn" aria-label="Chuyển chế độ sáng tối" title="Chuyển chế độ giao diện">
+            <button type="button" id="openOnboardingBtn" class="theme-toggle-btn" aria-label="Xem hướng dẫn sử dụng" title="Hướng dẫn sử dụng">
+                <svg class="lucide-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <path d="M12 17h.01"/>
+                </svg>
+                <span class="theme-label">Hướng dẫn</span>
+            </button>
+            <button type="button" id="darkModeToggle" class="theme-toggle-btn" aria-label="Chuyển chế độ sáng tối" aria-pressed="false" title="Chuyển chế độ giao diện">
                 <svg class="lucide-icon theme-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
                 </svg>
-                <span class="theme-label">Giao diện</span>
+                <span class="theme-label">Chế độ tối</span>
             </button>
         </div>
     </div>
+</nav>
 
-    <!-- Mobile Bottom Navigation Bar (Thumb Zone) -->
-    <div class="mobile-bottom-nav" role="navigation" aria-label="Điều hướng nhanh di động">
-        <a href="#home" class="menu-link active" data-section="home" aria-label="Tra từ">
-            <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.3-4.3"/>
-            </svg>
-            <span>Tra từ</span>
-        </a>
-        <a href="#quiz" class="menu-link" data-section="quiz" aria-label="Học và kiểm tra">
-            <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
-                <path d="M22 10v6"/>
-                <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>
-            </svg>
-            <span>Học & Thi</span>
-        </a>
-        <a href="#game" class="menu-link" data-section="game" aria-label="Trò chơi giáo dục">
-            <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="6" x2="10" y1="12" y2="12"/>
-                <line x1="8" x2="8" y1="10" y2="14"/>
-                <line x1="15" x2="15.01" y1="13" y2="13"/>
-                <line x1="18" x2="18.01" y1="11" y2="11"/>
-                <rect width="20" height="12" x="2" y="6" rx="2"/>
-            </svg>
-            <span>Trò chơi</span>
-        </a>
-        <a href="#contribute" class="menu-link" data-section="contribute" aria-label="Đóng góp từ vựng">
-            <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-                <path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.18 0l1.71 1.71"/>
-            </svg>
-            <span>Đóng góp</span>
-        </a>
-    </div>
+<nav class="mobile-bottom-nav" aria-label="Điều hướng nhanh di động">
+    <a href="#home" class="menu-link active" data-section="home" aria-label="Tra từ" aria-current="page">
+        <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+        </svg>
+        <span>Tra từ</span>
+    </a>
+    <a href="#quiz" class="menu-link" data-section="quiz" aria-label="Học và kiểm tra">
+        <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
+            <path d="M22 10v6"/>
+            <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>
+        </svg>
+        <span>Học & Thi</span>
+    </a>
+    <a href="#game" class="menu-link" data-section="game" aria-label="Trò chơi giáo dục">
+        <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="6" x2="10" y1="12" y2="12"/>
+            <line x1="8" x2="8" y1="10" y2="14"/>
+            <line x1="15" x2="15.01" y1="13" y2="13"/>
+            <line x1="18" x2="18.01" y1="11" y2="11"/>
+            <rect width="20" height="12" x="2" y="6" rx="2"/>
+        </svg>
+        <span>Trò chơi</span>
+    </a>
+    <a href="#contribute" class="menu-link" data-section="contribute" aria-label="Đóng góp từ vựng">
+        <svg class="lucide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            <path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.18 0l1.71 1.71"/>
+        </svg>
+        <span>Đóng góp</span>
+    </a>
 </nav>

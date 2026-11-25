@@ -12,7 +12,8 @@ export const APP_CONFIG = {
     CONTRIBUTE_API_URL: viteEnv.VITE_CONTRIBUTE_API_URL || nodeEnv.VITE_CONTRIBUTE_API_URL || DEFAULT_APPS_SCRIPT_URL,
     AUDIO_CACHE_NAME: 'tudien-audio',
     APP_CACHE_NAME: 'tudien-modular-v10.0.4',
-    REQUEST_TIMEOUT_MS: 8000
+    REQUEST_TIMEOUT_MS: 8000,
+    UPLOAD_TIMEOUT_MS: 45000
 } as const;
 
 export const GOOGLE_CONFIG = {

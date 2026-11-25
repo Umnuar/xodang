@@ -8,14 +8,13 @@ const STATIC_PRECACHE = [
     './index.html',
     './offline.html',
     './manifest.json',
+    './theme-init.js',
     './icons/icon-192x192.png',
-    './fonts/jakarta/jakarta.css',
-    './fonts/jakarta/pjs-2.woff2',
-    './fonts/jakarta/pjs-4.woff2',
-    './fonts/jakarta/pjs-10.woff2',
-    './fonts/jakarta/pjs-12.woff2',
-    './fonts/jakarta/pjs-14.woff2',
-    './fonts/jakarta/pjs-16.woff2'
+    './fonts/be-vietnam-pro/be-vietnam-pro.css',
+    './fonts/be-vietnam-pro/be-vietnam-pro-400.woff2',
+    './fonts/be-vietnam-pro/be-vietnam-pro-500.woff2',
+    './fonts/be-vietnam-pro/be-vietnam-pro-600.woff2',
+    './fonts/be-vietnam-pro/be-vietnam-pro-700.woff2'
 ];
 
 interface ExtendableEvent extends Event {

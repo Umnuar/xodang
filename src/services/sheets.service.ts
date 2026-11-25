@@ -14,28 +14,37 @@ export interface SheetFetchOptions {
 
 interface PersistedSheetCache {
     timestamp: number;
+    version?: string;
     data: string[][];
 }
 
 const memoryCache = new Map<string, { timestamp: number; data: string[][] }>();
 const inFlightRequests = new Map<string, Promise<string[][]>>();
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const PERSISTENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function readPersistentCache(range: string): string[][] | null {
     const cached = getStorageItemByKey<PersistedSheetCache | null>(
         `${STORAGE_KEYS.SHEETS_CACHE_PREFIX}${range}`,
         null
     );
-    if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
-        return cached.data;
+    if (!cached || !Array.isArray(cached.data) || cached.data.length === 0) {
+        return null;
     }
-    return null;
+    if (cached.version && cached.version !== APP_CONFIG.APP_CACHE_NAME) {
+        return null;
+    }
+    if (typeof cached.timestamp === 'number' && Date.now() - cached.timestamp > PERSISTENT_CACHE_TTL_MS) {
+        return null;
+    }
+    return cached.data;
 }
 
 function writePersistentCache(range: string, data: string[][]): void {
     if (data.length === 0) return;
     setStorageItemByKey<PersistedSheetCache>(`${STORAGE_KEYS.SHEETS_CACHE_PREFIX}${range}`, {
         timestamp: Date.now(),
+        version: APP_CONFIG.APP_CACHE_NAME,
         data
     });
 }
@@ -60,6 +69,28 @@ function getOfflineFallbackValues(range: string): string[][] | null {
     return null;
 }
 
+function resolveOfflineOrPersistedFallback(
+    cacheKey: string,
+    range: string,
+    useCache: boolean
+): string[][] | null {
+    const persisted = readPersistentCache(range);
+    if (persisted) {
+        if (useCache) {
+            memoryCache.set(cacheKey, { timestamp: Date.now(), data: persisted });
+        }
+        return persisted;
+    }
+    const fallback = getOfflineFallbackValues(range);
+    if (fallback) {
+        if (useCache) {
+            memoryCache.set(cacheKey, { timestamp: Date.now(), data: fallback });
+        }
+        return fallback;
+    }
+    return null;
+}
+
 export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise<string[][]> {
     const sheetId = options.sheetId || APP_CONFIG.SHEET_ID;
     const range = options.range || APP_CONFIG.DICTIONARY_RANGE;
@@ -80,19 +111,24 @@ export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise
     }
 
     const requestPromise = (async (): Promise<string[][]> => {
+        const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+        if (isOffline) {
+            const offlineResult = resolveOfflineOrPersistedFallback(cacheKey, range, useCache);
+            if (offlineResult) {
+                return offlineResult;
+            }
+            if (memoryCache.has(cacheKey)) {
+                return memoryCache.get(cacheKey)!.data;
+            }
+            throw new Error('Network offline');
+        }
 
         if (!apiKey || apiKey.trim() === '') {
-            const persisted = readPersistentCache(range);
-            if (persisted) {
-                return persisted;
+            const fallbackResult = resolveOfflineOrPersistedFallback(cacheKey, range, useCache);
+            if (fallbackResult) {
+                return fallbackResult;
             }
-            const offlineData = getOfflineFallbackValues(range);
-            if (offlineData) {
-                if (useCache) {
-                    memoryCache.set(cacheKey, { timestamp: Date.now(), data: offlineData });
-                }
-                return offlineData;
-            }
+            throw new Error('Missing Google Sheets API key');
         }
 
         const controller = new AbortController();
@@ -116,13 +152,9 @@ export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise
 
             return values;
         } catch (err: unknown) {
-            const persisted = readPersistentCache(range);
-            if (persisted) {
-                return persisted;
-            }
-            const fallback = getOfflineFallbackValues(range);
-            if (fallback) {
-                return fallback;
+            const fallbackResult = resolveOfflineOrPersistedFallback(cacheKey, range, useCache);
+            if (fallbackResult) {
+                return fallbackResult;
             }
             throw err;
         } finally {

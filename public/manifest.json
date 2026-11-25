@@ -1,12 +1,13 @@
 {
+  "id": "./",
+  "scope": "./",
   "name": "Từ điển Xơ Đăng",
   "short_name": "Xơ Đăng",
   "description": "Nền tảng học tập, nghiên cứu và bảo tồn ngôn ngữ Xơ Đăng trên PWA",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#fbfbfa",
   "theme_color": "#1e7e48",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "./icons/icon-48x48.png",
@@ -34,15 +35,43 @@
       "type": "image/png"
     },
     {
+      "src": "./icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
       "src": "./icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
     },
     {
       "src": "./icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["education", "books", "lifestyle"],
@@ -51,13 +80,53 @@
       "name": "Tra từ điển",
       "short_name": "Tra từ",
       "description": "Tra cứu từ vựng Xơ Đăng - Việt",
-      "url": "./#home"
+      "url": "./#home",
+      "icons": [
+        {
+          "src": "./icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Học và kiểm tra",
       "short_name": "Học tập",
       "description": "Ôn tập và làm trắc nghiệm",
-      "url": "./#quiz"
+      "url": "./#quiz",
+      "icons": [
+        {
+          "src": "./icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Trò chơi từ vựng",
+      "short_name": "Trò chơi",
+      "description": "Luyện ghi nhớ từ vựng qua trò chơi",
+      "url": "./#game",
+      "icons": [
+        {
+          "src": "./icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Đóng góp từ vựng",
+      "short_name": "Đóng góp",
+      "description": "Đóng góp từ vựng và phát âm bản địa",
+      "url": "./#contribute",
+      "icons": [
+        {
+          "src": "./icons/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "prefer_related_applications": false
