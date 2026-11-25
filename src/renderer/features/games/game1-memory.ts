@@ -1,9 +1,3 @@
-/**
- * Game 1: Lật Thẻ Trí Nhớ (Memory Flip Game)
- * Student matches Sedang words with Vietnamese meanings by flipping cards.
- * Implements strict destroy() lifecycle to prevent memory leaks.
- */
-
 import { getMemoryCardPairs } from './game-data';
 import { soundEffects } from './sound-effects';
 import { getLucideIcon } from '@/renderer/utils/icons';
@@ -24,7 +18,9 @@ export class Game1Memory {
     private canFlip = true;
     private cards: Array<{ id: string; pairId: number; content: string; type: 'question' | 'answer' }> = [];
     private flipTimeoutId: number | null = null;
+    private levelCompleteTimeoutId: number | null = null;
     private clickHandler: ((e: Event) => void) | null = null;
+    private keyDownHandler: ((e: KeyboardEvent) => void) | null = null;
 
     constructor(container: HTMLElement, callbacks: Game1Callbacks) {
         this.container = container;
@@ -36,7 +32,7 @@ export class Game1Memory {
         this.matchedPairs = 0;
         this.flippedIndices = [];
         this.canFlip = true;
-        this.totalPairs = Math.min(3 + level, 8); // 4 to 8 pairs
+        this.totalPairs = Math.min(3 + level, 8);
 
         this.cards = getMemoryCardPairs(this.level, this.totalPairs);
         this.render();
@@ -53,7 +49,6 @@ export class Game1Memory {
         const grid = this.container.querySelector('#memoryGrid') as HTMLElement;
         if (!grid) return;
 
-        // Render card nodes safely
         grid.replaceChildren();
         this.cards.forEach((card, index) => {
             const cardEl = document.createElement('div');
@@ -82,7 +77,6 @@ export class Game1Memory {
             grid.appendChild(cardEl);
         });
 
-        // Event delegation on grid container
         this.clickHandler = (e: Event) => {
             const target = e.target as HTMLElement;
             const cardEl = target.closest('.memory-card') as HTMLElement | null;
@@ -92,6 +86,18 @@ export class Game1Memory {
             }
         };
         grid.addEventListener('click', this.clickHandler);
+
+        this.keyDownHandler = (e: KeyboardEvent) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            const target = e.target as HTMLElement;
+            const cardEl = target.closest('.memory-card') as HTMLElement | null;
+            if (cardEl && cardEl.dataset.index !== undefined) {
+                e.preventDefault();
+                const idx = parseInt(cardEl.dataset.index, 10);
+                this.flipCard(idx);
+            }
+        };
+        grid.addEventListener('keydown', this.keyDownHandler);
     }
 
     private flipCard(index: number): void {
@@ -113,7 +119,6 @@ export class Game1Memory {
             const card2 = this.cards[idx2];
 
             if (card1.pairId === card2.pairId && card1.type !== card2.type) {
-                // Correct match!
                 soundEffects.match();
                 cardEls[idx1].classList.add('matched');
                 cardEls[idx2].classList.add('matched');
@@ -129,14 +134,18 @@ export class Game1Memory {
 
                 if (this.matchedPairs >= this.totalPairs) {
                     soundEffects.levelUp();
-                    setTimeout(() => {
+                    if (this.levelCompleteTimeoutId !== null) {
+                        clearTimeout(this.levelCompleteTimeoutId);
+                    }
+                    this.levelCompleteTimeoutId = window.setTimeout(() => {
+                        this.levelCompleteTimeoutId = null;
                         this.callbacks.onLevelComplete(this.level, this.score);
                     }, 600);
                 }
             } else {
-                // Wrong match
                 soundEffects.wrong();
                 this.flipTimeoutId = window.setTimeout(() => {
+                    this.flipTimeoutId = null;
                     cardEls[idx1].classList.remove('flipped');
                     cardEls[idx2].classList.remove('flipped');
                     this.flippedIndices = [];
@@ -151,11 +160,21 @@ export class Game1Memory {
             clearTimeout(this.flipTimeoutId);
             this.flipTimeoutId = null;
         }
-        const grid = this.container.querySelector('#memoryGrid');
-        if (grid && this.clickHandler) {
-            grid.removeEventListener('click', this.clickHandler);
-            this.clickHandler = null;
+        if (this.levelCompleteTimeoutId !== null) {
+            clearTimeout(this.levelCompleteTimeoutId);
+            this.levelCompleteTimeoutId = null;
         }
-        this.container.innerHTML = '';
+        const grid = this.container.querySelector<HTMLElement>('#memoryGrid');
+        if (grid) {
+            if (this.clickHandler) {
+                grid.removeEventListener('click', this.clickHandler);
+                this.clickHandler = null;
+            }
+            if (this.keyDownHandler) {
+                grid.removeEventListener('keydown', this.keyDownHandler);
+                this.keyDownHandler = null;
+            }
+        }
+        this.container.replaceChildren();
     }
 }

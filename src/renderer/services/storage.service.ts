@@ -1,15 +1,6 @@
-/**
- * Storage Service
- * Provides type-safe access to localStorage and sessionStorage with fallback handling,
- * including backward-compatible deserialization for legacy studyProgressByTopic data.
- */
-
 import { STORAGE_KEYS, type StorageKey } from '@/shared/constants/storage-keys';
 
-/**
- * Generic getter with JSON parsing and fallback.
- */
-export function getStorageItem<T>(key: StorageKey, fallback: T): T {
+export function getStorageItemByKey<T>(key: string, fallback: T): T {
     try {
         if (typeof window === 'undefined' || !window.localStorage) return fallback;
         const raw = window.localStorage.getItem(key);
@@ -20,22 +11,7 @@ export function getStorageItem<T>(key: StorageKey, fallback: T): T {
     }
 }
 
-/**
- * Generic string getter.
- */
-export function getRawStorageItem(key: StorageKey): string | null {
-    try {
-        if (typeof window === 'undefined' || !window.localStorage) return null;
-        return window.localStorage.getItem(key);
-    } catch {
-        return null;
-    }
-}
-
-/**
- * Generic setter with JSON stringification.
- */
-export function setStorageItem<T>(key: StorageKey, value: T): boolean {
+export function setStorageItemByKey<T>(key: string, value: T): boolean {
     try {
         if (typeof window === 'undefined' || !window.localStorage) return false;
         window.localStorage.setItem(key, JSON.stringify(value));
@@ -45,9 +21,39 @@ export function setStorageItem<T>(key: StorageKey, value: T): boolean {
     }
 }
 
-/**
- * Generic raw string setter.
- */
+export function removeStorageKeysByPrefix(prefix: string): void {
+    try {
+        if (typeof window === 'undefined' || !window.localStorage) return;
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+    } catch {
+        return;
+    }
+}
+
+export function getStorageItem<T>(key: StorageKey, fallback: T): T {
+    return getStorageItemByKey(key, fallback);
+}
+
+export function getRawStorageItem(key: StorageKey): string | null {
+    try {
+        if (typeof window === 'undefined' || !window.localStorage) return null;
+        return window.localStorage.getItem(key);
+    } catch {
+        return null;
+    }
+}
+
+export function setStorageItem<T>(key: StorageKey, value: T): boolean {
+    return setStorageItemByKey(key, value);
+}
+
 export function setRawStorageItem(key: StorageKey, value: string): boolean {
     try {
         if (typeof window === 'undefined' || !window.localStorage) return false;
@@ -58,22 +64,15 @@ export function setRawStorageItem(key: StorageKey, value: string): boolean {
     }
 }
 
-/**
- * Removes an item from storage.
- */
 export function removeStorageItem(key: StorageKey): void {
     try {
         if (typeof window !== 'undefined' && window.localStorage) {
             window.localStorage.removeItem(key);
         }
     } catch {
-        // Ignore
+        return;
     }
 }
-
-// ==========================================
-// Specialized domain storage helpers
-// ==========================================
 
 export function isDarkMode(): boolean {
     return getRawStorageItem(STORAGE_KEYS.DARK_MODE) === 'true';
@@ -99,11 +98,6 @@ export function setHasOpenedChat(opened: boolean = true): void {
     setRawStorageItem(STORAGE_KEYS.HAS_OPENED_CHAT, opened ? 'true' : 'false');
 }
 
-/**
- * Loads legacy `studyProgressByTopic` from localStorage.
- * Legacy format: JSON.stringify({ [topic]: JSON.stringify(Array.from(cardsSet)) })
- * Deserializes cleanly into Map<string, Set<string>>.
- */
 export function loadStudyProgress(): Map<string, Set<string>> {
     const raw = getRawStorageItem(STORAGE_KEYS.STUDY_PROGRESS_BY_TOPIC);
     const progressMap = new Map<string, Set<string>>();
@@ -132,9 +126,6 @@ export function loadStudyProgress(): Map<string, Set<string>> {
     return progressMap;
 }
 
-/**
- * Saves `studyProgressByTopic` in exact legacy-compatible format.
- */
 export function saveStudyProgress(progressMap: Map<string, Set<string>>): boolean {
     try {
         const payload: Record<string, string> = {};

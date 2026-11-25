@@ -4,7 +4,9 @@
  * and handles clean lifecycle management with destroy() on tab switch.
  */
 
+import '@/renderer/styles/features/games.css';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { getRawStorageItem } from '@/renderer/services/storage.service';
 import { eventBus } from '@/renderer/components/event-bus';
 import { getLucideIcon } from '@/renderer/utils/icons';
 import { soundEffects } from './sound-effects';
@@ -16,6 +18,13 @@ import { showCertificateModal } from './certificate';
 import { recordGameScore, showLeaderboardModal, showBadgesModal, showCertificatesModal } from './leaderboard';
 
 export type GameId = 'game1' | 'game2' | 'game3' | 'game4';
+
+const GAME_TITLES: Record<GameId, string> = {
+    game1: 'Lật Thẻ Trí Nhớ',
+    game2: 'Mưa Từ Vựng',
+    game3: 'Bảo Vệ Làng',
+    game4: 'Nông Trại Số'
+};
 
 interface DestroyableGame {
     destroy(): void;
@@ -31,8 +40,7 @@ export function initGames(): void {
     const section = document.getElementById('game');
     if (!section) return;
 
-    // Load active player profile
-    const currentUser = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
+    const currentUser = getRawStorageItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
     const userEl = section.querySelector('#gameCurrentUserName');
     if (userEl) userEl.textContent = currentUser;
 
@@ -82,16 +90,9 @@ export function initGames(): void {
             return;
         }
 
-        // Claim / View Certificate Button
         if (target.closest('#btnGetCertificate')) {
-            const studentName = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
-            const gameTitles: Record<GameId, string> = {
-                game1: 'Lật Thẻ Trí Nhớ',
-                game2: 'Mưa Từ Vựng',
-                game3: 'Bảo Vệ Làng',
-                game4: 'Nông Trại Số'
-            };
-            const title = currentGameId ? gameTitles[currentGameId] : 'Trò chơi Xơ Đăng';
+            const studentName = getRawStorageItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
+            const title = currentGameId ? GAME_TITLES[currentGameId] : 'Trò chơi Xơ Đăng';
             showCertificateModal({
                 studentName,
                 gameTitle: title,
@@ -161,15 +162,7 @@ export function launchGame(gameId: GameId, level: number = 1): void {
     if (scoreEl) scoreEl.textContent = '0';
     if (livesEl) livesEl.textContent = '3';
 
-    // Game Specific Setup
-    const gameTitles: Record<GameId, string> = {
-        game1: 'Lật Thẻ Trí Nhớ',
-        game2: 'Mưa Từ Vựng',
-        game3: 'Bảo Vệ Làng',
-        game4: 'Nông Trại Số'
-    };
-
-    if (titleEl) titleEl.textContent = gameTitles[gameId];
+    if (titleEl) titleEl.textContent = GAME_TITLES[gameId];
 
     // Toggle lives visibility (Game 1 & 4 don't have hearts)
     if (livesWrap) {

@@ -1,10 +1,5 @@
-/**
- * Navbar Component Controller
- * Event delegation for section navigation and dark mode toggle.
- */
-
 import { eventBus } from '../event-bus';
-import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { isDarkMode, setDarkMode } from '@/renderer/services/storage.service';
 import { router } from '@/renderer/router';
 import { getLucideIcon } from '@/renderer/utils/icons';
 
@@ -12,13 +7,11 @@ export function showSection(sectionId: string): void {
     const targetSection = document.getElementById(sectionId);
     if (!targetSection) return;
 
-    // Toggle active on containers
     document.querySelectorAll('.container').forEach(section => {
         section.classList.remove('active');
     });
     targetSection.classList.add('active');
 
-    // Toggle active on menu links
     document.querySelectorAll('.menu-link').forEach(link => {
         link.classList.remove('active');
         const href = link.getAttribute('href');
@@ -28,7 +21,6 @@ export function showSection(sectionId: string): void {
         }
     });
 
-    // Notify listeners via event bus
     eventBus.emit('tab:change', sectionId);
 }
 
@@ -36,7 +28,6 @@ export function initNavbar(): void {
     const nav = document.querySelector('.navbar');
     if (!nav) return;
 
-    // Event Delegation for Navigation Links
     nav.addEventListener('click', (e: Event) => {
         const target = e.target as HTMLElement;
         const link = target.closest('.menu-link') as HTMLAnchorElement | null;
@@ -49,12 +40,9 @@ export function initNavbar(): void {
         }
     });
 
-    // Dark Mode Toggle
     const darkModeToggle = document.getElementById('darkModeToggle');
     if (darkModeToggle) {
-        // Init state from storage
-        const isDark = localStorage.getItem(STORAGE_KEYS.DARK_MODE) === 'true';
-        if (isDark) {
+        if (isDarkMode()) {
             document.body.classList.add('dark-mode');
             darkModeToggle.innerHTML = `${getLucideIcon('sun', 'lucide-icon theme-icon', 16)} <span class="theme-label">Giao diện</span>`;
         }
@@ -62,13 +50,10 @@ export function initNavbar(): void {
         darkModeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             const currentDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem(STORAGE_KEYS.DARK_MODE, String(currentDark));
+            setDarkMode(currentDark);
             darkModeToggle.innerHTML = currentDark
                 ? `${getLucideIcon('sun', 'lucide-icon theme-icon', 16)} <span class="theme-label">Giao diện</span>`
                 : `${getLucideIcon('moon', 'lucide-icon theme-icon', 16)} <span class="theme-label">Giao diện</span>`;
         });
     }
-
-    // Expose showSection to global scope for Phase A backwards compatibility
-    (window as unknown as { showSection: (id: string) => void }).showSection = showSection;
 }

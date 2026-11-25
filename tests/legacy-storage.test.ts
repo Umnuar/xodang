@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
     loadStudyProgress,
     saveStudyProgress,
@@ -12,6 +12,11 @@ import {
     setStorageItem
 } from '@/renderer/services/storage.service';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { OnboardingController } from '@/renderer/features/onboarding/onboarding';
+import onboardingHtml from '@/renderer/features/onboarding/onboarding.html?raw';
+import { soundEffects } from '@/renderer/features/games/sound-effects';
+import { getLeaderboard } from '@/renderer/features/games/leaderboard';
+import { getSavedCertificates, saveCertificate } from '@/renderer/features/games/certificate';
 
 describe('Storage Service & Legacy Migration Tests', () => {
     beforeEach(() => {
@@ -110,5 +115,58 @@ describe('Storage Service & Legacy Migration Tests', () => {
         const retrieved = getStorageItem<UserProfile>(key, { name: '', score: 0 });
         expect(retrieved.name).toBe('Player1');
         expect(retrieved.score).toBe(100);
+    });
+
+    describe('Private Mode / SecurityError resilience', () => {
+        const originalDescriptor = Object.getOwnPropertyDescriptor(window, 'localStorage');
+
+        afterEach(() => {
+            if (originalDescriptor) {
+                Object.defineProperty(window, 'localStorage', originalDescriptor);
+            }
+            vi.restoreAllMocks();
+        });
+
+        it('operates safely without throwing when localStorage throws SecurityError or QuotaExceededError', () => {
+            const throwingStorage = {
+                getItem: () => { throw new DOMException('Blocked', 'SecurityError'); },
+                setItem: () => { throw new DOMException('Quota exceeded', 'QuotaExceededError'); },
+                removeItem: () => { throw new DOMException('Blocked', 'SecurityError'); },
+                clear: () => {},
+                length: 0,
+                key: () => null
+            };
+            Object.defineProperty(window, 'localStorage', {
+                value: throwingStorage,
+                configurable: true,
+                writable: true
+            });
+
+            expect(isDarkMode()).toBe(false);
+            expect(() => setDarkMode(true)).not.toThrow();
+            expect(hasSeenIntro()).toBe(false);
+            expect(() => setHasSeenIntro(true)).not.toThrow();
+            expect(hasOpenedChat()).toBe(false);
+            expect(() => setHasOpenedChat(true)).not.toThrow();
+            expect(loadStudyProgress().size).toBe(0);
+            expect(saveStudyProgress(new Map())).toBe(false);
+
+            document.body.innerHTML = onboardingHtml;
+            const onboarding = new OnboardingController();
+            expect(() => onboarding.init()).not.toThrow();
+            expect(() => onboarding.complete()).not.toThrow();
+
+            expect(soundEffects.isEnabled()).toBe(true);
+            expect(() => soundEffects.setEnabled(false)).not.toThrow();
+            expect(getLeaderboard()).toEqual([]);
+            expect(getSavedCertificates()).toEqual([]);
+            expect(() => saveCertificate({
+                studentName: 'Test',
+                gameTitle: 'Game',
+                score: 100,
+                level: 1,
+                date: '25/11/2026'
+            })).not.toThrow();
+        });
     });
 });

@@ -151,5 +151,33 @@ describe('Minigames Certificate & Leaderboard Systems (Restoration Tests)', () =
             expect(cModal).not.toBeNull();
             expect(cModal?.style.display).toBe('flex');
         });
+
+        it('re-viewing an existing certificate does not duplicate saved records and keeps modal close listeners singular', () => {
+            const saved = saveCertificate({
+                studentName: 'Y Hoa',
+                gameTitle: 'Nông Trại Số',
+                score: 400,
+                level: 3,
+                date: '25/11/2026'
+            });
+            expect(getSavedCertificates().length).toBe(1);
+
+            showCertificatesModal();
+            showCertificatesModal();
+            const cModal = document.getElementById('certificatesListModal')!;
+            const viewBtn = cModal.querySelector('.btn-view-cert') as HTMLElement;
+            expect(viewBtn).not.toBeNull();
+
+            viewBtn.click();
+
+            const listAfter = getSavedCertificates();
+            expect(listAfter.length).toBe(1);
+            expect(listAfter[0].id).toBe(saved.id);
+
+            const certModal = document.getElementById('certificateModal')!;
+            expect(certModal.style.display).toBe('flex');
+            (certModal.querySelector('#btnCloseCertAction') as HTMLElement).click();
+            expect(certModal.style.display).toBe('none');
+        });
     });
 });

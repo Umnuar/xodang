@@ -32,12 +32,11 @@ export class FlashcardManager {
         this.currentTopic = topic;
         this.currentIndex = 0;
 
-        // Convert questions to study cards
         this.cards = questions.map((q, idx) => ({
             index: idx,
             question: q.question,
             fullQuestion: q.question,
-            answer: q.options[q.correctAnswer] || q.options[0] || ''
+            answer: q.options[q.correctAnswer - 1] ?? q.options[0] ?? ''
         }));
 
         // Load previously studied cards for this topic

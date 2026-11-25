@@ -1,9 +1,4 @@
-/**
- * FAQ Service
- * Manages Chatbot FAQ knowledge base, normalization, answer lookup, and suggestion generation.
- */
-
-import { normalizeUnicodeNFC } from './dictionary.service';
+import { normalizeUnicodeNFC, stripDiacritics } from './dictionary.service';
 
 export interface FaqItem {
     question: string;
@@ -21,9 +16,23 @@ export const DEFAULT_FAQ_ITEMS: FaqItem[] = [
     { question: 'Bạn bao nhiêu tuổi?', answer: 'Brơi năm hơ rơ ha?' }
 ];
 
-/**
- * Parses raw Google Sheet rows into FaqItem array.
- */
+const FAQ_STOP_WORDS = new Set([
+    'la', 'gi', 'the', 'nao', 'bang', 'tieng', 'trong', 'xo', 'dang',
+    'co', 'khong', 'duoc', 'de', 'lam', 'sao', 'toi', 'ban', 'nay',
+    've', 'mot', 'cac', 'oi', 'cho', 'hoi', 'cua'
+]);
+
+function extractContentTokens(text: string): string[] {
+    const folded = stripDiacritics(text)
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+        .trim();
+    if (!folded) return [];
+    return folded
+        .split(/\s+/)
+        .filter((token) => token.length >= 2 && !FAQ_STOP_WORDS.has(token));
+}
+
 export function parseFaqRows(rows: string[][]): FaqItem[] {
     const items = rows.map(row => ({
         question: normalizeUnicodeNFC(row[0] || '').trim(),
@@ -33,10 +42,6 @@ export function parseFaqRows(rows: string[][]): FaqItem[] {
     return items.length > 0 ? items : [...DEFAULT_FAQ_ITEMS];
 }
 
-/**
- * Finds the corresponding FAQ answer for a question.
- * Exact match (trimmed, case-insensitive, Unicode NFC normalized).
- */
 export function findFaqAnswer(query: string, faqs: FaqItem[]): string | null {
     const normalizedQuery = normalizeUnicodeNFC(query).toLowerCase().trim();
     if (!normalizedQuery) return null;
@@ -48,12 +53,45 @@ export function findFaqAnswer(query: string, faqs: FaqItem[]): string | null {
         }
     }
 
-    return null;
+    const foldedQuery = stripDiacritics(normalizedQuery).trim();
+    for (const item of faqs) {
+        const foldedItem = stripDiacritics(item.question).toLowerCase().trim();
+        if (foldedItem === foldedQuery) {
+            return item.answer;
+        }
+    }
+
+    const queryTokens = extractContentTokens(normalizedQuery);
+    if (queryTokens.length === 0) return null;
+    const queryTokenSet = new Set(queryTokens);
+
+    let bestAnswer: string | null = null;
+    let bestScore = 0;
+
+    for (const item of faqs) {
+        const itemTokens = extractContentTokens(item.question);
+        if (itemTokens.length === 0) continue;
+        const itemTokenSet = new Set(itemTokens);
+
+        let overlap = 0;
+        queryTokenSet.forEach((t) => {
+            if (itemTokenSet.has(t)) overlap++;
+        });
+
+        const queryCoverage = overlap / queryTokenSet.size;
+        const itemCoverage = overlap / itemTokenSet.size;
+        if (queryCoverage >= 0.6 && overlap >= 1) {
+            const score = queryCoverage * 0.6 + itemCoverage * 0.4;
+            if (score > bestScore) {
+                bestScore = score;
+                bestAnswer = item.answer;
+            }
+        }
+    }
+
+    return bestAnswer;
 }
 
-/**
- * Gets random suggestion questions without repeating recently used ones.
- */
 export function getRandomFaqSuggestions(
     faqs: FaqItem[],
     count: number = 3,
@@ -67,7 +105,6 @@ export function getRandomFaqSuggestions(
         available = [...faqs];
     }
 
-    // Shuffle
     const shuffled = [...available];
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -81,4 +118,3 @@ export function getRandomFaqSuggestions(
 
 export type BotFAQ = FaqItem;
 export const pickRandomFaqSuggestions = getRandomFaqSuggestions;
-

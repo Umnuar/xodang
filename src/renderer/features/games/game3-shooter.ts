@@ -1,10 +1,4 @@
-/**
- * Game 3: Bảo Vệ Làng / Bắn Từ (Word Defender / Shooter)
- * Student taps or clicks moving targets matching the target Sedang word to defend the village.
- * Strict destroy() lifecycle cancels requestAnimationFrame and cleans event listeners.
- */
-
-import { getQuestionsForLevel, type GameQuestion } from './game-data';
+import { getQuestionsForLevel, shuffleArray, type GameQuestion } from './game-data';
 import { soundEffects } from './sound-effects';
 
 export interface Game3Callbacks {
@@ -43,6 +37,7 @@ export class Game3Shooter {
 
     private targets: Target[] = [];
     private animId: number | null = null;
+    private lastFrameTime = 0;
     private isDestroyed = false;
     private clickHandler: ((e: MouseEvent) => void) | null = null;
 
@@ -53,6 +48,7 @@ export class Game3Shooter {
 
     start(level: number = 1): void {
         this.isDestroyed = false;
+        this.lastFrameTime = 0;
         this.level = level;
         this.lives = 3;
         this.kills = 0;
@@ -61,9 +57,8 @@ export class Game3Shooter {
         this.targets = [];
 
         this.questions = getQuestionsForLevel(this.level, this.killsNeeded + 3);
-        this.nextQuestion();
-
         this.render();
+        this.nextQuestion();
         this.startLoop();
     }
 
@@ -72,6 +67,10 @@ export class Game3Shooter {
             this.currentQuestionIndex = 0;
         }
         this.currentQuestion = this.questions[this.currentQuestionIndex++];
+        const promptEl = this.container.querySelector('#shooterTargetWord');
+        if (promptEl) {
+            promptEl.textContent = this.currentQuestion?.question || '';
+        }
         this.spawnTargets();
     }
 
@@ -79,10 +78,10 @@ export class Game3Shooter {
         if (!this.currentQuestion || !this.canvas) return;
         this.targets = [];
 
-        const options = [
+        const options = shuffleArray([
             { text: this.currentQuestion.correct, isCorrect: true },
             ...this.currentQuestion.wrongs.slice(0, 2).map(w => ({ text: w, isCorrect: false }))
-        ].sort(() => Math.random() - 0.5);
+        ]);
 
         const colors = ['#0284c7', '#7c3aed', '#059669', '#d97706'];
         const w = this.canvas.width;
@@ -127,9 +126,8 @@ export class Game3Shooter {
         if (!this.canvas) return;
         this.ctx = this.canvas.getContext('2d');
 
-        // Click / Touch to Shoot
         this.clickHandler = (e: MouseEvent) => {
-            if (!this.canvas) return;
+            if (!this.canvas || this.isDestroyed) return;
             const rect = this.canvas.getBoundingClientRect();
             const clickX = ((e.clientX - rect.left) / rect.width) * this.canvas.width;
             const clickY = ((e.clientY - rect.top) / rect.height) * this.canvas.height;
@@ -141,6 +139,7 @@ export class Game3Shooter {
     }
 
     private handleShoot(clickX: number, clickY: number): void {
+        if (this.isDestroyed) return;
         for (let i = this.targets.length - 1; i >= 0; i--) {
             const t = this.targets[i];
             const dist = Math.hypot(clickX - t.x, clickY - t.y);
@@ -154,12 +153,11 @@ export class Game3Shooter {
 
                     if (this.kills >= this.killsNeeded) {
                         soundEffects.levelUp();
+                        this.stopLoop();
                         this.callbacks.onLevelComplete(this.level, this.score);
                         return;
                     }
                     this.nextQuestion();
-                    const promptEl = this.container.querySelector('#shooterTargetWord');
-                    if (promptEl) promptEl.textContent = this.currentQuestion?.question || '';
                 } else {
                     soundEffects.wrong();
                     this.lives--;
@@ -167,6 +165,7 @@ export class Game3Shooter {
                     this.targets.splice(i, 1);
 
                     if (this.lives <= 0) {
+                        this.stopLoop();
                         this.callbacks.onGameOver(this.score);
                         return;
                     }
@@ -176,37 +175,51 @@ export class Game3Shooter {
         }
     }
 
+    private stopLoop(): void {
+        this.isDestroyed = true;
+        if (this.animId !== null) {
+            cancelAnimationFrame(this.animId);
+            this.animId = null;
+        }
+    }
+
     private startLoop(): void {
-        const loop = () => {
+        const loop = (timestamp: number) => {
             if (this.isDestroyed) return;
-            this.update();
+            const dt = this.lastFrameTime > 0 ? Math.min((timestamp - this.lastFrameTime) / 16.667, 3) : 1;
+            this.lastFrameTime = timestamp;
+            this.update(dt);
+            if (this.isDestroyed) return;
             this.draw();
             this.animId = requestAnimationFrame(loop);
         };
         this.animId = requestAnimationFrame(loop);
     }
 
-    private update(): void {
-        if (!this.canvas) return;
+    private update(dt: number = 1): void {
+        if (!this.canvas || this.isDestroyed) return;
         const w = this.canvas.width;
         const h = this.canvas.height;
 
         for (let i = this.targets.length - 1; i >= 0; i--) {
             const t = this.targets[i];
-            t.x += t.vx;
-            t.y += t.vy;
+            t.x += t.vx * dt;
+            t.y += t.vy * dt;
 
-            // Bounce off left/right
-            if (t.x - t.radius <= 0 || t.x + t.radius >= w) {
-                t.vx *= -1;
+            if (t.x - t.radius <= 0) {
+                t.x = t.radius;
+                t.vx = Math.abs(t.vx);
+            } else if (t.x + t.radius >= w) {
+                t.x = w - t.radius;
+                t.vx = -Math.abs(t.vx);
             }
 
-            // Fall past defense line
             if (t.y - t.radius >= h - 40) {
                 if (t.isCorrect) {
                     this.lives--;
                     this.callbacks.onLivesChange(this.lives);
                     if (this.lives <= 0) {
+                        this.stopLoop();
                         this.callbacks.onGameOver(this.score);
                         return;
                     }
@@ -226,31 +239,25 @@ export class Game3Shooter {
         const w = this.canvas.width;
         const h = this.canvas.height;
 
-        // Sky background
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, w, h);
 
-        // Defense line (Village fence)
         ctx.fillStyle = '#b45309';
         ctx.fillRect(0, h - 35, w, 10);
         ctx.fillStyle = '#78350f';
         ctx.fillRect(0, h - 25, w, 25);
 
-        // Targets
         this.targets.forEach(t => {
-            // Glow
             ctx.beginPath();
             ctx.arc(t.x, t.y, t.radius + 4, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
             ctx.fill();
 
-            // Orb
             ctx.beginPath();
             ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
             ctx.fillStyle = t.color;
             ctx.fill();
 
-            // Text
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 12px system-ui, sans-serif';
             ctx.textAlign = 'center';
@@ -260,17 +267,13 @@ export class Game3Shooter {
     }
 
     destroy(): void {
-        this.isDestroyed = true;
-        if (this.animId !== null) {
-            cancelAnimationFrame(this.animId);
-            this.animId = null;
-        }
+        this.stopLoop();
 
         if (this.canvas && this.clickHandler) {
             this.canvas.removeEventListener('click', this.clickHandler);
             this.clickHandler = null;
         }
 
-        this.container.innerHTML = '';
+        this.container.replaceChildren();
     }
 }

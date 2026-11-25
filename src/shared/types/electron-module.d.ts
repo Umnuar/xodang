@@ -1,8 +1,3 @@
-/**
- * Ambient module declarations for Electron and Node.js APIs
- * Prevents compiler errors without requiring heavy node packages.
- */
-
 declare module 'electron' {
     export interface BrowserWindowOptions {
         width?: number;
@@ -19,6 +14,7 @@ declare module 'electron' {
     }
 
     export class BrowserWindow {
+        static getAllWindows(): BrowserWindow[];
         constructor(options?: BrowserWindowOptions);
         loadURL(url: string): Promise<void>;
         loadFile(filePath: string): Promise<void>;

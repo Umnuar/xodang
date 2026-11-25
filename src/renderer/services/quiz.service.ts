@@ -104,16 +104,19 @@ export function evaluateQuiz(
         });
     });
 
+    const total = questions.length;
+    const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+
     let title = '';
     let description = '';
 
-    if (score === questions.length) {
+    if (total > 0 && percentage === 100) {
         title = 'Xuất sắc! 🎉';
         description = 'Bạn đã trả lời đúng tất cả các câu hỏi!';
-    } else if (score >= 4) {
+    } else if (percentage >= 80) {
         title = 'Rất tốt! 👏';
         description = 'Bạn đã nắm rất vững kiến thức phần này.';
-    } else if (score >= 3) {
+    } else if (percentage >= 60) {
         title = 'Khá tốt! 👍';
         description = 'Bạn đã vượt qua bài kiểm tra. Hãy ôn tập thêm để đạt điểm cao hơn!';
     } else {
@@ -123,8 +126,8 @@ export function evaluateQuiz(
 
     return {
         score,
-        total: questions.length,
-        percentage: questions.length > 0 ? Math.round((score / questions.length) * 100) : 0,
+        total,
+        percentage,
         title,
         description,
         details

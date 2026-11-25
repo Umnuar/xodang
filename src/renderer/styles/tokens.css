@@ -3,7 +3,7 @@
     --color-primary: #1e7e48;
     --color-primary-hover: #166534;
     --color-primary-light: #e8f5e9;
-    --color-primary-glow: none;
+    --color-primary-glow: rgba(30, 126, 72, 0.18);
 
     --color-secondary: #c05621;
     --color-secondary-hover: #9c4215;

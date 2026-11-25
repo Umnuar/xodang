@@ -1,8 +1,3 @@
-/**
- * Dictionary Service
- * Provides Unicode NFC normalization, dictionary search, and autocomplete logic.
- */
-
 export type SearchDirection = 'viet_to_ethnic' | 'ethnic_to_viet';
 
 export interface DictionaryEntry {
@@ -16,18 +11,63 @@ export interface DictionaryEntry {
     score?: number;
 }
 
-/**
- * Normalizes input string to Unicode NFC format.
- * Critical for Vietnamese and Sedang diacritics consistency.
- */
+interface IndexedDictionaryEntry {
+    entry: DictionaryEntry;
+    vietNfc: string;
+    ethnicNfc: string;
+    vietLower: string;
+    ethnicLower: string;
+    vietFolded: string;
+    ethnicFolded: string;
+}
+
+const dictionaryIndexCache = new WeakMap<DictionaryEntry[], IndexedDictionaryEntry[]>();
+
 export function normalizeUnicodeNFC(str: string): string {
     return (str || '').normalize('NFC');
 }
 
-/**
- * Searches the dictionary for entries matching the given term and direction.
- * Matches legacy search behavior exactly (strict word boundary regex, exact matching).
- */
+export function stripDiacritics(str: string): string {
+    return normalizeUnicodeNFC(str)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D');
+}
+
+function getIndexedDictionary(dictionary: DictionaryEntry[]): IndexedDictionaryEntry[] {
+    const cached = dictionaryIndexCache.get(dictionary);
+    if (cached && cached.length === dictionary.length) {
+        return cached;
+    }
+
+    const indexed = dictionary.map((entry) => {
+        const vietNfc = normalizeUnicodeNFC(entry.viet).trim();
+        const ethnicNfc = normalizeUnicodeNFC(entry.ethnic).trim();
+        return {
+            entry,
+            vietNfc,
+            ethnicNfc,
+            vietLower: vietNfc.toLowerCase(),
+            ethnicLower: ethnicNfc.toLowerCase(),
+            vietFolded: stripDiacritics(vietNfc).toLowerCase(),
+            ethnicFolded: stripDiacritics(ethnicNfc).toLowerCase()
+        };
+    });
+
+    dictionaryIndexCache.set(dictionary, indexed);
+    return indexed;
+}
+
+function buildBoundaryRegex(keyword: string): RegExp | null {
+    try {
+        const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(`(^|[^\\p{L}\\p{N}\\p{M}])${safeKeyword}([^\\p{L}\\p{N}\\p{M}]|$)`, 'iu');
+    } catch {
+        return null;
+    }
+}
+
 export function searchDictionary(
     term: string,
     direction: SearchDirection,
@@ -35,71 +75,77 @@ export function searchDictionary(
 ): DictionaryEntry[] {
     const rawKeyword = normalizeUnicodeNFC(term).toLowerCase().trim();
     const isVietToEthnic = direction === 'viet_to_ethnic';
-    
+
     if (!rawKeyword || rawKeyword.length === 0 || rawKeyword.length > 100) {
         return [];
     }
-    
-    let strictRegex: RegExp;
-    try {
-        // Tạo regex an toàn để tìm từ chính xác
-        const safeKeyword = rawKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        strictRegex = new RegExp(`(^|[^a-zA-Z0-9À-ỹ])${safeKeyword}([^a-zA-Z0-9À-ỹ]|$)`, 'i');
-    } catch {
+
+    const strictRegex = buildBoundaryRegex(rawKeyword);
+    if (!strictRegex) {
         return [];
     }
-    
-    let exactMatches: DictionaryEntry[] = [];
-    
-    if (isVietToEthnic) {
-        exactMatches = dictionary.filter(item => {
-            if (!item.viet) return false;
-            const norm = normalizeUnicodeNFC(item.viet);
-            return strictRegex.test(norm);
-        });
+
+    const indexed = getIndexedDictionary(dictionary);
+    const exactMatches = indexed.filter((item) => {
+        const field = isVietToEthnic ? item.vietNfc : item.ethnicNfc;
+        return field.length > 0 && strictRegex.test(field);
+    });
+
+    let matchedEntries: DictionaryEntry[];
+    let sortTargetKeyword = rawKeyword;
+    let useFoldedSort = false;
+
+    if (exactMatches.length > 0) {
+        matchedEntries = exactMatches.map((item) => ({
+            ...item.entry,
+            matchType: 'exact',
+            score: 20
+        }));
     } else {
-        exactMatches = dictionary.filter(item => {
-            if (!item.ethnic) return false;
-            const norm = normalizeUnicodeNFC(item.ethnic);
-            return strictRegex.test(norm);
+        const foldedKeyword = stripDiacritics(rawKeyword).trim();
+        const foldedRegex = foldedKeyword ? buildBoundaryRegex(foldedKeyword) : null;
+        if (!foldedRegex) {
+            return [];
+        }
+        const foldedMatches = indexed.filter((item) => {
+            const field = isVietToEthnic ? item.vietFolded : item.ethnicFolded;
+            return field.length > 0 && foldedRegex.test(field);
         });
+        matchedEntries = foldedMatches.map((item) => ({
+            ...item.entry,
+            matchType: 'accent_insensitive',
+            score: 10
+        }));
+        sortTargetKeyword = foldedKeyword;
+        useFoldedSort = true;
     }
-    
-    const finalResults = exactMatches.map(item => ({
-        ...item,
-        matchType: 'exact',
-        score: 20
-    }));
-    
-    // Loại bỏ trùng lặp theo key "viet|ethnic"
+
     const uniqueMap = new Map<string, DictionaryEntry>();
-    finalResults.forEach(item => {
+    matchedEntries.forEach((item) => {
         const key = `${normalizeUnicodeNFC(item.viet)}|${normalizeUnicodeNFC(item.ethnic)}`;
         const existing = uniqueMap.get(key);
         if (!existing || (item.score ?? 0) > (existing.score ?? 0)) {
             uniqueMap.set(key, item);
         }
     });
-    
+
     const displayList = Array.from(uniqueMap.values());
-    
-    // Sắp xếp: khớp chính xác 100% lên đầu, sau đó theo độ dài ngắn hơn
+
     displayList.sort((a, b) => {
-        const wordA = normalizeUnicodeNFC(isVietToEthnic ? a.viet : a.ethnic).toLowerCase();
-        const wordB = normalizeUnicodeNFC(isVietToEthnic ? b.viet : b.ethnic).toLowerCase();
-        
-        if (wordA === rawKeyword && wordB !== rawKeyword) return -1;
-        if (wordB === rawKeyword && wordA !== rawKeyword) return 1;
-        
-        return wordA.length - wordB.length;
+        const rawA = normalizeUnicodeNFC(isVietToEthnic ? a.viet : a.ethnic).toLowerCase();
+        const rawB = normalizeUnicodeNFC(isVietToEthnic ? b.viet : b.ethnic).toLowerCase();
+        const wordA = useFoldedSort ? stripDiacritics(rawA) : rawA;
+        const wordB = useFoldedSort ? stripDiacritics(rawB) : rawB;
+
+        if (wordA === sortTargetKeyword && wordB !== sortTargetKeyword) return -1;
+        if (wordB === sortTargetKeyword && wordA !== sortTargetKeyword) return 1;
+
+        return rawA.length - rawB.length;
     });
-    
+
     return displayList.slice(0, 50);
 }
 
-/**
- * Returns autocomplete suggestion list for input.
- */
 export function getSuggestions(
     term: string,
     direction: SearchDirection,
@@ -108,17 +154,31 @@ export function getSuggestions(
 ): string[] {
     const raw = normalizeUnicodeNFC(term).toLowerCase().trim();
     if (!raw || raw.length > 100) return [];
-    
+
     const isVietToEthnic = direction === 'viet_to_ethnic';
+    const indexed = getIndexedDictionary(dictionary);
     const suggestions = new Set<string>();
-    
-    for (const item of dictionary) {
-        const target = normalizeUnicodeNFC(isVietToEthnic ? item.viet : item.ethnic).trim();
-        if (target.toLowerCase().startsWith(raw)) {
-            suggestions.add(target);
-            if (suggestions.size >= maxResults) break;
+
+    for (const item of indexed) {
+        const display = isVietToEthnic ? item.vietNfc : item.ethnicNfc;
+        const lower = isVietToEthnic ? item.vietLower : item.ethnicLower;
+        if (display && lower.startsWith(raw)) {
+            suggestions.add(display);
+            if (suggestions.size >= maxResults) return Array.from(suggestions);
         }
     }
-    
+
+    const folded = stripDiacritics(raw).trim();
+    if (folded) {
+        for (const item of indexed) {
+            const display = isVietToEthnic ? item.vietNfc : item.ethnicNfc;
+            const foldedTarget = isVietToEthnic ? item.vietFolded : item.ethnicFolded;
+            if (display && foldedTarget.startsWith(folded)) {
+                suggestions.add(display);
+                if (suggestions.size >= maxResults) break;
+            }
+        }
+    }
+
     return Array.from(suggestions);
 }

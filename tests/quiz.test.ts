@@ -1,10 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
     parseQuizRows,
     groupQuestionsByTopic,
     selectQuizQuestions,
     evaluateQuiz
 } from '@/renderer/services/quiz.service';
+import { FlashcardManager } from '@/renderer/features/quiz/flashcard';
+import { initQuiz } from '@/renderer/features/quiz/quiz';
+import quizHtml from '@/renderer/features/quiz/quiz.html?raw';
+import * as sheetsService from '@/renderer/services/sheets.service';
+import { eventBus } from '@/renderer/components/event-bus';
 
 describe('Quiz Service Unit Tests', () => {
     const rawRows = [
@@ -69,5 +74,94 @@ describe('Quiz Service Unit Tests', () => {
         expect(summary.score).toBe(5);
         expect(summary.percentage).toBe(100);
         expect(summary.title).toBe('Xuất sắc! 🎉');
+    });
+
+    it('evaluates 2-question and 10-question pools using percentage thresholds', () => {
+        const twoQuestions = parseQuizRows(rawRows).slice(0, 2);
+        expect(evaluateQuiz(twoQuestions, [1, 2]).title).toBe('Xuất sắc! 🎉');
+        expect(evaluateQuiz(twoQuestions, [1, 1]).title).toBe('Cần cố gắng thêm! 📚');
+
+        const tenQuestions = Array.from({ length: 10 }, (_, idx) => ({
+            id: String(idx + 1),
+            question: `Q${idx + 1}`,
+            options: ['A', 'B', 'C', 'D'],
+            correctAnswer: 1,
+            topic: 'Tổng hợp'
+        }));
+        const eightRight = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2];
+        const sixRight = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2];
+        const fiveRight = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2];
+        expect(evaluateQuiz(tenQuestions, eightRight).title).toBe('Rất tốt! 👏');
+        expect(evaluateQuiz(tenQuestions, sixRight).title).toBe('Khá tốt! 👍');
+        expect(evaluateQuiz(tenQuestions, fiveRight).title).toBe('Cần cố gắng thêm! 📚');
+    });
+
+    it('maps 1-indexed correctAnswer accurately to flashcard answer text', () => {
+        document.body.innerHTML = quizHtml;
+        const manager = new FlashcardManager();
+        const questions = parseQuizRows([
+            ['1', 'Chào', 'Bơ rơ ha', 'Brơi', 'Ka me', 'Hnam', '1', 'Chào hỏi'],
+            ['2', 'Đáp án 4', 'Opt1', 'Opt2', 'Opt3', 'Opt4', '4', 'Chào hỏi']
+        ]);
+
+        manager.setCards('Chào hỏi', questions);
+        expect(document.getElementById('flashcardAnswer')?.textContent).toBe('Bơ rơ ha');
+
+        manager.nextCard();
+        expect(document.getElementById('flashcardAnswer')?.textContent).toBe('Opt4');
+    });
+});
+
+describe('Quiz UI Controller Tests', () => {
+    afterEach(() => {
+        eventBus.clear();
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+    });
+
+    it('avoids duplicate "/5" in question counter, updates maxScore dynamically, and stops timer on tab change', async () => {
+        vi.useFakeTimers();
+        document.body.innerHTML = `<div id="toastContainer"></div>${quizHtml}`;
+        vi.spyOn(sheetsService, 'fetchQuizData').mockResolvedValue([
+            ['1', 'Q1', 'A1', 'B1', 'C1', 'D1', '1', 'Chủ đề 2 câu'],
+            ['2', 'Q2', 'A2', 'B2', 'C2', 'D2', '2', 'Chủ đề 2 câu']
+        ]);
+
+        await initQuiz();
+        eventBus.emit('tab:change', 'quiz');
+        await vi.waitFor(() => {
+            expect(document.querySelectorAll('.study-quiz-topic-card').length).toBe(1);
+        });
+
+        (document.querySelector('.study-quiz-topic-card') as HTMLElement).click();
+
+        const flashcard = document.getElementById('flashcard')!;
+        flashcard.click();
+        document.getElementById('nextCardBtn')!.click();
+        flashcard.click();
+
+        const startBtn = document.getElementById('startQuizBtn') as HTMLButtonElement;
+        expect(startBtn.disabled).toBe(false);
+        startBtn.click();
+
+        const badgeText = document.querySelector('.quiz-progress-badge')?.textContent?.replace(/\s+/g, ' ').trim();
+        expect(badgeText).toBe('Câu 1/2');
+
+        vi.advanceTimersByTime(3000);
+        expect(document.getElementById('quizTimer')?.textContent).toBe('00:03');
+
+        eventBus.emit('tab:change', 'home');
+        vi.advanceTimersByTime(4000);
+        expect(document.getElementById('quizTimer')?.textContent).toBe('00:03');
+
+        eventBus.emit('tab:change', 'quiz');
+        const options = document.querySelectorAll('#optionsContainer .option');
+        (options[0] as HTMLElement).click();
+        document.getElementById('nextQuestionBtn')!.click();
+        (document.querySelectorAll('#optionsContainer .option')[1] as HTMLElement).click();
+        document.getElementById('submitQuizBtn')!.click();
+
+        expect(document.getElementById('finalScore')?.textContent).toBe('2');
+        expect(document.getElementById('maxScore')?.textContent).toBe('/2');
     });
 });

@@ -5,6 +5,7 @@
  */
 
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { getRawStorageItem, setRawStorageItem } from '@/renderer/services/storage.service';
 
 class SoundEffectsEngine {
     private ctx: AudioContext | null = null;
@@ -25,11 +26,11 @@ class SoundEffectsEngine {
     }
 
     isEnabled(): boolean {
-        return localStorage.getItem(STORAGE_KEYS.GAME_SFX) !== 'false';
+        return getRawStorageItem(STORAGE_KEYS.GAME_SFX) !== 'false';
     }
 
     setEnabled(enabled: boolean): void {
-        localStorage.setItem(STORAGE_KEYS.GAME_SFX, String(enabled));
+        setRawStorageItem(STORAGE_KEYS.GAME_SFX, String(enabled));
     }
 
     /**

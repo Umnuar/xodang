@@ -3,6 +3,8 @@
  * Manages topic selection, flashcard study, interactive testing, and score review.
  */
 
+import '@/renderer/styles/features/quiz.css';
+import '@/renderer/styles/features/flashcard.css';
 import { fetchQuizData } from '@/renderer/services/sheets.service';
 import {
     parseQuizRows,
@@ -52,10 +54,15 @@ export async function initQuiz(): Promise<void> {
 
     const flashcardManager = new FlashcardManager();
 
-    // Listen to tab change
+    stopTimer();
+
     eventBus.on('tab:change', (sectionId: string) => {
-        if (sectionId === 'quiz' && allQuestions.length === 0) {
-            loadQuizData();
+        if (sectionId === 'quiz') {
+            if (allQuestions.length === 0) {
+                loadQuizData();
+            }
+        } else {
+            stopTimer();
         }
     });
 
@@ -259,30 +266,23 @@ export async function initQuiz(): Promise<void> {
 
     function showQuizResults(): void {
         const answersAsNumbers = userAnswers.map(a => a ?? -1);
-        const { score, total, percentage, details } = evaluateQuiz(currentQuizQuestions, answersAsNumbers);
+        const { score, total, title, description, details } = evaluateQuiz(currentQuizQuestions, answersAsNumbers);
 
         if (quizInterface) quizInterface.style.display = 'none';
         if (quizResult) quizResult.style.display = 'block';
 
         const finalScore = document.getElementById('finalScore');
+        const maxScore = document.getElementById('maxScore');
         const resultTopic = document.getElementById('resultTopic');
         const resultTitle = document.getElementById('resultTitle');
         const resultDesc = document.getElementById('resultDescription');
         const resultDetails = document.getElementById('resultDetails');
 
         if (finalScore) finalScore.textContent = String(score);
+        if (maxScore) maxScore.textContent = `/${total}`;
         if (resultTopic) resultTopic.textContent = `Chủ đề: ${currentTopic}`;
-
-        if (percentage >= 80) {
-            if (resultTitle) resultTitle.textContent = 'Xuất sắc!';
-            if (resultDesc) resultDesc.textContent = `Bạn đã trả lời đúng ${score}/${total} câu hỏi. Rất tốt!`;
-        } else if (percentage >= 50) {
-            if (resultTitle) resultTitle.textContent = 'Khá tốt!';
-            if (resultDesc) resultDesc.textContent = `Bạn đã trả lời đúng ${score}/${total} câu hỏi. Hãy tiếp tục ôn tập nhé!`;
-        } else {
-            if (resultTitle) resultTitle.textContent = 'Cần cố gắng!';
-            if (resultDesc) resultDesc.textContent = `Bạn đạt ${score}/${total} điểm. Hãy học lại các thẻ từ vựng nhé!`;
-        }
+        if (resultTitle) resultTitle.textContent = title;
+        if (resultDesc) resultDesc.textContent = description;
 
         if (resultDetails) {
             resultDetails.replaceChildren();
@@ -316,12 +316,14 @@ export async function initQuiz(): Promise<void> {
 
     if (retryQuizBtn) {
         retryQuizBtn.addEventListener('click', () => {
+            stopTimer();
             selectTopic(currentTopic);
         });
     }
 
     if (newTopicBtn) {
         newTopicBtn.addEventListener('click', () => {
+            stopTimer();
             if (studyInterface) studyInterface.style.display = 'none';
             if (quizInterface) quizInterface.style.display = 'none';
             if (quizResult) quizResult.style.display = 'none';
@@ -337,12 +339,13 @@ export async function initQuiz(): Promise<void> {
                     text: `Tôi vừa hoàn thành bài kiểm tra chủ đề "${currentTopic}" trên Từ Điển Xơ Đăng!`,
                     url: window.location.href
                 }).catch(() => {});
+            } else if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(window.location.href)
+                    .then(() => showToast('Đã sao chép liên kết vào bộ nhớ tạm!', 'info'))
+                    .catch(() => showToast('Không thể sao chép liên kết.', 'error'));
             } else {
-                showToast('Đã sao chép liên kết vào bộ nhớ tạm!', 'info');
+                showToast('Trình duyệt không hỗ trợ chia sẻ hoặc sao chép liên kết.', 'warning');
             }
         });
     }
-
-    // Expose fetchStudyQuizData globally for Phase A backwards compatibility
-    (window as unknown as { fetchStudyQuizData: () => Promise<void> }).fetchStudyQuizData = loadQuizData;
 }

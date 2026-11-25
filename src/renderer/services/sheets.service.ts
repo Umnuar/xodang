@@ -1,9 +1,6 @@
-/**
- * Sheets Service
- * Fetches data from Google Sheets API with timeout, in-memory cache, and offline snapshot fallback.
- */
-
 import { APP_CONFIG } from '@/shared/constants/config';
+import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { getStorageItemByKey, removeStorageKeysByPrefix, setStorageItemByKey } from './storage.service';
 import type { DictionaryEntry } from './dictionary.service';
 import { snapshotFallback } from '@snapshot/data';
 
@@ -15,9 +12,33 @@ export interface SheetFetchOptions {
     useCache?: boolean;
 }
 
-// In-memory cache
+interface PersistedSheetCache {
+    timestamp: number;
+    data: string[][];
+}
+
 const memoryCache = new Map<string, { timestamp: number; data: string[][] }>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const inFlightRequests = new Map<string, Promise<string[][]>>();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+function readPersistentCache(range: string): string[][] | null {
+    const cached = getStorageItemByKey<PersistedSheetCache | null>(
+        `${STORAGE_KEYS.SHEETS_CACHE_PREFIX}${range}`,
+        null
+    );
+    if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+        return cached.data;
+    }
+    return null;
+}
+
+function writePersistentCache(range: string, data: string[][]): void {
+    if (data.length === 0) return;
+    setStorageItemByKey<PersistedSheetCache>(`${STORAGE_KEYS.SHEETS_CACHE_PREFIX}${range}`, {
+        timestamp: Date.now(),
+        data
+    });
+}
 
 function getOfflineFallbackValues(range: string): string[][] | null {
     if (range === APP_CONFIG.DICTIONARY_RANGE && snapshotFallback?.dictionary && snapshotFallback.dictionary.length > 0) {
@@ -39,9 +60,6 @@ function getOfflineFallbackValues(range: string): string[][] | null {
     return null;
 }
 
-/**
- * Fetches raw cell values from Google Sheets API v4.
- */
 export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise<string[][]> {
     const sheetId = options.sheetId || APP_CONFIG.SHEET_ID;
     const range = options.range || APP_CONFIG.DICTIONARY_RANGE;
@@ -57,67 +75,86 @@ export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise
         }
     }
 
-    // Check if running inside Electron Desktop with IPC bridge
-    if (typeof window !== 'undefined' && window.electronAPI) {
-        try {
-            const res = await window.electronAPI.fetchSheetsData(range);
-            if (res && res.success && res.data && res.data.values) {
-                const values: string[][] = res.data.values;
-                if (useCache) {
-                    memoryCache.set(cacheKey, { timestamp: Date.now(), data: values });
+    if (inFlightRequests.has(cacheKey)) {
+        return inFlightRequests.get(cacheKey)!;
+    }
+
+    const requestPromise = (async (): Promise<string[][]> => {
+        if (typeof window !== 'undefined' && window.electronAPI) {
+            try {
+                const res = await window.electronAPI.fetchSheetsData(range);
+                if (res && res.success && res.data && res.data.values) {
+                    const values: string[][] = res.data.values;
+                    if (useCache) {
+                        memoryCache.set(cacheKey, { timestamp: Date.now(), data: values });
+                    }
+                    if (!res.isOfflineSnapshot) {
+                        writePersistentCache(range, values);
+                    }
+                    return values;
                 }
-                return values;
+            } catch (ipcErr) {
+                console.warn('[SheetsService] Electron IPC fetch failed, falling back:', ipcErr);
             }
-        } catch (ipcErr) {
-            console.warn('[SheetsService] Electron IPC fetch failed, falling back:', ipcErr);
         }
-    }
 
-    // If no API key configured, load offline snapshot immediately without network error
-    if (!apiKey || apiKey.trim() === '') {
-        const offlineData = getOfflineFallbackValues(range);
-        if (offlineData) {
+        if (!apiKey || apiKey.trim() === '') {
+            const persisted = readPersistentCache(range);
+            if (persisted) {
+                return persisted;
+            }
+            const offlineData = getOfflineFallbackValues(range);
+            if (offlineData) {
+                if (useCache) {
+                    memoryCache.set(cacheKey, { timestamp: Date.now(), data: offlineData });
+                }
+                return offlineData;
+            }
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?key=${apiKey}`;
+            const response = await fetch(url, { signal: controller.signal });
+
+            if (!response.ok) {
+                throw new Error(`Google Sheets API error: ${response.status} ${response.statusText}`);
+            }
+
+            const json = await response.json();
+            const values: string[][] = json.values || [];
+
             if (useCache) {
-                memoryCache.set(cacheKey, { timestamp: Date.now(), data: offlineData });
+                memoryCache.set(cacheKey, { timestamp: Date.now(), data: values });
             }
-            return offlineData;
+            writePersistentCache(range, values);
+
+            return values;
+        } catch (err: unknown) {
+            const persisted = readPersistentCache(range);
+            if (persisted) {
+                return persisted;
+            }
+            const fallback = getOfflineFallbackValues(range);
+            if (fallback) {
+                return fallback;
+            }
+            throw err;
+        } finally {
+            clearTimeout(timeoutId);
         }
-    }
+    })();
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
+    inFlightRequests.set(cacheKey, requestPromise);
     try {
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?key=${apiKey}`;
-        const response = await fetch(url, { signal: controller.signal });
-
-        if (!response.ok) {
-            throw new Error(`Google Sheets API error: ${response.status} ${response.statusText}`);
-        }
-
-        const json = await response.json();
-        const values: string[][] = json.values || [];
-
-        if (useCache) {
-            memoryCache.set(cacheKey, { timestamp: Date.now(), data: values });
-        }
-
-        return values;
-    } catch (err: unknown) {
-        // Fallback to offline snapshot if available
-        const fallback = getOfflineFallbackValues(range);
-        if (fallback) {
-            return fallback;
-        }
-        throw err;
+        return await requestPromise;
     } finally {
-        clearTimeout(timeoutId);
+        inFlightRequests.delete(cacheKey);
     }
 }
 
-/**
- * Fetches and parses dictionary rows into structured DictionaryEntry array.
- */
 export async function fetchDictionaryEntries(options: SheetFetchOptions = {}): Promise<DictionaryEntry[]> {
     const rows = await fetchSheetValues({
         ...options,
@@ -134,16 +171,13 @@ export async function fetchDictionaryEntries(options: SheetFetchOptions = {}): P
     })).filter(entry => entry.viet && entry.ethnic);
 }
 
-/**
- * Clears in-memory sheets cache.
- */
-export function clearSheetsCache(): void {
+export function clearSheetsCache(clearPersistent: boolean = false): void {
     memoryCache.clear();
+    if (clearPersistent) {
+        removeStorageKeysByPrefix(STORAGE_KEYS.SHEETS_CACHE_PREFIX);
+    }
 }
 
-/**
- * Convenience methods for feature controllers.
- */
 export async function fetchDictionaryData(): Promise<DictionaryEntry[]> {
     return fetchDictionaryEntries();
 }
@@ -155,4 +189,3 @@ export async function fetchChatData(): Promise<string[][]> {
 export async function fetchQuizData(): Promise<string[][]> {
     return fetchSheetValues({ range: APP_CONFIG.QUIZ_RANGE });
 }
-

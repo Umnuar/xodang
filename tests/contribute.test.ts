@@ -1,11 +1,18 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import contributeHtml from '@/renderer/features/contribute/contribute.html?raw';
 import { initContribute, isValidAudioFile, MAX_AUDIO_FILE_SIZE } from '@/renderer/features/contribute/contribute';
+import { BatchQueueManager } from '@/renderer/features/contribute/batch-queue';
+import { eventBus } from '@/renderer/components/event-bus';
 
 describe('Contribute Feature & Deletion Workflow Tests (Lô 4)', () => {
+    afterEach(() => {
+        eventBus.clear();
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
     beforeEach(() => {
         document.body.innerHTML = `
             <main>
@@ -104,5 +111,38 @@ describe('Contribute Feature & Deletion Workflow Tests (Lô 4)', () => {
         confirmBtn?.click();
         expect(deleteModal?.style.display).toBe('none');
         expect(playbackControls?.style.display).toBe('none');
+    });
+
+    it('shifts playing index accurately when removing an earlier item in BatchQueueManager and stops on tab change', () => {
+        const playSpy = vi.fn().mockResolvedValue(undefined);
+        const pauseSpy = vi.fn();
+        vi.stubGlobal('Audio', vi.fn().mockImplementation(() => ({
+            play: playSpy,
+            pause: pauseSpy,
+            currentTime: 0,
+            src: '',
+            onended: null
+        })));
+        const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+        const queue = new BatchQueueManager();
+        const dummyBlob = new Blob(['a'], { type: 'audio/webm' });
+        queue.add({ name: 'item0', blob: dummyBlob, size: '1 KB', type: 'recording', audioUrl: 'blob:0' });
+        queue.add({ name: 'item1', blob: dummyBlob, size: '1 KB', type: 'recording', audioUrl: 'blob:1' });
+        queue.add({ name: 'item2', blob: dummyBlob, size: '1 KB', type: 'recording', audioUrl: 'blob:2' });
+
+        expect(queue.play(1)).toBe(true);
+        expect(queue.getPlayingIndex()).toBe(1);
+
+        queue.removeAt(0);
+        expect(queue.getPlayingIndex()).toBe(0);
+        expect(queue.getItems()[0].name).toBe('item1');
+        expect(revokeSpy).toHaveBeenCalledWith('blob:0');
+
+        queue.removeAt(0);
+        expect(queue.getPlayingIndex()).toBe(-1);
+        expect(pauseSpy).toHaveBeenCalled();
+
+        eventBus.emit('tab:change', 'home');
     });
 });

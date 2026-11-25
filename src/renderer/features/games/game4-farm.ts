@@ -4,7 +4,7 @@
  * Implements strict destroy() lifecycle and event delegation.
  */
 
-import { getQuestionsForLevel, type GameQuestion } from './game-data';
+import { getQuestionsForLevel, shuffleArray, type GameQuestion } from './game-data';
 import { soundEffects } from './sound-effects';
 
 export interface Game4Callbacks {
@@ -32,6 +32,7 @@ export class Game4Farm {
     private selectedPlotIndex: number | null = null;
     private currentQuestion: GameQuestion | null = null;
     private clickHandler: ((e: MouseEvent) => void) | null = null;
+    private levelCompleteTimeoutId: number | null = null;
 
     constructor(container: HTMLElement, callbacks: Game4Callbacks) {
         this.container = container;
@@ -140,8 +141,7 @@ export class Game4Farm {
 
         qWord.textContent = this.currentQuestion.question;
 
-        const allAnswers = [this.currentQuestion.correct, ...this.currentQuestion.wrongs.slice(0, 3)]
-            .sort(() => Math.random() - 0.5);
+        const allAnswers = shuffleArray([this.currentQuestion.correct, ...this.currentQuestion.wrongs.slice(0, 3)]);
 
         answersGrid.replaceChildren();
         allAnswers.forEach(ans => {
@@ -181,7 +181,11 @@ export class Game4Farm {
 
             if (this.harvestedCount >= this.totalPlots) {
                 soundEffects.levelUp();
-                setTimeout(() => {
+                if (this.levelCompleteTimeoutId !== null) {
+                    clearTimeout(this.levelCompleteTimeoutId);
+                }
+                this.levelCompleteTimeoutId = window.setTimeout(() => {
+                    this.levelCompleteTimeoutId = null;
                     this.callbacks.onLevelComplete(this.level, this.score);
                 }, 600);
             }
@@ -204,10 +208,14 @@ export class Game4Farm {
     }
 
     destroy(): void {
+        if (this.levelCompleteTimeoutId !== null) {
+            clearTimeout(this.levelCompleteTimeoutId);
+            this.levelCompleteTimeoutId = null;
+        }
         if (this.clickHandler) {
             this.container.removeEventListener('click', this.clickHandler);
             this.clickHandler = null;
         }
-        this.container.innerHTML = '';
+        this.container.replaceChildren();
     }
 }

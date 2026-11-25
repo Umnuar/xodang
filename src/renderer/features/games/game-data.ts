@@ -1,15 +1,10 @@
-/**
- * Game Data Provider
- * Supplies vocabulary pairs and multi-choice questions for all 4 games.
- * Combines offline baseline vocabulary with dynamically loaded dictionary data.
- */
-
 import { getLoadedDictionary } from '@/renderer/features/home/home';
+import { getStorageItem } from '@/renderer/services/storage.service';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
 export interface GameWordPair {
-    ethnic: string; // Xơ Đăng
-    viet: string;   // Tiếng Việt
+    ethnic: string;
+    viet: string;
     topic?: string;
 }
 
@@ -52,24 +47,22 @@ export const BASELINE_GAME_VOCAB: GameWordPair[] = [
     { ethnic: 'Tơpêh', viet: 'Bảy (7)', topic: 'Số đếm' },
     { ethnic: 'Tơhăm', viet: 'Tám (8)', topic: 'Số đếm' },
     { ethnic: 'Tơchên', viet: 'Chín (9)', topic: 'Số đếm' },
-    { ethnic: 'Jĭt', viet: 'Mười (10)', topic: 'Số đếm' },
+    { ethnic: 'Jĭt', viet: 'Mười (10)', topic: 'Số đếm' }
 ];
 
-/**
- * Returns merged vocabulary pool
- */
+export function shuffleArray<T>(items: T[]): T[] {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
 export function getAllGameVocab(): GameWordPair[] {
-    // Check cached offline game data in localStorage first
-    try {
-        const cachedRaw = localStorage.getItem(STORAGE_KEYS.GAME_OFFLINE_DATA);
-        if (cachedRaw) {
-            const parsed = JSON.parse(cachedRaw);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                return parsed;
-            }
-        }
-    } catch {
-        // Fallback to memory
+    const cached = getStorageItem<GameWordPair[]>(STORAGE_KEYS.GAME_OFFLINE_DATA, []);
+    if (Array.isArray(cached) && cached.length > 0) {
+        return cached;
     }
 
     const dict = getLoadedDictionary();
@@ -79,7 +72,7 @@ export function getAllGameVocab(): GameWordPair[] {
             .map(d => ({
                 ethnic: d.ethnic.trim(),
                 viet: d.viet.trim(),
-                topic: d.matchType || 'Từ điển'
+                topic: 'Từ điển'
             }));
         if (dictMapped.length >= BASELINE_GAME_VOCAB.length) {
             return dictMapped;
@@ -89,9 +82,36 @@ export function getAllGameVocab(): GameWordPair[] {
     return BASELINE_GAME_VOCAB;
 }
 
-/**
- * Generates questions for level
- */
+function pickWrongAnswers(vocab: GameWordPair[], correctViet: string, count: number): string[] {
+    const wrongAnswers: string[] = [];
+    const seen = new Set<string>([correctViet]);
+    const maxAttempts = Math.min(vocab.length * 3, 40);
+
+    for (let attempt = 0; attempt < maxAttempts && wrongAnswers.length < count; attempt++) {
+        const candidate = vocab[Math.floor(Math.random() * vocab.length)];
+        if (!seen.has(candidate.viet)) {
+            seen.add(candidate.viet);
+            wrongAnswers.push(candidate.viet);
+        }
+    }
+
+    if (wrongAnswers.length < count) {
+        for (const candidate of vocab) {
+            if (!seen.has(candidate.viet)) {
+                seen.add(candidate.viet);
+                wrongAnswers.push(candidate.viet);
+                if (wrongAnswers.length === count) break;
+            }
+        }
+    }
+
+    while (wrongAnswers.length < count) {
+        wrongAnswers.push(`Từ khác ${wrongAnswers.length + 1}`);
+    }
+
+    return wrongAnswers;
+}
+
 export function getQuestionsForLevel(level: number, count: number = 5): GameQuestion[] {
     const vocab = getAllGameVocab();
     if (vocab.length === 0) return [];
@@ -101,27 +121,11 @@ export function getQuestionsForLevel(level: number, count: number = 5): GameQues
 
     for (let i = 0; i < count; i++) {
         const item = vocab[(offset + i) % vocab.length];
-        // Collect 3 distinct wrong answers
-        const wrongAnswers: string[] = [];
-        const shuffled = [...vocab].sort(() => Math.random() - 0.5);
-
-        for (const candidate of shuffled) {
-            if (candidate.viet !== item.viet && !wrongAnswers.includes(candidate.viet)) {
-                wrongAnswers.push(candidate.viet);
-                if (wrongAnswers.length === 3) break;
-            }
-        }
-
-        // Fill fallback wrongs if needed
-        while (wrongAnswers.length < 3) {
-            wrongAnswers.push(`Từ khác ${wrongAnswers.length + 1}`);
-        }
-
         questions.push({
             id: `lvl${level}_q${i}`,
             question: item.ethnic,
             correct: item.viet,
-            wrongs: wrongAnswers,
+            wrongs: pickWrongAnswers(vocab, item.viet, 3),
             topic: item.topic || 'Chung',
             level
         });
@@ -130,9 +134,6 @@ export function getQuestionsForLevel(level: number, count: number = 5): GameQues
     return questions;
 }
 
-/**
- * Generates memory card pairs
- */
 export function getMemoryCardPairs(level: number, pairCount: number = 4): { id: string; pairId: number; content: string; type: 'question' | 'answer' }[] {
     const vocab = getAllGameVocab();
     const offset = ((level - 1) * pairCount) % vocab.length;
@@ -144,5 +145,5 @@ export function getMemoryCardPairs(level: number, pairCount: number = 4): { id: 
         cards.push({ id: `a_${level}_${i}`, pairId: i, content: item.viet, type: 'answer' });
     }
 
-    return cards.sort(() => Math.random() - 0.5);
+    return shuffleArray(cards);
 }

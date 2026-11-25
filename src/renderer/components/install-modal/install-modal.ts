@@ -82,7 +82,6 @@ export function initInstallModal(): void {
         });
     }
 
-    // Event Delegation for Closing Modal (Overlay or Close Button)
     if (modal) {
         modal.addEventListener('click', (e: Event) => {
             const target = e.target as HTMLElement;
@@ -91,7 +90,4 @@ export function initInstallModal(): void {
             }
         });
     }
-
-    // Expose closeInstallModal globally for Phase A backwards compatibility
-    (window as unknown as { closeInstallModal: () => void }).closeInstallModal = closeInstallModal;
 }

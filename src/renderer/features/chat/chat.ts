@@ -1,17 +1,14 @@
-/**
- * Chat Feature Controller
- * Manages Chatbot widget, FAQ question matching, and safe DOM suggestions (Anti-XSS).
- */
-
+import '@/renderer/styles/features/chat.css';
 import { fetchChatData } from '@/renderer/services/sheets.service';
 import {
+    DEFAULT_FAQ_ITEMS,
     parseFaqRows,
     findFaqAnswer,
     pickRandomFaqSuggestions,
     type BotFAQ
 } from '@/renderer/services/faq.service';
 import { getLucideIcon } from '@/renderer/utils/icons';
-import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { hasOpenedChat, setHasOpenedChat } from '@/renderer/services/storage.service';
 
 export function createSuggestionButton(questionText: string, onClick: (q: string) => void): HTMLButtonElement {
     const btn = document.createElement('button');
@@ -19,12 +16,12 @@ export function createSuggestionButton(questionText: string, onClick: (q: string
     btn.style.fontSize = '0.8rem';
     btn.style.padding = '6px 12px';
     btn.style.cursor = 'pointer';
-    btn.textContent = questionText; // 100% Anti-XSS safe textContent
+    btn.textContent = questionText;
     btn.addEventListener('click', () => onClick(questionText));
     return btn;
 }
 
-export function initChat(): void {
+export function initChat(autoOpen: boolean = false): void {
     const chatToggleBtn = document.getElementById('chatToggleBtn');
     const closeChatBtn = document.getElementById('closeChatBtn');
     const chatWindow = document.getElementById('chatWindow');
@@ -35,34 +32,26 @@ export function initChat(): void {
 
     let faqs: BotFAQ[] = [];
     let isChatOpen = false;
+    const usedQuestions = new Set<string>();
 
-    // Load Chat FAQ Data
     async function loadFaqs(): Promise<void> {
         try {
             const rawRows = await fetchChatData();
             faqs = parseFaqRows(rawRows);
         } catch (err: unknown) {
             console.error('Failed to load chat FAQs:', err);
-            // Fallback FAQ data
-            faqs = [
-                { question: 'Xin chào bằng tiếng Xơ Đăng là gì?', answer: 'Bơ rơ ha' },
-                { question: 'Cảm ơn tiếng Xơ Đăng nói thế nào?', answer: 'Hơ măn ơn' },
-                { question: 'Tạm biệt trong tiếng Xơ Đăng là gì?', answer: 'Brơi' },
-                { question: 'Bạn có khỏe không?', answer: 'Brơi ha mơ hă?' },
-                { question: 'Tôi khỏe, cảm ơn', answer: 'Brơi ha, hơ măn ơn' }
-            ];
+            faqs = [...DEFAULT_FAQ_ITEMS];
         }
         displayWelcome();
     }
 
-    // Toggle Chat Window
     function toggleChat(forceOpen?: boolean): void {
         if (!chatWindow) return;
         isChatOpen = forceOpen !== undefined ? forceOpen : !isChatOpen;
 
         if (isChatOpen) {
             chatWindow.classList.add('active');
-            localStorage.setItem(STORAGE_KEYS.HAS_OPENED_CHAT, 'true');
+            setHasOpenedChat(true);
             if (chatNotification) chatNotification.style.display = 'none';
             if (chatInput) chatInput.focus();
         } else {
@@ -71,17 +60,18 @@ export function initChat(): void {
     }
 
     if (chatToggleBtn) {
-        // Notification badge initial state
-        const hasOpened = localStorage.getItem(STORAGE_KEYS.HAS_OPENED_CHAT) === 'true';
-        if (!hasOpened && chatNotification) {
+        if (!hasOpenedChat() && chatNotification) {
             chatNotification.style.display = 'flex';
         }
-
         chatToggleBtn.addEventListener('click', () => toggleChat());
     }
 
     if (closeChatBtn) {
         closeChatBtn.addEventListener('click', () => toggleChat(false));
+    }
+
+    if (autoOpen) {
+        toggleChat(true);
     }
 
     function formatCurrentTime(): string {
@@ -96,7 +86,7 @@ export function initChat(): void {
         msgDiv.className = `message ${sender}`;
 
         const textContent = document.createElement('div');
-        textContent.textContent = text; // Anti-XSS
+        textContent.textContent = text;
 
         const timeDiv = document.createElement('div');
         timeDiv.className = 'message-time';
@@ -129,10 +119,8 @@ export function initChat(): void {
         if (!chatMessages) return;
         chatMessages.replaceChildren();
 
-        // 1. Welcome Bot Bubble
         displayMessage('Xin chào! Tôi là trợ lý tiếng Xơ Đăng. Tôi có thể giúp bạn tìm hiểu về ngôn ngữ và văn hóa Xơ Đăng.', 'bot');
 
-        // 2. Suggestions Box (using safe DOM nodes)
         const suggestionsBox = document.createElement('div');
         suggestionsBox.className = 'welcome-message';
 
@@ -147,7 +135,7 @@ export function initChat(): void {
         buttonsContainer.style.marginTop = '10px';
         buttonsContainer.style.justifyContent = 'center';
 
-        const randomSuggestions = pickRandomFaqSuggestions(faqs, 3);
+        const randomSuggestions = pickRandomFaqSuggestions(faqs, 3, usedQuestions);
         randomSuggestions.forEach((q: BotFAQ) => {
             const btn = createSuggestionButton(q.question, (selectedQuestion: string) => {
                 handleUserMessage(selectedQuestion);
@@ -164,24 +152,17 @@ export function initChat(): void {
         const trimmed = message.trim();
         if (!trimmed || !chatMessages) return;
 
-        // Display user message
         displayMessage(trimmed, 'user');
         if (chatInput) chatInput.value = '';
 
-        // Show typing indicator
         const typingElem = showTypingIndicator();
-
-        // Simulate short think delay
         await new Promise(r => setTimeout(r, 500));
-
         if (typingElem) typingElem.remove();
 
-        // Find answer
         const answer = findFaqAnswer(trimmed, faqs) || 'Xin lỗi, tôi chưa hiểu câu hỏi của bạn. Hãy thử chọn một câu hỏi gợi ý bên dưới!';
         displayMessage(answer, 'bot');
 
-        // Render 1 safe follow-up suggestion bubble
-        const newSuggestions = pickRandomFaqSuggestions(faqs, 1);
+        const newSuggestions = pickRandomFaqSuggestions(faqs, 1, usedQuestions);
         if (newSuggestions.length > 0) {
             const followUpBox = document.createElement('div');
             followUpBox.style.marginTop = '8px';
@@ -201,7 +182,7 @@ export function initChat(): void {
             handleUserMessage(chatInput.value);
         });
 
-        chatInput.addEventListener('keypress', (e: KeyboardEvent) => {
+        chatInput.addEventListener('keydown', (e: KeyboardEvent) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 handleUserMessage(chatInput.value);

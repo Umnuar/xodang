@@ -1,24 +1,14 @@
-/**
- * Contribute Feature Controller
- * Handles single/batch vocabulary audio recording, file upload, and Apps Script submission.
- * Replaces inline onclick with Event Delegation on batch queue.
- */
-
-import { APP_CONFIG } from '@/shared/constants/config';
+import '@/renderer/styles/features/contribute.css';
 import { showToast } from '@/renderer/components/toast';
 import { showLoading, hideLoading } from '@/renderer/components/loading-overlay';
+import { eventBus } from '@/renderer/components/event-bus';
+import { sendContribution } from '@/renderer/services/offline-sync.service';
 import { getLucideIcon } from '@/renderer/utils/icons';
 import { AudioWaveVisualizer } from './visualizer';
+import { AudioRecorder } from './recorder';
+import { BatchQueueManager } from './batch-queue';
 
-interface BatchQueueItem {
-    name: string;
-    blob: Blob;
-    size: string;
-    type: 'recording' | 'upload';
-    audioUrl: string;
-}
-
-export const MAX_AUDIO_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const MAX_AUDIO_FILE_SIZE = 10 * 1024 * 1024;
 export const ALLOWED_AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.webm', '.aac', '.flac'];
 
 export function isValidAudioFile(file: { name: string; size: number; type?: string }): { valid: boolean; reason?: string } {
@@ -39,7 +29,6 @@ export function initContribute(): void {
     const batchTab = document.getElementById('batchTab');
     const tabButtons = document.querySelectorAll('.contribute-tab');
 
-    // Single Form elements
     const vietnameseWordInput = document.getElementById('vietnameseWord') as HTMLInputElement | null;
     const xodangWordInput = document.getElementById('xodangWord') as HTMLInputElement | null;
     const recordAudioBtn = document.getElementById('recordAudioBtn') as HTMLButtonElement | null;
@@ -54,7 +43,6 @@ export function initContribute(): void {
     const audioStatus = document.getElementById('audioStatus');
     const submitSingleBtn = document.getElementById('submitSingleBtn');
 
-    // Batch Form elements
     const recordBatchBtn = document.getElementById('recordBatchBtn') as HTMLButtonElement | null;
     const uploadBatchBtn = document.getElementById('uploadBatchBtn') as HTMLButtonElement | null;
     const batchAudioInput = document.getElementById('batchAudioInput') as HTMLInputElement | null;
@@ -63,40 +51,37 @@ export function initContribute(): void {
     const batchQueueList = document.getElementById('batchQueueList');
     const submitBatchBtn = document.getElementById('submitBatchBtn');
 
-    // Visualizers
+    const deleteAudioModal = document.getElementById('deleteAudioConfirmModal') as HTMLElement | null;
+    const btnCancelDeleteAudio = document.getElementById('btnCancelDeleteAudio') as HTMLButtonElement | null;
+    const btnConfirmDeleteAudio = document.getElementById('btnConfirmDeleteAudio') as HTMLButtonElement | null;
+
     const singleVisualizer = new AudioWaveVisualizer(audioWave);
     const batchVisualizer = new AudioWaveVisualizer(batchWave);
+    const recorder = new AudioRecorder();
 
-    // State
     let singleAudioBlob: Blob | null = null;
     let singleAudioUrl: string | null = null;
     let singleAudioPlayer: HTMLAudioElement | null = null;
-    let mediaRecorder: MediaRecorder | null = null;
-    let audioStream: MediaStream | null = null;
-    let isRecording = false;
+    let pendingDeleteType: 'single' | 'batch' | null = null;
+    let pendingDeleteIndex = -1;
 
-    let batchQueue: BatchQueueItem[] = [];
-    let currentBatchPlayingIndex = -1;
-    let batchAudioPlayer: HTMLAudioElement | null = null;
-
-    // Tab Switching
-    tabButtons.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab as HTMLElement;
-            tabButtons.forEach(t => t.classList.remove('active'));
-            target.classList.add('active');
-
-            const tabId = target.dataset.tab;
-            if (singleTab) singleTab.style.display = tabId === 'single' ? 'block' : 'none';
-            if (batchTab) batchTab.style.display = tabId === 'batch' ? 'block' : 'none';
-
-            stopAllAudio();
-        });
+    const batchQueue = new BatchQueueManager(() => {
+        updateBatchUI();
     });
 
-    // --- Audio Utilities ---
+    function clearSingleAudio(): void {
+        singleAudioBlob = null;
+        if (singleAudioUrl) {
+            URL.revokeObjectURL(singleAudioUrl);
+            singleAudioUrl = null;
+        }
+        if (singlePlaybackControls) singlePlaybackControls.style.display = 'none';
+        if (audioStatus) audioStatus.textContent = '';
+        singleVisualizer.stopAnimation();
+    }
+
     function stopAllAudio(): void {
-        if (isRecording) {
+        if (recorder.isRecording()) {
             stopRecording();
         }
         if (singleAudioPlayer) {
@@ -104,122 +89,12 @@ export function initContribute(): void {
             singleAudioPlayer.currentTime = 0;
             singleVisualizer.stopAnimation();
         }
-        stopBatchAudio();
-    }
-
-    function sanitizeFilename(text: string): string {
-        return text
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/đ/g, 'd').replace(/Đ/g, 'D')
-            .replace(/[^a-zA-Z0-9]/g, '_')
-            .toLowerCase();
-    }
-
-    function convertBlobToBase64(blob: Blob): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64 = (reader.result as string).split(',')[1];
-                resolve(base64);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    }
-
-    async function sendFile(data: {
-        type: string;
-        vietnamese?: string;
-        xodang?: string;
-        readingContent?: string;
-        blob: Blob;
-        name: string;
-        filename: string;
-    }): Promise<{ success: boolean; message: string }> {
-        const base64Audio = await convertBlobToBase64(data.blob);
-        const payload = {
-            type: data.type,
-            vietnamese: data.vietnamese || '',
-            xodang: data.xodang || '',
-            readingContent: data.readingContent || data.name || '',
-            audioData: base64Audio,
-            mimeType: data.blob.type || 'audio/webm',
-            filename: `${sanitizeFilename(data.filename || data.name)}_${Date.now()}.${data.blob.type.includes('mp3') ? 'mp3' : 'webm'}`
-        };
-
-        await fetch(APP_CONFIG.CONTRIBUTE_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        return { success: true, message: 'File đã được gửi thành công' };
-    }
-
-    // --- Recording Logic ---
-    async function startRecording(isBatch: boolean = false): Promise<void> {
-        stopAllAudio();
-
-        try {
-            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const chunks: Blob[] = [];
-
-            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-                ? 'audio/webm;codecs=opus'
-                : 'audio/webm';
-
-            mediaRecorder = new MediaRecorder(audioStream, { mimeType });
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) chunks.push(e.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: mimeType });
-                if (isBatch) {
-                    handleBatchRecordedBlob(blob);
-                } else {
-                    handleSingleRecordedBlob(blob);
-                }
-            };
-
-            mediaRecorder.start();
-            isRecording = true;
-
-            if (isBatch) {
-                if (recordBatchBtn) {
-                    recordBatchBtn.innerHTML = `${getLucideIcon('square', 'lucide-icon', 18)}<span class="btn-text">Dừng thu</span>`;
-                    recordBatchBtn.classList.add('recording');
-                }
-                batchVisualizer.startAnimation(false);
-                if (batchStatus) batchStatus.textContent = 'Đang thu âm... Nhấn "Dừng thu" khi hoàn tất.';
-            } else {
-                if (recordAudioBtn) {
-                    recordAudioBtn.innerHTML = `${getLucideIcon('square', 'lucide-icon', 18)}<span class="btn-text">Dừng thu</span>`;
-                    recordAudioBtn.classList.add('recording');
-                }
-                singleVisualizer.startAnimation(false);
-                if (audioStatus) audioStatus.textContent = 'Đang thu âm...';
-            }
-        } catch (err: unknown) {
-            console.error('Cannot access microphone:', err);
-            showToast('Không thể truy cập microphone. Vui lòng cấp quyền trong cài đặt trình duyệt.', 'error');
-        }
+        batchQueue.stopPlayback();
+        batchVisualizer.stopAnimation();
     }
 
     function stopRecording(): void {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-        if (audioStream) {
-            audioStream.getTracks().forEach(track => track.stop());
-            audioStream = null;
-        }
-        isRecording = false;
-
+        recorder.stop();
         if (recordAudioBtn) {
             recordAudioBtn.innerHTML = `${getLucideIcon('mic', 'lucide-icon', 18)}<span class="btn-text">Thu âm</span>`;
             recordAudioBtn.classList.remove('recording');
@@ -232,7 +107,39 @@ export function initContribute(): void {
         batchVisualizer.stopAnimation();
     }
 
-    // --- Single Form Handling ---
+    async function startRecording(isBatch: boolean = false): Promise<void> {
+        stopAllAudio();
+
+        try {
+            const stream = await recorder.start(({ blob }) => {
+                if (isBatch) {
+                    handleBatchRecordedBlob(blob);
+                } else {
+                    handleSingleRecordedBlob(blob);
+                }
+            });
+
+            if (isBatch) {
+                if (recordBatchBtn) {
+                    recordBatchBtn.innerHTML = `${getLucideIcon('square', 'lucide-icon', 18)}<span class="btn-text">Dừng thu</span>`;
+                    recordBatchBtn.classList.add('recording');
+                }
+                batchVisualizer.startAnimation(false, stream);
+                if (batchStatus) batchStatus.textContent = 'Đang thu âm... Nhấn "Dừng thu" khi hoàn tất.';
+            } else {
+                if (recordAudioBtn) {
+                    recordAudioBtn.innerHTML = `${getLucideIcon('square', 'lucide-icon', 18)}<span class="btn-text">Dừng thu</span>`;
+                    recordAudioBtn.classList.add('recording');
+                }
+                singleVisualizer.startAnimation(false, stream);
+                if (audioStatus) audioStatus.textContent = 'Đang thu âm...';
+            }
+        } catch (err: unknown) {
+            console.error('Cannot access microphone:', err);
+            showToast('Không thể truy cập microphone. Vui lòng cấp quyền trong cài đặt trình duyệt.', 'error');
+        }
+    }
+
     function handleSingleRecordedBlob(blob: Blob): void {
         singleAudioBlob = blob;
         if (singleAudioUrl) URL.revokeObjectURL(singleAudioUrl);
@@ -243,9 +150,119 @@ export function initContribute(): void {
         if (audioStatus) audioStatus.textContent = 'Đã thu âm xong. Nhấn nghe thử hoặc gửi từ vựng.';
     }
 
+    function handleBatchRecordedBlob(blob: Blob): void {
+        const index = batchQueue.length + 1;
+        const name = `Thu_am_${index}_${new Date().toLocaleTimeString('vi-VN').replace(/:/g, '-')}`;
+        batchQueue.add({
+            name,
+            blob,
+            size: `${(blob.size / 1024).toFixed(1)} KB`,
+            type: 'recording',
+            audioUrl: URL.createObjectURL(blob)
+        });
+        if (batchStatus) batchStatus.textContent = `Đã thêm 1 file thu âm vào hàng đợi (Tổng: ${batchQueue.length} file).`;
+    }
+
+    function updateBatchUI(): void {
+        if (!batchQueueList || !submitBatchBtn) return;
+
+        const items = batchQueue.getItems();
+        if (items.length === 0) {
+            batchQueueList.style.display = 'none';
+            batchQueueList.replaceChildren();
+            submitBatchBtn.innerHTML = `${getLucideIcon('send', 'lucide-icon', 18)}<span>Gửi tất cả</span>`;
+            return;
+        }
+
+        batchQueueList.style.display = 'block';
+        submitBatchBtn.innerHTML = `${getLucideIcon('send', 'lucide-icon', 18)}<span>Gửi tất cả (${items.length})</span>`;
+
+        const fragment = document.createDocumentFragment();
+        const playingIdx = batchQueue.getPlayingIndex();
+
+        items.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'queue-item';
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'queue-item-info';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'queue-item-name';
+            nameDiv.textContent = item.name;
+
+            const sizeDiv = document.createElement('div');
+            sizeDiv.className = 'queue-item-size';
+            sizeDiv.textContent = `${item.size} • ${item.type === 'recording' ? 'Thu âm' : 'Tải lên'}`;
+
+            infoDiv.appendChild(nameDiv);
+            infoDiv.appendChild(sizeDiv);
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'queue-item-actions';
+
+            const isPlaying = playingIdx === index;
+            const playBtn = document.createElement('button');
+            playBtn.className = `queue-play-btn ${isPlaying ? 'playing' : ''}`;
+            playBtn.dataset.action = 'play-queue';
+            playBtn.dataset.index = String(index);
+            playBtn.title = isPlaying ? 'Tạm dừng' : 'Nghe';
+            playBtn.innerHTML = getLucideIcon(isPlaying ? 'pause' : 'play', 'lucide-icon', 16);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'queue-delete-btn';
+            deleteBtn.dataset.action = 'delete-queue';
+            deleteBtn.dataset.index = String(index);
+            deleteBtn.title = 'Xóa';
+            deleteBtn.innerHTML = getLucideIcon('trash-2', 'lucide-icon', 16);
+
+            actionsDiv.appendChild(playBtn);
+            actionsDiv.appendChild(deleteBtn);
+
+            itemDiv.appendChild(infoDiv);
+            itemDiv.appendChild(actionsDiv);
+            fragment.appendChild(itemDiv);
+        });
+
+        batchQueueList.replaceChildren(fragment);
+    }
+
+    function openDeleteConfirmation(type: 'single' | 'batch', index = -1): void {
+        pendingDeleteType = type;
+        pendingDeleteIndex = index;
+        if (deleteAudioModal) {
+            deleteAudioModal.style.display = 'flex';
+            btnConfirmDeleteAudio?.focus();
+        }
+    }
+
+    function closeDeleteConfirmation(): void {
+        pendingDeleteType = null;
+        pendingDeleteIndex = -1;
+        if (deleteAudioModal) deleteAudioModal.style.display = 'none';
+    }
+
+    tabButtons.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab as HTMLElement;
+            tabButtons.forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
+            target.classList.add('active');
+            target.setAttribute('aria-selected', 'true');
+
+            const tabId = target.dataset.tab;
+            if (singleTab) singleTab.style.display = tabId === 'single' ? 'block' : 'none';
+            if (batchTab) batchTab.style.display = tabId === 'batch' ? 'block' : 'none';
+
+            stopAllAudio();
+        });
+    });
+
     if (recordAudioBtn) {
         recordAudioBtn.addEventListener('click', () => {
-            if (isRecording) {
+            if (recorder.isRecording()) {
                 stopRecording();
             } else {
                 startRecording(false);
@@ -286,7 +303,12 @@ export function initContribute(): void {
                 };
             }
             singleAudioPlayer.src = singleAudioUrl;
-            singleAudioPlayer.play();
+            const playPromise = singleAudioPlayer.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(() => {
+                    singleVisualizer.stopAnimation();
+                });
+            }
             singleVisualizer.startAnimation(true);
         });
     }
@@ -301,28 +323,6 @@ export function initContribute(): void {
         });
     }
 
-    // 1-Step Deletion Confirmation Modal Logic (Requirement: single confirmation step with button 'Xóa')
-    const deleteAudioModal = document.getElementById('deleteAudioConfirmModal') as HTMLElement | null;
-    const btnCancelDeleteAudio = document.getElementById('btnCancelDeleteAudio') as HTMLButtonElement | null;
-    const btnConfirmDeleteAudio = document.getElementById('btnConfirmDeleteAudio') as HTMLButtonElement | null;
-    let pendingDeleteType: 'single' | 'batch' | null = null;
-    let pendingDeleteIndex = -1;
-
-    function openDeleteConfirmation(type: 'single' | 'batch', index = -1): void {
-        pendingDeleteType = type;
-        pendingDeleteIndex = index;
-        if (deleteAudioModal) {
-            deleteAudioModal.style.display = 'flex';
-            btnConfirmDeleteAudio?.focus();
-        }
-    }
-
-    function closeDeleteConfirmation(): void {
-        pendingDeleteType = null;
-        pendingDeleteIndex = -1;
-        if (deleteAudioModal) deleteAudioModal.style.display = 'none';
-    }
-
     btnCancelDeleteAudio?.addEventListener('click', closeDeleteConfirmation);
     deleteAudioModal?.addEventListener('click', (e) => {
         if (e.target === deleteAudioModal) closeDeleteConfirmation();
@@ -330,22 +330,12 @@ export function initContribute(): void {
 
     btnConfirmDeleteAudio?.addEventListener('click', () => {
         if (pendingDeleteType === 'single') {
-            singleAudioBlob = null;
-            if (singleAudioUrl) {
-                URL.revokeObjectURL(singleAudioUrl);
-                singleAudioUrl = null;
-            }
-            if (singlePlaybackControls) singlePlaybackControls.style.display = 'none';
-            if (audioStatus) audioStatus.textContent = '';
-            singleVisualizer.stopAnimation();
+            clearSingleAudio();
             showToast('Đã xóa bản thu âm', 'info');
         } else if (pendingDeleteType === 'batch' && pendingDeleteIndex >= 0) {
-            if (currentBatchPlayingIndex === pendingDeleteIndex) {
-                stopBatchAudio();
-            }
-            const removed = batchQueue.splice(pendingDeleteIndex, 1)[0];
-            if (removed?.audioUrl) URL.revokeObjectURL(removed.audioUrl);
-            updateBatchUI();
+            const wasPlaying = batchQueue.getPlayingIndex() === pendingDeleteIndex;
+            const removed = batchQueue.removeAt(pendingDeleteIndex);
+            if (wasPlaying) batchVisualizer.stopAnimation();
             showToast(`Đã xóa "${removed?.name || 'file'}" khỏi hàng đợi`, 'info');
         }
         closeDeleteConfirmation();
@@ -374,7 +364,7 @@ export function initContribute(): void {
 
             showLoading('Đang gửi từ vựng...');
             try {
-                await sendFile({
+                await sendContribution({
                     type: 'vocab',
                     vietnamese,
                     xodang,
@@ -384,13 +374,9 @@ export function initContribute(): void {
                 });
 
                 showToast('Đã gửi từ vựng thành công! Cảm ơn bạn đã đóng góp.', 'success');
-
-                // Reset form
                 vietnameseWordInput.value = '';
                 xodangWordInput.value = '';
-                singleAudioBlob = null;
-                if (singlePlaybackControls) singlePlaybackControls.style.display = 'none';
-                if (audioStatus) audioStatus.textContent = '';
+                clearSingleAudio();
             } catch (err: unknown) {
                 console.error('Error submitting vocabulary:', err);
                 showToast('Lỗi khi gửi từ vựng. Vui lòng thử lại sau.', 'error');
@@ -400,25 +386,9 @@ export function initContribute(): void {
         });
     }
 
-    // --- Batch Queue Handling (Event Delegation) ---
-    function handleBatchRecordedBlob(blob: Blob): void {
-        const index = batchQueue.length + 1;
-        const name = `Thu_am_${index}_${new Date().toLocaleTimeString('vi-VN').replace(/:/g, '-')}`;
-        const item: BatchQueueItem = {
-            name,
-            blob,
-            size: `${(blob.size / 1024).toFixed(1)} KB`,
-            type: 'recording',
-            audioUrl: URL.createObjectURL(blob)
-        };
-        batchQueue.push(item);
-        updateBatchUI();
-        if (batchStatus) batchStatus.textContent = `Đã thêm 1 file thu âm vào hàng đợi (Tổng: ${batchQueue.length} file).`;
-    }
-
     if (recordBatchBtn) {
         recordBatchBtn.addEventListener('click', () => {
-            if (isRecording) {
+            if (recorder.isRecording()) {
                 stopRecording();
             } else {
                 startRecording(true);
@@ -440,7 +410,7 @@ export function initContribute(): void {
                     return;
                 }
 
-                batchQueue.push({
+                batchQueue.add({
                     name: file.name,
                     blob: file,
                     size: `${(file.size / 1024).toFixed(1)} KB`,
@@ -450,7 +420,6 @@ export function initContribute(): void {
                 addedCount++;
             });
 
-            updateBatchUI();
             batchAudioInput.value = '';
             if (addedCount > 0 && batchStatus) {
                 batchStatus.textContent = `Đã thêm ${addedCount} file vào hàng đợi.`;
@@ -458,109 +427,6 @@ export function initContribute(): void {
         });
     }
 
-    function updateBatchUI(): void {
-        if (!batchQueueList || !submitBatchBtn) return;
-
-        if (batchQueue.length === 0) {
-            batchQueueList.style.display = 'none';
-            batchQueueList.replaceChildren();
-            submitBatchBtn.innerHTML = `${getLucideIcon('send', 'lucide-icon', 18)}<span>Gửi tất cả</span>`;
-            return;
-        }
-
-        batchQueueList.style.display = 'block';
-        submitBatchBtn.innerHTML = `${getLucideIcon('send', 'lucide-icon', 18)}<span>Gửi tất cả (${batchQueue.length})</span>`;
-
-        // Build list items using DOM APIs (Anti-XSS) and Event Delegation data attributes
-        const fragment = document.createDocumentFragment();
-
-        batchQueue.forEach((item, index) => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'queue-item';
-
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'queue-item-info';
-
-            const nameDiv = document.createElement('div');
-            nameDiv.className = 'queue-item-name';
-            nameDiv.textContent = item.name; // Safe against XSS
-
-            const sizeDiv = document.createElement('div');
-            sizeDiv.className = 'queue-item-size';
-            sizeDiv.textContent = `${item.size} • ${item.type === 'recording' ? 'Thu âm' : 'Tải lên'}`;
-
-            infoDiv.appendChild(nameDiv);
-            infoDiv.appendChild(sizeDiv);
-
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'queue-item-actions';
-
-            const isPlaying = currentBatchPlayingIndex === index;
-            const playBtn = document.createElement('button');
-            playBtn.className = `queue-play-btn ${isPlaying ? 'playing' : ''}`;
-            playBtn.dataset.action = 'play-queue';
-            playBtn.dataset.index = String(index);
-            playBtn.title = isPlaying ? 'Tạm dừng' : 'Nghe';
-            playBtn.innerHTML = getLucideIcon(isPlaying ? 'pause' : 'play', 'lucide-icon', 16);
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'queue-delete-btn';
-            deleteBtn.dataset.action = 'delete-queue';
-            deleteBtn.dataset.index = String(index);
-            deleteBtn.title = 'Xóa';
-            deleteBtn.innerHTML = getLucideIcon('trash-2', 'lucide-icon', 16);
-
-            actionsDiv.appendChild(playBtn);
-            actionsDiv.appendChild(deleteBtn);
-
-            itemDiv.appendChild(infoDiv);
-            itemDiv.appendChild(actionsDiv);
-            fragment.appendChild(itemDiv);
-        });
-
-        batchQueueList.replaceChildren(fragment);
-    }
-
-    function stopBatchAudio(): void {
-        if (batchAudioPlayer) {
-            batchAudioPlayer.pause();
-            batchAudioPlayer.currentTime = 0;
-        }
-        currentBatchPlayingIndex = -1;
-        batchVisualizer.stopAnimation();
-        updateBatchUI();
-    }
-
-    function playBatchQueueItem(index: number): void {
-        if (index < 0 || index >= batchQueue.length) return;
-
-        if (currentBatchPlayingIndex === index) {
-            stopBatchAudio();
-            return;
-        }
-
-        stopBatchAudio();
-        const item = batchQueue[index];
-        currentBatchPlayingIndex = index;
-
-        if (!batchAudioPlayer) {
-            batchAudioPlayer = new Audio();
-            batchAudioPlayer.onended = () => {
-                stopBatchAudio();
-            };
-        }
-
-        batchAudioPlayer.src = item.audioUrl;
-        batchAudioPlayer.play();
-        batchVisualizer.startAnimation(true);
-        updateBatchUI();
-    }
-
-    function deleteQueueItem(index: number): void {
-        openDeleteConfirmation('batch', index);
-    }
-
-    // Attach Event Delegation on batchQueueList
     if (batchQueueList) {
         batchQueueList.addEventListener('click', (e: Event) => {
             const target = e.target as HTMLElement;
@@ -572,33 +438,33 @@ export function initContribute(): void {
             if (index < 0) return;
 
             if (action === 'play-queue') {
-                playBatchQueueItem(index);
+                const started = batchQueue.play(index, () => batchVisualizer.stopAnimation());
+                if (started) {
+                    batchVisualizer.startAnimation(true);
+                } else {
+                    batchVisualizer.stopAnimation();
+                }
             } else if (action === 'delete-queue') {
                 openDeleteConfirmation('batch', index);
             }
         });
     }
 
-    // Expose functions globally for Phase A backwards compatibility
-    (window as unknown as { playBatchQueueItem: (i: number) => void }).playBatchQueueItem = playBatchQueueItem;
-    (window as unknown as { deleteQueueItem: (i: number) => void }).deleteQueueItem = deleteQueueItem;
-
-    // Submit Batch
     if (submitBatchBtn) {
         submitBatchBtn.addEventListener('click', async () => {
-            if (batchQueue.length === 0) {
+            const items = batchQueue.getItems();
+            if (items.length === 0) {
                 showToast('Hàng đợi trống', 'error');
                 return;
             }
 
-            stopBatchAudio();
-            showLoading(`Đang gửi ${batchQueue.length} file âm thanh...`);
+            stopAllAudio();
+            showLoading(`Đang gửi ${items.length} file âm thanh...`);
 
             let successCount = 0;
-            for (let i = 0; i < batchQueue.length; i++) {
-                const item = batchQueue[i];
+            for (const item of items) {
                 try {
-                    await sendFile({
+                    await sendContribution({
                         type: 'voice',
                         readingContent: item.name,
                         blob: item.blob,
@@ -612,15 +478,19 @@ export function initContribute(): void {
             }
 
             hideLoading();
-            if (successCount === batchQueue.length) {
-                showToast(`Đã gửi thành công toàn bộ ${batchQueue.length} file! Cảm ơn bạn.`, 'success');
-                batchQueue.forEach(item => URL.revokeObjectURL(item.audioUrl));
-                batchQueue = [];
-                updateBatchUI();
+            if (successCount === items.length) {
+                showToast(`Đã gửi thành công toàn bộ ${items.length} file! Cảm ơn bạn.`, 'success');
+                batchQueue.clear();
                 if (batchStatus) batchStatus.textContent = 'Chưa có file nào trong hàng đợi';
             } else {
-                showToast(`Đã gửi ${successCount}/${batchQueue.length} file thành công.`, 'info');
+                showToast(`Đã gửi ${successCount}/${items.length} file thành công.`, 'info');
             }
         });
     }
+
+    eventBus.on('tab:change', (sectionId: string) => {
+        if (sectionId !== 'contribute') {
+            stopAllAudio();
+        }
+    });
 }

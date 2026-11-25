@@ -41,6 +41,7 @@ describe('Native Canvas Games & Lifecycle Tests (Rule 11 Compliance)', () => {
 
     afterEach(() => {
         exitToMenu();
+        vi.useRealTimers();
         vi.restoreAllMocks();
     });
 
@@ -175,6 +176,121 @@ describe('Native Canvas Games & Lifecycle Tests (Rule 11 Compliance)', () => {
 
         expect(getActiveGame()).toBeNull();
         expect(cancelRafSpy).toHaveBeenCalled();
+    });
+
+    it('stops Game 2 Catcher animation loop immediately on game over without decrementing lives below 0', () => {
+        const cancelRafSpy = vi.spyOn(window, 'cancelAnimationFrame');
+        const onGameOver = vi.fn();
+        const onLivesChange = vi.fn();
+        const stage = document.createElement('div');
+        const game = new Game2Catcher(stage, {
+            onScoreChange: () => {},
+            onLivesChange,
+            onLevelComplete: () => {},
+            onGameOver
+        });
+
+        game.start(1);
+        const state = game as unknown as {
+            lives: number;
+            fallingWords: Array<{ text: string; isCorrect: boolean; x: number; y: number; speed: number; width: number; height: number }>;
+            update: (ts: number, dt?: number) => void;
+        };
+
+        state.lives = 1;
+        state.fallingWords = [
+            { text: 'Nhà', isCorrect: true, x: 50, y: 425, speed: 2, width: 80, height: 32 },
+            { text: 'Nước', isCorrect: true, x: 180, y: 425, speed: 2, width: 80, height: 32 }
+        ];
+
+        state.update(1000, 1);
+        state.update(1016, 1);
+
+        expect(onGameOver).toHaveBeenCalledTimes(1);
+        expect(onLivesChange).toHaveBeenCalledTimes(1);
+        expect(onLivesChange).toHaveBeenCalledWith(0);
+        expect(cancelRafSpy).toHaveBeenCalled();
+    });
+
+    it('stops Game 3 Shooter animation loop immediately on game over and level complete', () => {
+        const cancelRafSpy = vi.spyOn(window, 'cancelAnimationFrame');
+        const onGameOver = vi.fn();
+        const stage = document.createElement('div');
+        const game = new Game3Shooter(stage, {
+            onScoreChange: () => {},
+            onLivesChange: () => {},
+            onLevelComplete: () => {},
+            onGameOver
+        });
+
+        game.start(1);
+        const state = game as unknown as {
+            lives: number;
+            targets: Array<{ text: string; isCorrect: boolean; x: number; y: number; radius: number; vx: number; vy: number; color: string }>;
+            update: (dt?: number) => void;
+        };
+
+        state.lives = 1;
+        state.targets = [
+            { text: 'Nhà', isCorrect: true, x: 100, y: 420, radius: 34, vx: 0, vy: 2, color: '#000' },
+            { text: 'Nước', isCorrect: true, x: 200, y: 420, radius: 34, vx: 0, vy: 2, color: '#000' }
+        ];
+
+        state.update(1);
+        state.update(1);
+
+        expect(onGameOver).toHaveBeenCalledTimes(1);
+        expect(cancelRafSpy).toHaveBeenCalled();
+    });
+
+    it('cancels Game 1 and Game 4 pending levelComplete timeout on destroy and supports keyboard card flip', () => {
+        vi.useFakeTimers();
+        const onComplete1 = vi.fn();
+        const stage1 = document.createElement('div');
+        const game1 = new Game1Memory(stage1, { onScoreChange: () => {}, onLevelComplete: onComplete1 });
+        game1.start(1);
+
+        const g1State = game1 as unknown as {
+            cards: Array<{ id: string; pairId: number; content: string; type: 'question' | 'answer' }>;
+            totalPairs: number;
+            matchedPairs: number;
+        };
+        g1State.matchedPairs = g1State.totalPairs - 1;
+
+        const firstIdx = 0;
+        const pairId = g1State.cards[0].pairId;
+        const secondIdx = g1State.cards.findIndex((c, idx) => idx !== firstIdx && c.pairId === pairId);
+        const cardEls = stage1.querySelectorAll('.memory-card');
+
+        cardEls[firstIdx].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        expect(cardEls[firstIdx].classList.contains('flipped')).toBe(true);
+        (cardEls[secondIdx] as HTMLElement).click();
+
+        game1.destroy();
+        vi.advanceTimersByTime(1000);
+        expect(onComplete1).not.toHaveBeenCalled();
+
+        const onComplete4 = vi.fn();
+        const stage4 = document.createElement('div');
+        const game4 = new Game4Farm(stage4, { onScoreChange: () => {}, onLevelComplete: onComplete4 });
+        game4.start(1);
+        const g4State = game4 as unknown as {
+            plots: Array<{ id: number; stage: string; cropIcon: string }>;
+            harvestedCount: number;
+            totalPlots: number;
+            selectedPlotIndex: number | null;
+            currentQuestion: { correct: string } | null;
+            handleAnswer: (ans: string) => void;
+        };
+        g4State.plots[0].stage = 'ready';
+        g4State.harvestedCount = g4State.totalPlots - 1;
+        g4State.selectedPlotIndex = 0;
+        g4State.currentQuestion = { correct: 'Nhà' };
+        g4State.handleAnswer('Nhà');
+
+        game4.destroy();
+        vi.advanceTimersByTime(1000);
+        expect(onComplete4).not.toHaveBeenCalled();
     });
 });
 

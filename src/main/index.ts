@@ -1,9 +1,3 @@
-/**
- * Electron Main Process Entry Point
- * Configures secure window, grants microphone permissions, registers IPC handlers,
- * and manages desktop window lifecycle.
- */
-
 import { app, BrowserWindow, session, shell } from 'electron';
 import path from 'path';
 import { registerIpcFetcher } from './ipc-fetcher';
@@ -21,11 +15,10 @@ function createWindow(): void {
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: true,
-            preload: path.join(__dirname, '../preload/index.js')
+            preload: path.join(__dirname, '../preload/index.cjs')
         }
     });
 
-    // CODE-04: Prevent opening arbitrary internal windows; open external links in default OS browser
     mainWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
         if (url.startsWith('https:') || url.startsWith('http:')) {
             shell.openExternal(url);
@@ -33,7 +26,6 @@ function createWindow(): void {
         return { action: 'deny' };
     });
 
-    // CODE-04: Guard in-window navigation against external URL hijacking
     mainWindow.webContents.on('will-navigate', (event: any, navigationUrl: string) => {
         try {
             const parsedUrl = new URL(navigationUrl);
@@ -49,7 +41,6 @@ function createWindow(): void {
         }
     });
 
-    // CODE-06: Automatically grant media/microphone permission ONLY for trusted app origins
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
         if (permission === 'media') {
             const requestingUrl = (details && details.requestingUrl) || (webContents && webContents.getURL && webContents.getURL()) || '';
@@ -63,10 +54,6 @@ function createWindow(): void {
         callback(false);
     });
 
-    // Register IPC channels
-    registerIpcFetcher();
-
-    // In development mode, load Vite dev server; in production, load dist/index.html
     const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
     if (isDev) {
         mainWindow.loadURL('http://localhost:3000').catch(() => {
@@ -82,10 +69,11 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+    registerIpcFetcher();
     createWindow();
 
     app.on('activate', () => {
-        if (BrowserWindow.length === 0 || !mainWindow) {
+        if (BrowserWindow.getAllWindows().length === 0 || !mainWindow) {
             createWindow();
         }
     });

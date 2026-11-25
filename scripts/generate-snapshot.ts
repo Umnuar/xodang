@@ -1,11 +1,3 @@
-/**
- * Build-time Data Snapshot Generator (For Electron Offline Packaging)
- * Fetches Google Sheets API v4 data using environment variable GOOGLE_SHEETS_API_KEY
- * and saves frozen JSON snapshots to src/shared/data/snapshot/.
- *
- * NOTE: API Key must be supplied via environment variable and NEVER committed to Git.
- */
-
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -15,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function generateSnapshots(): Promise<void> {
-    const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
+    const apiKey = process.env.GOOGLE_SHEETS_API_KEY || process.env.VITE_GOOGLE_API_KEY || GOOGLE_CONFIG.API_KEY;
     if (!apiKey) {
         console.error('❌ Lỗi: Cần cung cấp biến môi trường GOOGLE_SHEETS_API_KEY để tạo snapshot!');
         console.error('Ví dụ: GOOGLE_SHEETS_API_KEY=AIzaSy... npm run snapshot');

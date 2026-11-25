@@ -8,10 +8,29 @@ import { showToast } from '@/renderer/components/toast';
 import { Game2Catcher } from '@/renderer/features/games/game2-catcher';
 import { Game3Shooter } from '@/renderer/features/games/game3-shooter';
 import { renderNoResult } from '@/renderer/features/home/home';
+import { showLeaderboardModal, showCertificatesModal } from '@/renderer/features/games/leaderboard';
+import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import type { DictionaryEntry } from '@/renderer/services/dictionary.service';
 
 describe('XSS Security Tests (Rule 3 Compliance)', () => {
     beforeEach(() => {
+        if (!window.localStorage || typeof window.localStorage.clear !== 'function') {
+            const store = new Map<string, string>();
+            const mockStorage = {
+                getItem: (k: string) => store.get(k) ?? null,
+                setItem: (k: string, v: string) => store.set(k, String(v)),
+                removeItem: (k: string) => store.delete(k),
+                clear: () => store.clear(),
+                get length() { return store.size; },
+                key: (i: number) => Array.from(store.keys())[i] ?? null
+            };
+            Object.defineProperty(window, 'localStorage', {
+                value: mockStorage,
+                configurable: true,
+                writable: true
+            });
+        }
+        window.localStorage.clear();
         document.body.innerHTML = `
             <div id="toastContainer"></div>
             <div id="testCardContainer"></div>
@@ -170,6 +189,43 @@ describe('XSS Security Tests (Rule 3 Compliance)', () => {
         expect(strong).not.toBeNull();
         expect(strong?.textContent).toBe(maliciousKeyword);
         expect(resultContainer.textContent).toContain(`Không tìm thấy kết quả phù hợp cho "${maliciousKeyword}"`);
+    });
+
+    it('renders malicious player names and certificate titles safely as text in Leaderboard & Certificates modals', () => {
+        const payload = '<img src="x" onerror="window.pwnedBoard=true"><script>alert(1)</script>';
+        window.localStorage.setItem(STORAGE_KEYS.GAME_USERS, JSON.stringify({
+            [payload]: {
+                name: payload,
+                totalScore: 999,
+                bestScore: 500,
+                level: 3,
+                gamesPlayed: 4,
+                lastPlayed: Date.now()
+            }
+        }));
+        window.localStorage.setItem(STORAGE_KEYS.GAME_CERTIFICATES, JSON.stringify([
+            {
+                id: 'cert_xss_1',
+                gameTitle: payload,
+                studentName: payload,
+                score: 300,
+                level: 2,
+                date: '25/11/2026',
+                timestamp: Date.now()
+            }
+        ]));
+
+        showLeaderboardModal();
+        const lModal = document.getElementById('leaderboardModal')!;
+        expect(lModal.querySelector('img')).toBeNull();
+        expect(lModal.querySelector('script')).toBeNull();
+        expect(lModal.querySelector('.player-name')?.textContent).toContain(payload);
+
+        showCertificatesModal();
+        const cModal = document.getElementById('certificatesListModal')!;
+        expect(cModal.querySelector('img')).toBeNull();
+        expect(cModal.querySelector('script')).toBeNull();
+        expect(cModal.querySelector('.cert-card-details h4')?.textContent).toBe(payload);
     });
 });
 

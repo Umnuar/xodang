@@ -38,3 +38,6 @@ graphify-out/
 
 # graft's local repository settings — not committed.
 /.graft/
+
+.codegraph/
+*.tsbuildinfo

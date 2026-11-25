@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
@@ -6,52 +7,88 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig(({ command }) => ({
-  base: './',
-  root: '.',
-  publicDir: 'public',
-  plugins: [
-    {
-      name: 'html-transform-csp',
-      transformIndexHtml(html, ctx) {
-        // 1. Chỉ tiêm khi build production và Electron
-        // 2. CHỈ TIÊM CHO index.html — bỏ qua intro.html và game.html trong Phase A để không chặn inline scripts & onclicks cũ
-        if (command === 'build' && ctx.filename && path.basename(ctx.filename) === 'index.html') {
-          const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://sheets.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:;">`;
-          // Sử dụng regex an toàn bảo toàn attributes trên thẻ head
-          return html.replace(/<head(\s[^>]*)?>/i, (match) => `${match}\n    ${cspMeta}`);
+    base: './',
+    root: '.',
+    publicDir: 'public',
+    plugins: [
+        {
+            name: 'snapshot-data-resolver',
+            resolveId(source) {
+                if (source === '@snapshot/data') {
+                    const vocabPath = path.resolve(__dirname, 'src/shared/data/snapshot/vocab-snapshot.json');
+                    if (fs.existsSync(vocabPath)) {
+                        return '\0virtual:snapshot-data';
+                    }
+                }
+                return null;
+            },
+            load(id) {
+                if (id !== '\0virtual:snapshot-data') return null;
+                const snapshotDir = path.resolve(__dirname, 'src/shared/data/snapshot');
+                const readValues = (fileName: string): string[][] | null => {
+                    const filePath = path.join(snapshotDir, fileName);
+                    if (!fs.existsSync(filePath)) return null;
+                    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as { values?: string[][] };
+                    return Array.isArray(parsed.values) ? parsed.values : null;
+                };
+                const vocabRows = readValues('vocab-snapshot.json');
+                const dictionary = vocabRows
+                    ? vocabRows.map((row) => ({
+                        viet: (row[0] || '').trim(),
+                        ethnic: (row[1] || '').trim(),
+                        pronunciation: (row[2] || '').trim(),
+                        driveId: (row[3] || '').trim(),
+                        exampleViet: (row[4] || '').trim(),
+                        exampleEthnic: (row[5] || '').trim()
+                    })).filter((entry) => entry.viet && entry.ethnic)
+                    : null;
+                const payload = {
+                    dictionary,
+                    quiz: readValues('quiz-snapshot.json'),
+                    chat: readValues('chat-snapshot.json')
+                };
+                return `export const snapshotFallback = ${JSON.stringify(payload)};\nexport const vocabSnapshot = snapshotFallback.dictionary;\nexport const quizSnapshot = snapshotFallback.quiz;\nexport const chatSnapshot = snapshotFallback.chat;`;
+            }
+        },
+        {
+            name: 'html-transform-csp',
+            transformIndexHtml(html, ctx) {
+                if (command === 'build' && ctx.filename && path.basename(ctx.filename) === 'index.html') {
+                    const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://sheets.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:;">`;
+                    return html.replace(/<head(\s[^>]*)?>/i, (match) => `${match}\n    ${cspMeta}`);
+                }
+                return html;
+            }
         }
-        return html;
-      }
-    }
-  ],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@shared': path.resolve(__dirname, 'src/shared'),
-      '@snapshot/data': path.resolve(__dirname, 'src/shared/data/snapshot-fallback.ts'),
-      '@snapshot': path.resolve(__dirname, 'src/shared/data/snapshot-fallback.ts')
-    }
-  },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html'),
-        sw: path.resolve(__dirname, 'src/renderer/service-worker.ts')
-      },
-      output: {
-        entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'sw') {
-            return 'service-worker.js';
-          }
-          return 'assets/[name]-[hash].js';
+    ],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'src'),
+            '@shared': path.resolve(__dirname, 'src/shared'),
+            '@snapshot/data': path.resolve(__dirname, 'src/shared/data/snapshot-fallback.ts'),
+            '@snapshot': path.resolve(__dirname, 'src/shared/data/snapshot-fallback.ts')
         }
-      }
+    },
+    build: {
+        outDir: 'dist',
+        emptyOutDir: true,
+        rollupOptions: {
+            input: {
+                main: path.resolve(__dirname, 'index.html'),
+                sw: path.resolve(__dirname, 'src/renderer/service-worker.ts')
+            },
+            output: {
+                entryFileNames: (chunkInfo) => {
+                    if (chunkInfo.name === 'sw') {
+                        return 'service-worker.js';
+                    }
+                    return 'assets/[name]-[hash].js';
+                }
+            }
+        }
+    },
+    server: {
+        port: 3000,
+        open: false
     }
-  },
-  server: {
-    port: 3000,
-    open: false
-  }
 }));

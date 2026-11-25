@@ -45,4 +45,12 @@ describe('FAQ Service Unit Tests', () => {
         expect(suggestions.length).toBe(2);
         expect(used.size).toBe(2);
     });
+
+    it('matches accent-insensitive short keyword queries without false positives', () => {
+        const faqs = parseFaqRows(rawRows);
+        expect(findFaqAnswer('xin chào', faqs)).toBe('Bơ rơ ha');
+        expect(findFaqAnswer('cam on', faqs)).toBe('Hơ măn ơn');
+        expect(findFaqAnswer('tạm biệt', faqs)).toBe('Brơi');
+        expect(findFaqAnswer('tiếng Xơ Đăng', faqs)).toBeNull();
+    });
 });

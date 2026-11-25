@@ -1,8 +1,3 @@
-/**
- * Offline Sync Service
- * Manages contribution recording queue and submission to Google Apps Script.
- */
-
 import { APP_CONFIG } from '@/shared/constants/config';
 
 export interface ContributionItem {
@@ -16,9 +11,28 @@ export interface ContributionItem {
     timestamp: number;
 }
 
-/**
- * Sanitizes Vietnamese text to ASCII safe filename.
- */
+export function getAudioUrl(driveId: string): string {
+    const cleanId = (driveId || '').trim();
+    if (!cleanId || cleanId === 'null' || cleanId === 'undefined') {
+        return '';
+    }
+    return `./audio/${encodeURIComponent(cleanId)}.webm`;
+}
+
+export function filterValidDriveIds(driveIds: Array<string | undefined | null>): string[] {
+    const seen = new Set<string>();
+    const validIds: string[] = [];
+    for (const rawId of driveIds) {
+        const cleanId = (rawId || '').trim();
+        if (!cleanId || cleanId === 'null' || cleanId === 'undefined' || seen.has(cleanId)) {
+            continue;
+        }
+        seen.add(cleanId);
+        validIds.push(cleanId);
+    }
+    return validIds;
+}
+
 export function sanitizeFilename(text: string): string {
     return (text || '')
         .normalize('NFD')
@@ -30,14 +44,11 @@ export function sanitizeFilename(text: string): string {
         .substring(0, 30);
 }
 
-/**
- * Converts a Blob to base64 string.
- */
 export function convertBlobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-            const result = reader.result as string;
+            const result = typeof reader.result === 'string' ? reader.result : '';
             const base64 = result.split(',')[1] || '';
             resolve(base64);
         };
@@ -46,9 +57,16 @@ export function convertBlobToBase64(blob: Blob): Promise<string> {
     });
 }
 
-/**
- * Sends a contribution payload to Google Apps Script.
- */
+function getExtensionFromMime(mimeType: string): string {
+    const lower = (mimeType || '').toLowerCase();
+    if (lower.includes('mp4') || lower.includes('m4a')) return 'm4a';
+    if (lower.includes('mpeg') || lower.includes('mp3')) return 'mp3';
+    if (lower.includes('ogg')) return 'ogg';
+    if (lower.includes('wav')) return 'wav';
+    if (lower.includes('flac')) return 'flac';
+    return 'webm';
+}
+
 export async function sendContribution(data: {
     type: 'vocab' | 'voice';
     vietnamese?: string;
@@ -60,8 +78,9 @@ export async function sendContribution(data: {
 }): Promise<{ success: boolean; message: string }> {
     const base64Audio = await convertBlobToBase64(data.blob);
     const mimeType = data.blob.type || 'audio/webm';
-    const ext = mimeType.includes('mp3') ? 'mp3' : 'webm';
-    const filename = `${sanitizeFilename(data.filename || data.name || 'audio')}_${Date.now()}.${ext}`;
+    const ext = getExtensionFromMime(mimeType);
+    const baseName = sanitizeFilename(data.filename || data.name || 'audio') || 'audio';
+    const filename = `${baseName}_${Date.now()}.${ext}`;
 
     const payload = {
         type: data.type,
@@ -73,74 +92,100 @@ export async function sendContribution(data: {
         filename
     };
 
-    // Google Apps Script requires mode: 'no-cors' from browsers
-    await fetch(APP_CONFIG.CONTRIBUTE_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.REQUEST_TIMEOUT_MS);
 
-    return { success: true, message: 'File đã được gửi thành công' };
+    try {
+        await fetch(APP_CONFIG.CONTRIBUTE_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+    } finally {
+        clearTimeout(timeoutId);
+    }
+
+    return { success: true, message: 'Đã gửi yêu cầu đóng góp tới máy chủ' };
 }
 
-/**
- * Checks cache status for an array of audio driveIds.
- */
-export async function getOfflineAudioStatus(driveIds: string[]): Promise<{ cached: number; total: number }> {
-    if (typeof window === 'undefined' || !('caches' in window)) {
-        return { cached: 0, total: driveIds.length };
+async function getCachedAudioFilenameSet(cache: Cache): Promise<Set<string>> {
+    const cachedFilenames = new Set<string>();
+    const cachedRequests = await cache.keys();
+    for (const req of cachedRequests) {
+        const rawUrl = typeof req === 'string' ? req : req.url;
+        const cleanPath = rawUrl.split('?')[0].split('#')[0];
+        const filename = cleanPath.substring(cleanPath.lastIndexOf('/') + 1);
+        if (filename) {
+            cachedFilenames.add(filename);
+        }
+    }
+    return cachedFilenames;
+}
+
+function isDriveIdCached(id: string, cachedFilenames: Set<string>): boolean {
+    return cachedFilenames.has(`${encodeURIComponent(id)}.webm`) || cachedFilenames.has(`${id}.webm`);
+}
+
+export async function getOfflineAudioStatus(
+    driveIds: Array<string | undefined | null>
+): Promise<{ cached: number; total: number }> {
+    const validIds = filterValidDriveIds(driveIds);
+    if (typeof window === 'undefined' || !('caches' in window) || validIds.length === 0) {
+        return { cached: 0, total: validIds.length };
     }
     try {
         const cache = await caches.open(APP_CONFIG.AUDIO_CACHE_NAME);
+        const cachedFilenames = await getCachedAudioFilenameSet(cache);
         let cached = 0;
-        for (const id of driveIds) {
-            const url = `./audio/${encodeURIComponent(id)}.webm`;
-            const match = await cache.match(url);
-            if (match) cached++;
+        for (const id of validIds) {
+            if (isDriveIdCached(id, cachedFilenames)) {
+                cached++;
+            }
         }
-        return { cached, total: driveIds.length };
+        return { cached, total: validIds.length };
     } catch {
-        return { cached: 0, total: driveIds.length };
+        return { cached: 0, total: validIds.length };
     }
 }
 
-/**
- * Downloads audio files into the offline audio cache with progress callback.
- */
 export async function downloadOfflineAudio(
-    driveIds: string[],
+    driveIds: Array<string | undefined | null>,
     onProgress?: (loaded: number, total: number, percent: number) => void
 ): Promise<{ cached: number; total: number }> {
-    if (typeof window === 'undefined' || !('caches' in window)) {
-        return { cached: 0, total: driveIds.length };
+    const validIds = filterValidDriveIds(driveIds);
+    const total = validIds.length;
+    if (typeof window === 'undefined' || !('caches' in window) || total === 0) {
+        return { cached: 0, total };
     }
+
     const cache = await caches.open(APP_CONFIG.AUDIO_CACHE_NAME);
-    const total = driveIds.length;
+    const cachedFilenames = await getCachedAudioFilenameSet(cache);
     let loaded = 0;
     let cached = 0;
 
     const concurrency = 5;
-    const queue = [...driveIds];
+    const queue = [...validIds];
 
     async function worker(): Promise<void> {
         while (queue.length > 0) {
             const id = queue.shift()!;
-            const url = `./audio/${encodeURIComponent(id)}.webm`;
-            const existing = await cache.match(url);
-            if (existing) {
+            if (isDriveIdCached(id, cachedFilenames)) {
                 cached++;
             } else {
-                try {
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        await cache.put(url, res.clone());
-                        cached++;
+                const url = getAudioUrl(id);
+                if (url) {
+                    try {
+                        const res = await fetch(url);
+                        if (res.ok) {
+                            await cache.put(url, res.clone());
+                            cached++;
+                        }
+                    } catch {
                     }
-                } catch {
-                    // Ignore single fetch failure
                 }
             }
             loaded++;
@@ -152,4 +197,3 @@ export async function downloadOfflineAudio(
     await Promise.all(workers);
     return { cached, total };
 }
-

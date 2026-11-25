@@ -1,17 +1,10 @@
-/**
- * Electron IPC Fetcher for Google Sheets Data
- * Handles API calls from main process, adds desktop headers, and falls back
- * to local snapshots when running without Internet connection.
- */
-
 import { ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import { GOOGLE_CONFIG, ALLOWED_SHEET_RANGES } from '../shared/constants/config';
+import { APP_CONFIG, GOOGLE_CONFIG, ALLOWED_SHEET_RANGES } from '../shared/constants/config';
 
 export function registerIpcFetcher(): void {
     ipcMain.handle('sheets:fetch', async (_event, range: string) => {
-        // CODE-05: Strict boundary validation on IPC input
         if (typeof range !== 'string' || !ALLOWED_SHEET_RANGES.has(range)) {
             return {
                 success: false,
@@ -19,16 +12,23 @@ export function registerIpcFetcher(): void {
             };
         }
 
-        const apiKey = GOOGLE_CONFIG.API_KEY;
-        const sheetId = GOOGLE_CONFIG.SHEET_ID;
+        const apiKey = process.env.GOOGLE_SHEETS_API_KEY || process.env.VITE_GOOGLE_API_KEY || GOOGLE_CONFIG.API_KEY;
+        const sheetId = process.env.VITE_SHEET_ID || GOOGLE_CONFIG.SHEET_ID;
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?key=${apiKey}`;
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.REQUEST_TIMEOUT_MS);
+
         try {
-            // Attempt network fetch with desktop User-Agent
+            if (!apiKey) {
+                throw new Error('Missing Google Sheets API key');
+            }
+
             const response = await fetch(url, {
                 headers: {
                     'User-Agent': 'TuDienXoDang-Desktop/10.0.3'
-                }
+                },
+                signal: controller.signal
             });
 
             if (!response.ok) {
@@ -40,16 +40,19 @@ export function registerIpcFetcher(): void {
         } catch (netErr) {
             console.warn('[Desktop IPC] Network fetch failed, reading offline snapshot fallback...', (netErr as Error).message);
 
-            // Offline Snapshot Fallback
             const snapshotFile = range.includes('Tracnghiem')
                 ? 'quiz-snapshot.json'
                 : range.includes('Chat')
                 ? 'chat-snapshot.json'
                 : 'vocab-snapshot.json';
 
-            const snapshotPath = path.resolve(__dirname, '../shared/data/snapshot', snapshotFile);
+            const candidatePaths = [
+                path.resolve(__dirname, '../../src/shared/data/snapshot', snapshotFile),
+                path.resolve(__dirname, '../shared/data/snapshot', snapshotFile)
+            ];
+            const snapshotPath = candidatePaths.find((candidate) => fs.existsSync(candidate));
 
-            if (fs.existsSync(snapshotPath)) {
+            if (snapshotPath) {
                 try {
                     const raw = fs.readFileSync(snapshotPath, 'utf-8');
                     const snapshotData = JSON.parse(raw);
@@ -60,11 +63,12 @@ export function registerIpcFetcher(): void {
             }
 
             return { success: false, error: (netErr as Error).message };
+        } finally {
+            clearTimeout(timeoutId);
         }
     });
 
     ipcMain.handle('system:is-offline', () => {
-        // Can be queried by renderer
         return false;
     });
 }

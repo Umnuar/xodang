@@ -1,0 +1,9 @@
+.agents/
+docs/archive/
+public/audio/
+dist/
+dist-electron/
+node_modules/
+graft/
+.codegraph/
+.remember/

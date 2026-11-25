@@ -1,10 +1,4 @@
-/**
- * Game 2: Hứng Từ Rơi / Mưa Từ Vựng (Falling Word Catcher)
- * Student steers a basket to catch the falling translation of the target Sedang word.
- * Strict destroy() lifecycle cancels requestAnimationFrame and cleans all event listeners.
- */
-
-import { getQuestionsForLevel, type GameQuestion } from './game-data';
+import { getQuestionsForLevel, shuffleArray, type GameQuestion } from './game-data';
 import { soundEffects } from './sound-effects';
 
 export interface Game2Callbacks {
@@ -47,9 +41,9 @@ export class Game2Catcher {
 
     private animId: number | null = null;
     private lastSpawnTime = 0;
+    private lastFrameTime = 0;
     private isDestroyed = false;
 
-    // Listeners
     private handleMouseMove: ((e: MouseEvent) => void) | null = null;
     private handleTouchMove: ((e: TouchEvent) => void) | null = null;
     private handleKeyDown: ((e: KeyboardEvent) => void) | null = null;
@@ -61,6 +55,7 @@ export class Game2Catcher {
 
     start(level: number = 1): void {
         this.isDestroyed = false;
+        this.lastFrameTime = 0;
         this.level = level;
         this.lives = 3;
         this.questionsAnswered = 0;
@@ -69,9 +64,8 @@ export class Game2Catcher {
         this.fallingWords = [];
 
         this.questions = getQuestionsForLevel(this.level, this.questionsNeeded + 3);
-        this.setupNextQuestion();
-
         this.render();
+        this.setupNextQuestion();
         this.startLoop();
     }
 
@@ -80,6 +74,10 @@ export class Game2Catcher {
             this.currentQuestionIndex = 0;
         }
         this.currentQuestion = this.questions[this.currentQuestionIndex++];
+        const targetWordEl = this.container.querySelector('#catcherTargetWord');
+        if (targetWordEl) {
+            targetWordEl.textContent = this.currentQuestion?.question || '';
+        }
         this.fallingWords = [];
         this.spawnWordsForCurrentQuestion();
     }
@@ -87,10 +85,10 @@ export class Game2Catcher {
     private spawnWordsForCurrentQuestion(): void {
         if (!this.currentQuestion || !this.canvas) return;
 
-        const options = [
+        const options = shuffleArray([
             { text: this.currentQuestion.correct, isCorrect: true },
             ...this.currentQuestion.wrongs.slice(0, 2).map(w => ({ text: w, isCorrect: false }))
-        ].sort(() => Math.random() - 0.5);
+        ]);
 
         const canvasWidth = this.canvas.width;
         const segment = canvasWidth / (options.length + 1);
@@ -136,7 +134,6 @@ export class Game2Catcher {
         this.ctx = this.canvas.getContext('2d');
         this.basketX = (this.canvas.width - this.basketWidth) / 2;
 
-        // Mouse controls
         this.handleMouseMove = (e: MouseEvent) => {
             if (!this.canvas) return;
             const rect = this.canvas.getBoundingClientRect();
@@ -145,7 +142,6 @@ export class Game2Catcher {
         };
         this.canvas.addEventListener('mousemove', this.handleMouseMove);
 
-        // Touch controls
         this.handleTouchMove = (e: TouchEvent) => {
             if (!this.canvas || e.touches.length === 0) return;
             const rect = this.canvas.getBoundingClientRect();
@@ -155,7 +151,6 @@ export class Game2Catcher {
         };
         this.canvas.addEventListener('touchmove', this.handleTouchMove, { passive: false });
 
-        // Keyboard controls
         this.handleKeyDown = (e: KeyboardEvent) => {
             if (!this.canvas) return;
             const step = 30;
@@ -168,22 +163,32 @@ export class Game2Catcher {
         window.addEventListener('keydown', this.handleKeyDown);
     }
 
+    private stopLoop(): void {
+        this.isDestroyed = true;
+        if (this.animId !== null) {
+            cancelAnimationFrame(this.animId);
+            this.animId = null;
+        }
+    }
+
     private startLoop(): void {
         const loop = (timestamp: number) => {
             if (this.isDestroyed) return;
-            this.update(timestamp);
+            const dt = this.lastFrameTime > 0 ? Math.min((timestamp - this.lastFrameTime) / 16.667, 3) : 1;
+            this.lastFrameTime = timestamp;
+            this.update(timestamp, dt);
+            if (this.isDestroyed) return;
             this.draw();
             this.animId = requestAnimationFrame(loop);
         };
         this.animId = requestAnimationFrame(loop);
     }
 
-    private update(timestamp: number): void {
-        if (!this.canvas) return;
+    private update(timestamp: number, dt: number = 1): void {
+        if (!this.canvas || this.isDestroyed) return;
         const canvasHeight = this.canvas.height;
         const basketY = canvasHeight - this.basketHeight - 15;
 
-        // Respawn if all words fell off
         if (this.fallingWords.length === 0 && timestamp - this.lastSpawnTime > 600) {
             this.spawnWordsForCurrentQuestion();
             this.lastSpawnTime = timestamp;
@@ -191,9 +196,8 @@ export class Game2Catcher {
 
         for (let i = this.fallingWords.length - 1; i >= 0; i--) {
             const word = this.fallingWords[i];
-            word.y += word.speed;
+            word.y += word.speed * dt;
 
-            // Check collision with basket
             const hitBasketX = (word.x + word.width > this.basketX) && (word.x < this.basketX + this.basketWidth);
             const hitBasketY = (word.y + word.height >= basketY) && (word.y <= basketY + this.basketHeight);
 
@@ -206,12 +210,11 @@ export class Game2Catcher {
 
                     if (this.questionsAnswered >= this.questionsNeeded) {
                         soundEffects.levelUp();
+                        this.stopLoop();
                         this.callbacks.onLevelComplete(this.level, this.score);
                         return;
                     }
                     this.setupNextQuestion();
-                    const targetEl = this.container.querySelector('#catcherTargetWord');
-                    if (targetEl) targetEl.textContent = this.currentQuestion?.question || '';
                 } else {
                     soundEffects.wrong();
                     this.lives--;
@@ -219,6 +222,7 @@ export class Game2Catcher {
                     this.fallingWords.splice(i, 1);
 
                     if (this.lives <= 0) {
+                        this.stopLoop();
                         this.callbacks.onGameOver(this.score);
                         return;
                     }
@@ -226,13 +230,12 @@ export class Game2Catcher {
                 break;
             }
 
-            // Hit floor
             if (word.y > canvasHeight) {
                 if (word.isCorrect) {
-                    // Missed the correct word
                     this.lives--;
                     this.callbacks.onLivesChange(this.lives);
                     if (this.lives <= 0) {
+                        this.stopLoop();
                         this.callbacks.onGameOver(this.score);
                         return;
                     }
@@ -242,17 +245,47 @@ export class Game2Catcher {
         }
     }
 
+    private drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radii: number | number[]): void {
+        if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(x, y, w, h, radii);
+            return;
+        }
+        const r = Array.isArray(radii) ? radii[2] ?? 0 : radii;
+        if (Array.isArray(radii)) {
+            const [tl, tr, br, bl] = radii;
+            ctx.moveTo(x + tl, y);
+            ctx.lineTo(x + w - tr, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+            ctx.lineTo(x + w, y + h - br);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+            ctx.lineTo(x + bl, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+            ctx.lineTo(x, y + tl);
+            ctx.quadraticCurveTo(x, y, x + tl, y);
+            ctx.closePath();
+            return;
+        }
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
     private draw(): void {
         if (!this.ctx || !this.canvas) return;
         const ctx = this.ctx;
         const w = this.canvas.width;
         const h = this.canvas.height;
 
-        // Background
         ctx.fillStyle = '#f0f9ff';
         ctx.fillRect(0, 0, w, h);
 
-        // Ground line
         ctx.strokeStyle = '#bae6fd';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -260,11 +293,10 @@ export class Game2Catcher {
         ctx.lineTo(w, h - 15);
         ctx.stroke();
 
-        // Falling words
         this.fallingWords.forEach(word => {
             ctx.fillStyle = '#3b82f6';
             ctx.beginPath();
-            ctx.roundRect(word.x, word.y, word.width, word.height, 12);
+            this.drawRoundedRect(ctx, word.x, word.y, word.width, word.height, 12);
             ctx.fill();
 
             ctx.fillStyle = '#ffffff';
@@ -274,11 +306,10 @@ export class Game2Catcher {
             ctx.fillText(word.text, word.x + word.width / 2, word.y + word.height / 2);
         });
 
-        // Basket
         const basketY = h - this.basketHeight - 15;
         ctx.fillStyle = '#ea580c';
         ctx.beginPath();
-        ctx.roundRect(this.basketX, basketY, this.basketWidth, this.basketHeight, [0, 0, 16, 16]);
+        this.drawRoundedRect(ctx, this.basketX, basketY, this.basketWidth, this.basketHeight, [0, 0, 16, 16]);
         ctx.fill();
 
         ctx.fillStyle = '#fed7aa';
@@ -291,11 +322,7 @@ export class Game2Catcher {
     }
 
     destroy(): void {
-        this.isDestroyed = true;
-        if (this.animId !== null) {
-            cancelAnimationFrame(this.animId);
-            this.animId = null;
-        }
+        this.stopLoop();
 
         if (this.canvas) {
             if (this.handleMouseMove) {
@@ -313,6 +340,6 @@ export class Game2Catcher {
             this.handleKeyDown = null;
         }
 
-        this.container.innerHTML = '';
+        this.container.replaceChildren();
     }
 }

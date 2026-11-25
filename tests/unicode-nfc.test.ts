@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeUnicodeNFC, searchDictionary, type DictionaryEntry } from '@/renderer/services/dictionary.service';
+import { getSuggestions, normalizeUnicodeNFC, searchDictionary, stripDiacritics, type DictionaryEntry } from '@/renderer/services/dictionary.service';
 
 describe('Unicode NFC Normalization Tests', () => {
     it('normalizes decomposed NFD characters into precomposed NFC', () => {
@@ -74,5 +74,26 @@ describe('Unicode NFC Normalization Tests', () => {
         expect(normalizeUnicodeNFC('')).toBe('');
         expect(normalizeUnicodeNFC(null as unknown as string)).toBe('');
         expect(normalizeUnicodeNFC(undefined as unknown as string)).toBe('');
+    });
+
+    it('falls back to accent-insensitive matching and provides bidirectional suggestions', () => {
+        expect(stripDiacritics('nước đak')).toBe('nuoc dak');
+        const dictionary: DictionaryEntry[] = [
+            { viet: 'nước', ethnic: 'đak' },
+            { viet: 'mặt trời', ethnic: 'măt hơ ri' },
+            { viet: 'rừng', ethnic: 'bri' }
+        ];
+
+        const vietFoldedResults = searchDictionary('nuoc', 'viet_to_ethnic', dictionary);
+        expect(vietFoldedResults.length).toBe(1);
+        expect(vietFoldedResults[0].ethnic).toBe('đak');
+        expect(vietFoldedResults[0].matchType).toBe('accent_insensitive');
+
+        const ethnicFoldedResults = searchDictionary('dak', 'ethnic_to_viet', dictionary);
+        expect(ethnicFoldedResults.length).toBe(1);
+        expect(ethnicFoldedResults[0].viet).toBe('nước');
+
+        expect(getSuggestions('nu', 'viet_to_ethnic', dictionary)).toEqual(['nước']);
+        expect(getSuggestions('br', 'ethnic_to_viet', dictionary)).toEqual(['bri']);
     });
 });

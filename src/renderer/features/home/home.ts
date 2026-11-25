@@ -1,15 +1,10 @@
-/**
- * Home Feature Controller
- * Manages dictionary search, stats counters, voice recognition, and offline audio downloads.
- */
-
 import { fetchDictionaryData } from '@/renderer/services/sheets.service';
-import { searchDictionary, type DictionaryEntry, type SearchDirection } from '@/renderer/services/dictionary.service';
+import { getSuggestions, searchDictionary, type DictionaryEntry, type SearchDirection } from '@/renderer/services/dictionary.service';
 import { renderWordCards } from './word-card';
 import { showToast } from '@/renderer/components/toast';
 import { showLoading, hideLoading } from '@/renderer/components/loading-overlay';
 import { isSpeechRecognitionSupported, startSpeechRecognition } from '@/renderer/services/speech.service';
-import { downloadOfflineAudio, getOfflineAudioStatus } from '@/renderer/services/offline-sync.service';
+import { downloadOfflineAudio, filterValidDriveIds, getOfflineAudioStatus } from '@/renderer/services/offline-sync.service';
 import { getLucideIcon } from '@/renderer/utils/icons';
 
 let dictionaryData: DictionaryEntry[] = [];
@@ -51,51 +46,53 @@ export async function initHome(): Promise<void> {
     const searchStatus = document.getElementById('searchStatus');
     const suggestionsList = document.getElementById('suggestions');
 
-    // Stats elements
     const dictCount = document.getElementById('dictionary-count');
     const statWords = document.getElementById('stat-words');
     const statAudio = document.getElementById('stat-audio');
     const statExamples = document.getElementById('stat-examples');
     const statQuestions = document.getElementById('stat-questions');
 
-    // Offline download elements
     const btnDownload = document.getElementById('btn-download-offline') as HTMLButtonElement | null;
     const progressContainer = document.getElementById('download-progress-container');
     const progressBar = document.getElementById('download-progress-bar');
     const progressText = document.getElementById('download-progress-text');
     const downloadStatus = document.getElementById('download-status');
 
-    // Load dictionary data
+    function updateSuggestions(query: string, direction: SearchDirection): void {
+        if (!suggestionsList) return;
+        const trimmed = query.trim();
+        const terms = trimmed
+            ? getSuggestions(trimmed, direction, dictionaryData, 10)
+            : dictionaryData
+                .slice(0, 50)
+                .map(entry => (direction === 'viet_to_ethnic' ? entry.viet : entry.ethnic))
+                .filter(Boolean);
+
+        const fragment = document.createDocumentFragment();
+        terms.forEach(term => {
+            const opt = document.createElement('option');
+            opt.value = term;
+            fragment.appendChild(opt);
+        });
+        suggestionsList.replaceChildren(fragment);
+    }
+
     try {
         showLoading('Đang tải dữ liệu từ điển...');
         dictionaryData = await fetchDictionaryData();
 
-        // Update stats
         if (dictCount) dictCount.textContent = `${dictionaryData.length}+ từ vựng chuẩn`;
         if (statWords) statWords.textContent = `${dictionaryData.length}+`;
 
-        const audioCount = dictionaryData.filter(d => d.driveId && d.driveId.trim() !== '' && d.driveId !== 'null').length;
+        const audioCount = filterValidDriveIds(dictionaryData.map(d => d.driveId)).length;
         if (statAudio) statAudio.textContent = `${audioCount}+`;
 
         const exampleCount = dictionaryData.filter(d => (d.exampleViet || d.exampleEthnic) && d.exampleViet !== 'null').length;
         if (statExamples) statExamples.textContent = `${exampleCount}+`;
         if (statQuestions) statQuestions.textContent = '100+';
 
-        // Autocomplete
-        if (suggestionsList) {
-            const fragment = document.createDocumentFragment();
-            const sampleWords = dictionaryData.slice(0, 100);
-            sampleWords.forEach(entry => {
-                if (entry.viet) {
-                    const opt = document.createElement('option');
-                    opt.value = entry.viet;
-                    fragment.appendChild(opt);
-                }
-            });
-            suggestionsList.appendChild(fragment);
-        }
+        updateSuggestions('', (directionSelect?.value as SearchDirection) || 'viet_to_ethnic');
 
-        // Check offline audio status
         if (btnDownload && downloadStatus) {
             checkOfflineAudioState();
         }
@@ -110,7 +107,6 @@ export async function initHome(): Promise<void> {
         hideLoading();
     }
 
-    // Search handler
     function executeSearch(query: string, direction: SearchDirection): void {
         if (!resultDiv) return;
         const trimmed = query.trim();
@@ -143,25 +139,38 @@ export async function initHome(): Promise<void> {
         renderWordCards(resultDiv, results, direction);
     }
 
-    // Bind form submit
     if (searchForm && wordInput && directionSelect) {
         searchForm.addEventListener('submit', (e: Event) => {
             e.preventDefault();
             executeSearch(wordInput.value, directionSelect.value as SearchDirection);
         });
 
-        // Live input search with debouncing
         let debounceTimer: ReturnType<typeof setTimeout>;
         wordInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                if (wordInput.value.trim().length >= 2) {
+            const direction = directionSelect.value as SearchDirection;
+            updateSuggestions(wordInput.value, direction);
+
+            const trimmed = wordInput.value.trim();
+            if (trimmed.length === 0) {
+                executeSearch('', direction);
+                return;
+            }
+            if (trimmed.length >= 2) {
+                debounceTimer = setTimeout(() => {
                     executeSearch(wordInput.value, directionSelect.value as SearchDirection);
-                }
-            }, 300);
+                }, 300);
+            }
         });
 
-        // Diacritics shortcut buttons
+        directionSelect.addEventListener('change', () => {
+            const direction = directionSelect.value as SearchDirection;
+            updateSuggestions(wordInput.value, direction);
+            if (wordInput.value.trim().length > 0) {
+                executeSearch(wordInput.value, direction);
+            }
+        });
+
         const diacriticBtns = document.querySelectorAll('.diacritic-btn');
         diacriticBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -177,7 +186,6 @@ export async function initHome(): Promise<void> {
             });
         });
 
-        // Quick Suggestion Chips
         const suggestChips = document.querySelectorAll('.suggest-chip');
         suggestChips.forEach(chip => {
             chip.addEventListener('click', () => {
@@ -189,7 +197,6 @@ export async function initHome(): Promise<void> {
         });
     }
 
-    // Speech Recognition Button
     if (speechBtn && wordInput && directionSelect) {
         if (!isSpeechRecognitionSupported()) {
             speechBtn.style.display = 'none';
@@ -213,10 +220,9 @@ export async function initHome(): Promise<void> {
         }
     }
 
-    // Offline Audio Status & Downloader
     async function checkOfflineAudioState(): Promise<void> {
         if (!btnDownload || !downloadStatus) return;
-        const driveIds = dictionaryData.map(d => d.driveId).filter((id): id is string => Boolean(id && id.trim() !== ''));
+        const driveIds = filterValidDriveIds(dictionaryData.map(d => d.driveId));
         const status = await getOfflineAudioStatus(driveIds);
 
         if (status.total > 0 && status.cached >= status.total) {
@@ -239,18 +245,26 @@ export async function initHome(): Promise<void> {
             btnDownload.innerHTML = `${getLucideIcon('rotate-ccw', 'lucide-icon', 18)} <span>Đang chuẩn bị dữ liệu...</span>`;
             progressContainer.style.display = 'block';
 
-            const driveIds = dictionaryData.map(d => d.driveId).filter((id): id is string => Boolean(id && id.trim() !== ''));
+            const driveIds = filterValidDriveIds(dictionaryData.map(d => d.driveId));
 
-            await downloadOfflineAudio(driveIds, (loaded: number, total: number, percent: number) => {
+            const result = await downloadOfflineAudio(driveIds, (loaded: number, total: number, percent: number) => {
                 progressBar.style.width = `${percent}%`;
                 progressText.textContent = `Đang tải: ${loaded}/${total} (${percent}%)`;
             });
 
-            btnDownload.innerHTML = `${getLucideIcon('check-circle', 'lucide-icon', 18)} <span>Đã tải offline thành công</span>`;
-            btnDownload.style.background = 'var(--color-primary)';
-            btnDownload.disabled = true;
-            downloadStatus.textContent = 'Tải hoàn tất! Bạn có thể nghe phát âm khi không có mạng.';
-            showToast('Tải thành công âm thanh offline!', 'success');
+            btnDownload.style.opacity = '1';
+            if (result.total > 0 && result.cached >= result.total) {
+                btnDownload.innerHTML = `${getLucideIcon('check-circle', 'lucide-icon', 18)} <span>Đã tải offline thành công</span>`;
+                btnDownload.style.background = 'var(--color-primary)';
+                btnDownload.disabled = true;
+                downloadStatus.textContent = 'Tải hoàn tất! Bạn có thể nghe phát âm khi không có mạng.';
+                showToast('Tải thành công âm thanh offline!', 'success');
+            } else {
+                btnDownload.disabled = false;
+                btnDownload.innerHTML = `${getLucideIcon('download', 'lucide-icon', 18)} <span>Thử tải lại (${result.cached}/${result.total})</span>`;
+                downloadStatus.textContent = `Đã tải được ${result.cached}/${result.total} file âm thanh. Vui lòng thử lại khi mạng ổn định.`;
+                showToast(`Chỉ tải được ${result.cached}/${result.total} file âm thanh.`, 'warning');
+            }
         });
     }
 }

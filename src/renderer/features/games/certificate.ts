@@ -1,10 +1,5 @@
-/**
- * Minigames Canvas Certificate Generator & Exporter
- * Restores original game.html certificate generation with high-res Canvas rendering,
- * LocalStorage persistence, and PNG download capability.
- */
-
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { getRawStorageItem, getStorageItem, setStorageItem } from '@/renderer/services/storage.service';
 import { soundEffects } from './sound-effects';
 import { getLucideIcon } from '@/renderer/utils/icons';
 
@@ -18,24 +13,18 @@ export interface CertificateRecord {
     timestamp: number;
 }
 
-const CERTIFICATES_STORAGE_KEY = 'xedang_certificates';
-
-/**
- * Retrieves all saved certificates from localStorage.
- */
-export function getSavedCertificates(): CertificateRecord[] {
-    try {
-        const raw = localStorage.getItem(CERTIFICATES_STORAGE_KEY);
-        if (!raw) return [];
-        return JSON.parse(raw) as CertificateRecord[];
-    } catch {
-        return [];
-    }
+interface StoredUserCertBucket {
+    name: string;
+    certificates?: CertificateRecord[];
 }
 
-/**
- * Persists a new certificate into localStorage.
- */
+let activeCertificateCanvas: HTMLCanvasElement | null = null;
+let activeCertificateStudentName = '';
+
+export function getSavedCertificates(): CertificateRecord[] {
+    return getStorageItem<CertificateRecord[]>(STORAGE_KEYS.GAME_CERTIFICATES, []);
+}
+
 export function saveCertificate(cert: Omit<CertificateRecord, 'id' | 'timestamp'>): CertificateRecord {
     const list = getSavedCertificates();
     const newCert: CertificateRecord = {
@@ -45,37 +34,29 @@ export function saveCertificate(cert: Omit<CertificateRecord, 'id' | 'timestamp'
     };
     list.unshift(newCert);
 
-    try {
-        localStorage.setItem(CERTIFICATES_STORAGE_KEY, JSON.stringify(list));
+    setStorageItem(STORAGE_KEYS.GAME_CERTIFICATES, list);
 
-        // Also update currentUser in xedang_users if present
-        const rawUsers = localStorage.getItem(STORAGE_KEYS.GAME_USERS);
-        const users = rawUsers ? JSON.parse(rawUsers) : {};
-        const currentUsername = localStorage.getItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
-        if (!users[currentUsername]) {
-            users[currentUsername] = { name: currentUsername, certificates: [] };
-        }
-        if (!Array.isArray(users[currentUsername].certificates)) {
-            users[currentUsername].certificates = [];
-        }
-        users[currentUsername].certificates.unshift(newCert);
-        localStorage.setItem(STORAGE_KEYS.GAME_USERS, JSON.stringify(users));
-    } catch {
-        // Ignore quota errors
+    const users = getStorageItem<Record<string, StoredUserCertBucket>>(STORAGE_KEYS.GAME_USERS, {});
+    const currentUsername = getRawStorageItem(STORAGE_KEYS.GAME_CURRENT_USER) || 'Người học Xơ Đăng';
+    if (!users[currentUsername]) {
+        users[currentUsername] = { name: currentUsername, certificates: [] };
     }
+    if (!Array.isArray(users[currentUsername].certificates)) {
+        users[currentUsername].certificates = [];
+    }
+    users[currentUsername].certificates.unshift(newCert);
+    setStorageItem(STORAGE_KEYS.GAME_USERS, users);
 
     return newCert;
 }
 
-/**
- * Renders an 800x600 high-res certificate on an HTML5 Canvas.
- */
 export function renderCertificateCanvas(options: {
     studentName: string;
     gameTitle: string;
     score: number;
     level: number;
     date?: string;
+    id?: string;
 }): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
     canvas.width = 800;
@@ -85,43 +66,36 @@ export function renderCertificateCanvas(options: {
 
     const { studentName, gameTitle, score, level } = options;
     const dateStr = options.date || new Date().toLocaleDateString('vi-VN');
+    const serialSuffix = (options.id || String(Date.now())).slice(-6).toUpperCase();
 
-    // 1. Background Parchment
     ctx.fillStyle = '#fdfbf7';
     ctx.fillRect(0, 0, 800, 600);
 
-    // 2. Decorative Outer Border (Forest Green)
     ctx.lineWidth = 14;
     ctx.strokeStyle = '#27ae60';
     ctx.strokeRect(18, 18, 764, 564);
 
-    // 3. Inner Border (Gold)
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#d4af37';
     ctx.strokeRect(32, 32, 736, 536);
 
-    // Corner Accents
     drawCornerAccent(ctx, 36, 36, 1, 1);
     drawCornerAccent(ctx, 764, 36, -1, 1);
     drawCornerAccent(ctx, 36, 564, 1, -1);
     drawCornerAccent(ctx, 764, 564, -1, -1);
 
-    // 4. Header Badge / Trophy
     ctx.font = '48px "Segoe UI", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('🎓', 400, 95);
 
-    // 5. Main Certificate Title
     ctx.fillStyle = '#1e3a8a';
     ctx.font = 'bold 32px "Segoe UI", sans-serif';
     ctx.fillText('GIẤY CHỨNG NHẬN HOÀN THÀNH', 400, 145);
 
-    // Subtitle
     ctx.fillStyle = '#27ae60';
     ctx.font = '600 18px "Segoe UI", sans-serif';
     ctx.fillText('KHÔNG GIAN TRÒ CHƠI HỌC TIẾNG XƠ ĐĂNG', 400, 180);
 
-    // Divider Line
     ctx.strokeStyle = '#d4af37';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -129,26 +103,22 @@ export function renderCertificateCanvas(options: {
     ctx.lineTo(550, 195);
     ctx.stroke();
 
-    // 6. Commendation Text
     ctx.fillStyle = '#4b5563';
     ctx.font = 'italic 18px "Segoe UI", sans-serif';
     ctx.fillText('Trân trọng trao tặng cho:', 400, 240);
 
-    // 7. Recipient Name
     ctx.fillStyle = '#b91c1c';
     ctx.font = 'bold 38px "Segoe UI", sans-serif';
     ctx.fillText(studentName || 'Người học Xơ Đăng', 400, 295);
 
-    // 8. Game Achievement Details
     ctx.fillStyle = '#374151';
     ctx.font = '18px "Segoe UI", sans-serif';
-    ctx.fillText(`Đã xuất sắc vượt qua các thử thách từ vựng trong trò chơi:`, 400, 345);
+    ctx.fillText('Đã xuất sắc vượt qua các thử thách từ vựng trong trò chơi:', 400, 345);
 
     ctx.fillStyle = '#0284c7';
     ctx.font = 'bold 24px "Segoe UI", sans-serif';
     ctx.fillText(`"${gameTitle}"`, 400, 385);
 
-    // Stats Box
     ctx.fillStyle = '#f3f4f6';
     ctx.strokeStyle = '#e5e7eb';
     ctx.lineWidth = 1;
@@ -160,15 +130,13 @@ export function renderCertificateCanvas(options: {
     ctx.font = 'bold 16px "Segoe UI", sans-serif';
     ctx.fillText(`Cấp độ: ${level}    |    Tổng điểm: ${score}`, 400, 450);
 
-    // 9. Seal (Right bottom)
     drawRedSeal(ctx, 670, 480);
 
-    // 10. Date and Signatures
     ctx.fillStyle = '#6b7280';
     ctx.font = 'italic 15px "Segoe UI", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(`Ngày cấp: ${dateStr}`, 60, 525);
-    ctx.fillText('Số hiệu: XEDANG-EDU-' + String(Date.now()).slice(-6), 60, 545);
+    ctx.fillText(`Số hiệu: XEDANG-EDU-${serialSuffix}`, 60, 545);
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#374151';
@@ -229,9 +197,6 @@ function drawRedSeal(ctx: CanvasRenderingContext2D, cx: number, cy: number): voi
     ctx.restore();
 }
 
-/**
- * Triggers a native browser download for the canvas as a PNG image.
- */
 export function downloadCertificatePng(canvas: HTMLCanvasElement, filename: string): void {
     soundEffects.click();
     canvas.toBlob((blob) => {
@@ -247,27 +212,31 @@ export function downloadCertificatePng(canvas: HTMLCanvasElement, filename: stri
     }, 'image/png');
 }
 
-/**
- * Displays the Certificate preview modal with full interactions.
- */
 export function showCertificateModal(options: {
     studentName: string;
     gameTitle: string;
     score: number;
     level: number;
+    id?: string;
+    date?: string;
+    persist?: boolean;
 }): void {
-    // 1. Persist
-    saveCertificate({
-        studentName: options.studentName,
-        gameTitle: options.gameTitle,
-        score: options.score,
-        level: options.level,
-        date: new Date().toLocaleDateString('vi-VN')
-    });
+    const certDate = options.date || new Date().toLocaleDateString('vi-VN');
+    let certId = options.id;
+
+    if (options.persist !== false) {
+        const saved = saveCertificate({
+            studentName: options.studentName,
+            gameTitle: options.gameTitle,
+            score: options.score,
+            level: options.level,
+            date: certDate
+        });
+        certId = saved.id;
+    }
 
     soundEffects.levelUp();
 
-    // 2. Check or create modal DOM
     let modal = document.getElementById('certificateModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -292,42 +261,41 @@ export function showCertificateModal(options: {
         `;
         document.body.appendChild(modal);
 
-        // Bind events
-        modal.querySelector('#btnCloseCertModal')?.addEventListener('click', closeCertificateModal);
-        modal.querySelector('#btnCloseCertAction')?.addEventListener('click', closeCertificateModal);
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeCertificateModal();
+            const target = e.target as HTMLElement;
+            if (target === modal || target.closest('#btnCloseCertModal') || target.closest('#btnCloseCertAction')) {
+                closeCertificateModal();
+            } else if (target.closest('#btnDownloadCertPng') && activeCertificateCanvas) {
+                const safeName = (activeCertificateStudentName || 'Hoc-Sinh').replace(/[^a-zA-Z0-9]/g, '_');
+                downloadCertificatePng(activeCertificateCanvas, `Chung-Nhan-${safeName}-${Date.now()}.png`);
+            }
         });
     }
 
-    // 3. Render Canvas into container
     const container = modal.querySelector('#certCanvasContainer');
     if (container) {
-        container.innerHTML = '';
-        const canvas = renderCertificateCanvas(options);
+        container.replaceChildren();
+        const canvas = renderCertificateCanvas({
+            studentName: options.studentName,
+            gameTitle: options.gameTitle,
+            score: options.score,
+            level: options.level,
+            date: certDate,
+            id: certId
+        });
         canvas.style.maxWidth = '100%';
         canvas.style.height = 'auto';
         canvas.style.borderRadius = '8px';
         canvas.style.boxShadow = '0 10px 25px rgba(0,0,0,0.15)';
         container.appendChild(canvas);
 
-        const downloadBtn = modal.querySelector('#btnDownloadCertPng');
-        if (downloadBtn) {
-            downloadBtn.replaceWith(downloadBtn.cloneNode(true));
-            const newBtn = modal.querySelector('#btnDownloadCertPng');
-            newBtn?.addEventListener('click', () => {
-                const safeName = (options.studentName || 'Hoc-Sinh').replace(/[^a-zA-Z0-9]/g, '_');
-                downloadCertificatePng(canvas, `Chung-Nhan-${safeName}-${Date.now()}.png`);
-            });
-        }
+        activeCertificateCanvas = canvas;
+        activeCertificateStudentName = options.studentName;
     }
 
     modal.style.display = 'flex';
 }
 
-/**
- * Closes the Certificate modal.
- */
 export function closeCertificateModal(): void {
     const modal = document.getElementById('certificateModal');
     if (modal) {

@@ -1,40 +1,107 @@
-/**
- * Main Application Bootstrap
- * Mounts component templates, initializes controllers, registers Service Worker,
- * sets up Hash Routing, and activates Onboarding Modal.
- */
-
 import './styles/index.css';
 
-// HTML Templates imported via Vite ?raw
 import navbarHtml from './components/navbar/navbar.html?raw';
 import footerHtml from './components/footer/footer.html?raw';
 import installModalHtml from './components/install-modal/install-modal.html?raw';
 import onboardingHtml from './features/onboarding/onboarding.html?raw';
-import chatHtml from './features/chat/chat.html?raw';
 import homeHtml from './features/home/home.html?raw';
-import contributeHtml from './features/contribute/contribute.html?raw';
-import quizHtml from './features/quiz/quiz.html?raw';
-import gamesHtml from './features/games/games.html?raw';
 
-// Controllers & Services
 import { initNavbar, showSection } from './components/navbar/navbar';
-import { initFooter } from './components/footer/footer';
-import { initInstallModal, closeInstallModal } from './components/install-modal/install-modal';
+import { initInstallModal } from './components/install-modal/install-modal';
 import { initOfflineIndicator } from './components/offline-indicator';
-import { initOnboarding, openOnboarding, closeOnboarding } from './features/onboarding/onboarding';
+import { initOnboarding } from './features/onboarding/onboarding';
 import { initHome } from './features/home/home';
-import { initContribute } from './features/contribute/contribute';
-import { initQuiz } from './features/quiz/quiz';
-import { initChat } from './features/chat/chat';
-import { initGames, checkGameAvailable } from './features/games/games';
 import { router } from './router';
-import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 
-/**
- * Mounts HTML fragments if running in #app container.
- * If static markup already exists in the DOM, leaves it in place.
- */
+const loadedRoutes = new Set<string>(['home']);
+const routeLoaders = new Map<string, Promise<void>>();
+let chatLoaded = false;
+let chatLoadPromise: Promise<void> | null = null;
+let latestRequestedRoute = 'home';
+
+function mountRouteSection(sectionId: string, html: string): void {
+    const existing = document.getElementById(sectionId);
+    if (!existing) return;
+    const wasActive = existing.classList.contains('active');
+    const template = document.createElement('template');
+    template.innerHTML = html.trim();
+    const newSection = template.content.firstElementChild as HTMLElement | null;
+    if (!newSection) return;
+    if (wasActive) {
+        newSection.classList.add('active');
+    }
+    existing.replaceWith(newSection);
+}
+
+async function ensureRouteLoaded(route: string): Promise<void> {
+    if (loadedRoutes.has(route)) return;
+    if (routeLoaders.has(route)) {
+        return routeLoaders.get(route)!;
+    }
+
+    const loader = (async () => {
+        if (route === 'contribute') {
+            const [{ default: html }, { initContribute }] = await Promise.all([
+                import('./features/contribute/contribute.html?raw'),
+                import('./features/contribute/contribute')
+            ]);
+            mountRouteSection('contribute', html);
+            initContribute();
+            loadedRoutes.add('contribute');
+        } else if (route === 'quiz') {
+            const [{ default: html }, { initQuiz }] = await Promise.all([
+                import('./features/quiz/quiz.html?raw'),
+                import('./features/quiz/quiz')
+            ]);
+            mountRouteSection('quiz', html);
+            await initQuiz();
+            loadedRoutes.add('quiz');
+        } else if (route === 'game') {
+            const [{ default: html }, { initGames }] = await Promise.all([
+                import('./features/games/games.html?raw'),
+                import('./features/games/games')
+            ]);
+            mountRouteSection('game', html);
+            initGames();
+            loadedRoutes.add('game');
+        }
+    })();
+
+    routeLoaders.set(route, loader);
+    try {
+        await loader;
+    } finally {
+        routeLoaders.delete(route);
+    }
+}
+
+async function ensureChatLoaded(autoOpen: boolean = false): Promise<void> {
+    if (chatLoaded) return;
+    if (chatLoadPromise) {
+        await chatLoadPromise;
+        return;
+    }
+
+    chatLoadPromise = (async () => {
+        const [{ default: chatHtml }, { initChat }] = await Promise.all([
+            import('./features/chat/chat.html?raw'),
+            import('./features/chat/chat')
+        ]);
+        const mount = document.getElementById('chatWidgetMount');
+        if (mount) {
+            mount.innerHTML = chatHtml;
+            initChat(autoOpen);
+            chatLoaded = true;
+        }
+    })();
+
+    try {
+        await chatLoadPromise;
+    } finally {
+        chatLoadPromise = null;
+    }
+}
+
 function mountMarkup(): void {
     const app = document.getElementById('app');
     if (app) {
@@ -58,63 +125,28 @@ function mountMarkup(): void {
                 <div class="spinner"></div>
                 <div id="loadingText">Đang xử lý...</div>
             </div>
-            ${chatHtml}
+            <div id="chatWidgetMount">
+                <div class="chat-widget-container">
+                    <button class="chat-toggle-btn" id="chatToggleBtn" aria-label="Mở trợ lý chat">
+                        <svg class="lucide-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
             ${navbarHtml}
             <main>
                 ${homeHtml}
-                ${contributeHtml}
-                ${quizHtml}
-                ${gamesHtml}
+                <section id="contribute" class="container"></section>
+                <section id="quiz" class="container"></section>
+                <section id="game" class="container"></section>
             </main>
             ${footerHtml}
         `;
     }
 }
 
-/**
- * Splash Loading Management
- */
-function handleAppLoading(): void {
-    const loadingScreen = document.getElementById('app-loading');
-    if (!loadingScreen) return;
-
-    const hasSeenIntro = localStorage.getItem(STORAGE_KEYS.HAS_SEEN_INTRO);
-    if (hasSeenIntro === 'true') {
-        loadingScreen.style.display = 'flex';
-        let progress = 0;
-        const progressBar = document.querySelector('.loading-bar') as HTMLElement | null;
-
-        const interval = setInterval(() => {
-            progress += 1;
-            if (progressBar) progressBar.style.width = `${progress}%`;
-
-            if (progress >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    loadingScreen.style.opacity = '0';
-                    loadingScreen.style.transition = 'opacity 0.5s ease';
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                        window.dispatchEvent(new Event('appLoadingComplete'));
-                    }, 500);
-                }, 300);
-            }
-        }, 30);
-    } else {
-        loadingScreen.style.display = 'none';
-        window.dispatchEvent(new Event('appLoadingComplete'));
-    }
-
-    // Auto-dismiss safety timeout
-    setTimeout(() => {
-        if (loadingScreen.style.display !== 'none') {
-            loadingScreen.style.display = 'none';
-            window.dispatchEvent(new Event('appLoadingComplete'));
-        }
-    }, 10000);
-}
-
-export function skipLoading(): void {
+function dismissAppLoading(): void {
     const loadingScreen = document.getElementById('app-loading');
     if (loadingScreen) {
         loadingScreen.style.display = 'none';
@@ -122,59 +154,61 @@ export function skipLoading(): void {
     window.dispatchEvent(new Event('appLoadingComplete'));
 }
 
-/**
- * Bootstrap Application
- */
 export async function bootstrap(): Promise<void> {
     mountMarkup();
 
-    // Initialize all components and features
     initNavbar();
-    initFooter();
     initInstallModal();
     initOfflineIndicator();
     initOnboarding();
-    initGames();
-    initContribute();
-    initQuiz();
-    initChat();
     await initHome();
 
-    // Initialize Hash Routing
     router.init((route) => {
-        showSection(route);
+        latestRequestedRoute = route;
+        if (loadedRoutes.has(route)) {
+            showSection(route);
+            return;
+        }
+        void ensureRouteLoaded(route).then(() => {
+            if (latestRequestedRoute === route) {
+                showSection(route);
+            }
+        });
     });
 
-    handleAppLoading();
+    const chatStubBtn = document.getElementById('chatToggleBtn');
+    chatStubBtn?.addEventListener('click', () => {
+        void ensureChatLoaded(true);
+    }, { once: true });
 
-    // Register Service Worker on web if supported and not in Electron
-    const isElectron = Boolean((window as unknown as { process?: { versions?: { electron?: string } } }).process?.versions?.electron);
+    const scheduleIdleChat = (window as unknown as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback;
+    if (typeof scheduleIdleChat === 'function') {
+        scheduleIdleChat(() => {
+            void ensureChatLoaded(false);
+        });
+    } else {
+        setTimeout(() => {
+            void ensureChatLoaded(false);
+        }, 1500);
+    }
+
+    dismissAppLoading();
+
+    const isElectron = Boolean(window.electronAPI?.isElectron);
     if ('serviceWorker' in navigator && !isElectron) {
-        window.addEventListener('load', () => {
+        const registerSw = () => {
             navigator.serviceWorker.register('./service-worker.js').catch(err => {
                 console.warn('[SW] Registration failed:', err);
             });
-        });
+        };
+        if (document.readyState === 'complete') {
+            registerSw();
+        } else {
+            window.addEventListener('load', registerSw, { once: true });
+        }
     }
 }
 
-// Global functions for backwards compatibility
-(window as unknown as {
-    showSection: typeof showSection;
-    closeInstallModal: typeof closeInstallModal;
-    openOnboarding: typeof openOnboarding;
-    closeOnboarding: typeof closeOnboarding;
-    skipLoading: typeof skipLoading;
-    checkGameAvailable: typeof checkGameAvailable;
-}).showSection = showSection;
-
-(window as unknown as { closeInstallModal: typeof closeInstallModal }).closeInstallModal = closeInstallModal;
-(window as unknown as { openOnboarding: typeof openOnboarding }).openOnboarding = openOnboarding;
-(window as unknown as { closeOnboarding: typeof closeOnboarding }).closeOnboarding = closeOnboarding;
-(window as unknown as { skipLoading: typeof skipLoading }).skipLoading = skipLoading;
-(window as unknown as { checkGameAvailable: typeof checkGameAvailable }).checkGameAvailable = checkGameAvailable;
-
-// Start app once DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => bootstrap());
 } else {

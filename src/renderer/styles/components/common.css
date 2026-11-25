@@ -190,7 +190,34 @@ body.dark-mode .stat-label {
     color: var(--text-secondary);
 }
 
+.chat-widget-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9998;
+}
+
+.chat-toggle-btn {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--color-primary);
+    color: #ffffff;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+}
+
 @media (max-width: 768px) {
+    .chat-widget-container {
+        bottom: 76px;
+        right: 16px;
+    }
     .dictionary-stats {
         display: grid !important; 
         grid-template-columns: repeat(2, 1fr);

@@ -1,9 +1,4 @@
-/**
- * Lightweight Hash Router (< 40 lines)
- * Manages SPA section routing via window.location.hash with zero framework bloat.
- */
-
-export type RouteChangeCallback = (route: string) => void;
+export type RouteChangeCallback = (route: string) => void | Promise<void>;
 
 export class HashRouter {
     private routes = new Set<string>();

@@ -4,6 +4,7 @@
  */
 
 import type { DictionaryEntry, SearchDirection } from '@/renderer/services/dictionary.service';
+import { getAudioUrl } from '@/renderer/services/offline-sync.service';
 import { getLucideIcon } from '@/renderer/utils/icons';
 
 export function createWordCard(entry: DictionaryEntry, direction: SearchDirection): HTMLElement {
@@ -90,8 +91,8 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
 
     card.appendChild(wordDisplay);
 
-    // 4. Audio Player (Local .webm, offline PWA compatible)
-    if (entry.driveId && entry.driveId.trim() !== '' && entry.driveId !== 'null' && entry.driveId !== 'undefined') {
+    const audioSrc = entry.driveId ? getAudioUrl(entry.driveId) : '';
+    if (audioSrc) {
         const audioContainer = document.createElement('div');
         audioContainer.className = 'audio-player-container';
 
@@ -106,7 +107,7 @@ export function createWordCard(entry: DictionaryEntry, direction: SearchDirectio
         audioElem.style.borderRadius = '8px';
 
         const sourceElem = document.createElement('source');
-        sourceElem.src = `./audio/${encodeURIComponent(entry.driveId.trim())}.webm`;
+        sourceElem.src = audioSrc;
         sourceElem.type = 'audio/webm';
         audioElem.appendChild(sourceElem);
 

@@ -4,7 +4,7 @@
  * and first-visit detection with localStorage persistence.
  */
 
-import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
+import { hasSeenIntro, setHasSeenIntro } from '@/renderer/services/storage.service';
 
 export class OnboardingController {
     private modal: HTMLElement | null = null;
@@ -74,9 +74,7 @@ export class OnboardingController {
 
         this.updateSlideUI();
 
-        // Auto-show for first-time visitors
-        const hasSeen = localStorage.getItem(STORAGE_KEYS.HAS_SEEN_INTRO);
-        if (hasSeen !== 'true') {
+        if (!hasSeenIntro()) {
             this.open();
         }
     }
@@ -98,7 +96,7 @@ export class OnboardingController {
     }
 
     complete(): void {
-        localStorage.setItem(STORAGE_KEYS.HAS_SEEN_INTRO, 'true');
+        setHasSeenIntro(true);
         this.close();
     }
 
