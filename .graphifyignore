@@ -7,3 +7,6 @@ node_modules/
 graft/
 .codegraph/
 .remember/
+tools/audio-optimizer/target/
+services/contribute-api/target/
+services/contribute-api/data/

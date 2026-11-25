@@ -67,6 +67,10 @@ function getExtensionFromMime(mimeType: string): string {
     return 'webm';
 }
 
+export function isAppsScriptEndpoint(url: string): boolean {
+    return url.includes('script.google.com');
+}
+
 export async function sendContribution(data: {
     type: 'vocab' | 'voice';
     vietnamese?: string;
@@ -75,28 +79,62 @@ export async function sendContribution(data: {
     name?: string;
     filename?: string;
     blob: Blob;
+    endpointUrl?: string;
 }): Promise<{ success: boolean; message: string }> {
-    const base64Audio = await convertBlobToBase64(data.blob);
     const mimeType = data.blob.type || 'audio/webm';
     const ext = getExtensionFromMime(mimeType);
     const baseName = sanitizeFilename(data.filename || data.name || 'audio') || 'audio';
     const filename = `${baseName}_${Date.now()}.${ext}`;
-
-    const payload = {
-        type: data.type,
-        vietnamese: data.vietnamese || '',
-        xodang: data.xodang || '',
-        readingContent: data.readingContent || data.name || '',
-        audioData: base64Audio,
-        mimeType,
-        filename
-    };
+    const targetUrl = (data.endpointUrl || APP_CONFIG.CONTRIBUTE_API_URL || APP_CONFIG.CONTRIBUTE_URL).trim();
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.REQUEST_TIMEOUT_MS);
 
     try {
-        await fetch(APP_CONFIG.CONTRIBUTE_URL, {
+        if (!isAppsScriptEndpoint(targetUrl)) {
+            const formData = new FormData();
+            formData.append('type', data.type);
+            formData.append('vietnamese', data.vietnamese || '');
+            formData.append('xodang', data.xodang || '');
+            formData.append('readingContent', data.readingContent || data.name || '');
+            formData.append('filename', filename);
+            formData.append('audio', data.blob, filename);
+
+            const response = await fetch(targetUrl, {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            });
+
+            let parsed: { success?: boolean; message?: string } | null = null;
+            try {
+                parsed = (await response.json()) as { success?: boolean; message?: string };
+            } catch {
+                parsed = null;
+            }
+
+            if (!response.ok || (parsed && parsed.success === false)) {
+                throw new Error(parsed?.message || `Upload failed (${response.status})`);
+            }
+
+            return {
+                success: true,
+                message: parsed?.message || 'Đã gửi đóng góp thành công'
+            };
+        }
+
+        const base64Audio = await convertBlobToBase64(data.blob);
+        const payload = {
+            type: data.type,
+            vietnamese: data.vietnamese || '',
+            xodang: data.xodang || '',
+            readingContent: data.readingContent || data.name || '',
+            audioData: base64Audio,
+            mimeType,
+            filename
+        };
+
+        await fetch(targetUrl, {
             method: 'POST',
             mode: 'no-cors',
             headers: {

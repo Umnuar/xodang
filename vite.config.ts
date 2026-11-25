@@ -54,7 +54,23 @@ export default defineConfig(({ command }) => ({
             name: 'html-transform-csp',
             transformIndexHtml(html, ctx) {
                 if (command === 'build' && ctx.filename && path.basename(ctx.filename) === 'index.html') {
-                    const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://sheets.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:;">`;
+                    const connectSources = [
+                        "'self'",
+                        'https://sheets.googleapis.com',
+                        'https://script.google.com',
+                        'https://script.googleusercontent.com'
+                    ];
+                    const contributeApiUrl = process.env.VITE_CONTRIBUTE_API_URL;
+                    if (contributeApiUrl) {
+                        try {
+                            const origin = new URL(contributeApiUrl).origin;
+                            if (connectSources.indexOf(origin) === -1) {
+                                connectSources.push(origin);
+                            }
+                        } catch {
+                        }
+                    }
+                    const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; media-src 'self' blob: data:; connect-src ${connectSources.join(' ')}; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; img-src 'self' data:;">`;
                     return html.replace(/<head(\s[^>]*)?>/i, (match) => `${match}\n    ${cspMeta}`);
                 }
                 return html;

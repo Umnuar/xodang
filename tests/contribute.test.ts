@@ -145,4 +145,32 @@ describe('Contribute Feature & Deletion Workflow Tests (Lô 4)', () => {
 
         eventBus.emit('tab:change', 'home');
     });
+
+    it('submits uploaded single audio via sendContribution and resets controls on success', async () => {
+        const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+        vi.stubGlobal('fetch', fetchMock);
+        vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:single-test');
+        vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+        const fileInput = document.getElementById('audioFileInput') as HTMLInputElement;
+        const vietInput = document.getElementById('vietnameseWord') as HTMLInputElement;
+        const xodangInput = document.getElementById('xodangWord') as HTMLInputElement;
+        const submitBtn = document.getElementById('submitSingleBtn') as HTMLButtonElement;
+        const playbackControls = document.getElementById('singlePlaybackControls') as HTMLElement;
+
+        const file = new File([new Uint8Array([0x1A, 0x45, 0xDF, 0xA3])], 'nha.webm', { type: 'audio/webm' });
+        Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
+        fileInput.dispatchEvent(new Event('change'));
+
+        vietInput.value = 'Nhà';
+        xodangInput.value = 'Hnam';
+        submitBtn.click();
+
+        await vi.waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            expect(vietInput.value).toBe('');
+            expect(xodangInput.value).toBe('');
+            expect(playbackControls.style.display).toBe('none');
+        });
+    });
 });

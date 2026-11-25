@@ -41,3 +41,6 @@ graphify-out/
 
 .codegraph/
 *.tsbuildinfo
+tools/audio-optimizer/target/
+services/contribute-api/target/
+services/contribute-api/data/
