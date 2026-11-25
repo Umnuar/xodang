@@ -117,16 +117,15 @@
 - [x] Cập nhật `tests/audio.test.ts` (import từ `offline-sync.service.ts`) + thêm test vào `tests/contribute.test.ts` (xóa item đứng trước item đang phát không làm lệch index).
 - [x] Xác minh: `npx vitest run tests/audio.test.ts tests/contribute.test.ts` → PASS.
 
-### Task 7: Chốt & Vá kiến trúc Electron + Build Snapshot *(phụ thuộc Quyết định D1)*
+### Task 7: Gỡ bỏ hoàn toàn Electron + Chốt Build Snapshot Web PWA *(đã chuyển sang Phương án D1=B)*
 **Files:**
-- Sửa: `src/main/index.ts`, `src/main/ipc-fetcher.ts`, `scripts/generate-snapshot.ts`, `vite.config.ts`, `package.json`, `tsconfig.node.json`
+- Xóa: `src/main/index.ts`, `src/main/ipc-fetcher.ts`, `src/preload/index.ts`, `src/shared/types/electron.d.ts`, `src/shared/types/electron-module.d.ts`, `vite.electron.config.ts`
+- Tạo/Sửa: `src/shared/types/node-builtins.d.ts`, `scripts/generate-snapshot.ts`, `vite.config.ts`, `package.json`, `tsconfig.node.json`, `src/renderer/main.ts`, `src/renderer/services/sheets.service.ts`
 
-**Thay đổi cụ thể (Phương án A — Giữ & sửa hoàn chỉnh Electron, khuyến nghị nếu vẫn đóng gói Desktop):**
-- [x] `src/main/index.ts`: Đưa `registerIpcFetcher()` ra ngoài `createWindow()` vào `app.whenReady()` (gọi 1 lần); sửa `BrowserWindow.length === 0` → `BrowserWindow.getAllWindows().length === 0`.
-- [x] `src/main/ipc-fetcher.ts`: Đọc `process.env.GOOGLE_SHEETS_API_KEY || process.env.VITE_GOOGLE_API_KEY || GOOGLE_CONFIG.API_KEY`; thêm `AbortController` timeout (`APP_CONFIG.REQUEST_TIMEOUT_MS`).
-- [x] Thêm config biên dịch TS cho `src/main` + `src/preload` ra `dist-electron/` (cập nhật `electron:dev` / `electron:build` chạy file `.js` đã biên dịch).
+**Thay đổi cụ thể (Phương án B — Web PWA thuần):**
+- [x] Gỡ bỏ `src/main/`, `src/preload/`, `src/shared/types/electron*.d.ts`, `vite.electron.config.ts`, nhánh `window.electronAPI` trong `src/renderer/main.ts` & `src/renderer/services/sheets.service.ts`, và các script `electron:*` trong `package.json`.
+- [x] `tsconfig.node.json`: Tách ambient Node built-in declarations sang `src/shared/types/node-builtins.d.ts` để `vite.config.ts` và `vitest.config.ts` kiểm tra kiểu sạch không cần Electron.
 - [x] `vite.config.ts`: Tự động kiểm tra nếu tồn tại `src/shared/data/snapshot/vocab-snapshot.json` thì nạp snapshot build-time, ngược lại fallback về `src/shared/data/snapshot-fallback.ts`.
-- *(Phương án B — Nếu chỉ phát hành Web PWA: xóa `src/main/`, `src/preload/`, `src/shared/types/electron*.d.ts`, nhánh `electronAPI` và các script `electron:*` để tối giản hoàn toàn.)*
 
 ---
 
@@ -164,24 +163,24 @@
 - [x] Sửa: `package.json` (gỡ `vite-plugin-pwa` không dùng để khớp custom SW), `.gitignore` (thêm `.codegraph/`, `*.tsbuildinfo`).
 - [x] Chuyển thư mục kiểm toán cũ ở root (`fix/`, `inventory/`, `review/`) vào `docs/archive/` qua `git mv`; giữ nguyên untracked `doc/` và `KHKT 10A3-12B1.docx`.
 - [x] Tạo `.graphifyignore` (loại trừ `.agents/`, `docs/archive/`, `public/audio/`, `dist/`, `dist-electron/`, `node_modules/`, `graft/`, `.codegraph/`, `.remember/`), chạy lại `graft build --follow-nested-repos` và `graphify update .`.
-- [x] Xác minh tổng cuối cùng: `npx tsc --noEmit`, `npx tsc -p tsconfig.node.json --noEmit`, `npm test`, `npm run build`, `npm run electron:compile`.
+- [x] Xác minh tổng cuối cùng: `npx tsc --noEmit`, `npx tsc -p tsconfig.node.json --noEmit`, `npm test`, `npm run build`.
 
 ---
 
 ## 5 Kịch bản Biên bắt buộc phải được Test phủ (Review Focus)
 1. **Private Mode / `localStorage` bị chặn:** `getItem/setItem` ném `SecurityError` hoặc `QuotaExceededError` → ứng dụng vẫn khởi chạy và chạy trong RAM không crash.
-2. **Deploy subpath `/xodang/` & Electron `file://`:** 0 đường dẫn tuyệt đối `/...` trong CSS/HTML/JS/SW; 100% file trong `STATIC_PRECACHE` tồn tại thật trong `public/` hoặc `dist/`.
+2. **Deploy subpath `/xodang/` & relative paths:** 0 đường dẫn tuyệt đối `/...` trong CSS/HTML/JS/SW; 100% file trong `STATIC_PRECACHE` tồn tại thật trong `public/` hoặc `dist/`.
 3. **Reload trang khi mất mạng hoàn toàn:** Sau 1 lần truy cập online, tải lại khi offline vẫn hiển thị đầy đủ dữ liệu từ điển đã cache (không tụt về 20 từ mock).
 4. **Đổi tab liên tục giữa chừng:** Đang thu âm, đang chạy timer Quiz, hoặc trong 600ms sau khi thắng Game 1/4 → đổi tab dừng sạch mic/timer/timeout, không bật modal rác.
 5. **Dữ liệu độc hại từ `localStorage` / Sheets:** Payload `<script>` / `<img onerror>` trong `GAME_USERS`, `GAME_CERTIFICATES`, từ điển, chat → không sinh thẻ HTML thực thi ở bất kỳ view/modal nào.
 
 ---
 
-## 3 Quyết định đã xác nhận thực thi (D1=A, D2=A, D3=A)
+## 3 Quyết định đã xác nhận thực thi (D1=B, D2=A, D3=A)
 
-1. **D1 — Phạm vi Electron (`src/main`, `src/preload`): Đã chốt A**
-   - **(Khuyến nghị) A:** Giữ & sửa hoàn chỉnh pipeline build + lỗi main/IPC (`vite.electron.config.ts`).
-   - **B:** Gỡ bỏ Electron nếu dự án chỉ phát hành Web PWA (GitHub Pages).
+1. **D1 — Phạm vi Electron (`src/main`, `src/preload`): Đã chốt B**
+   - **A:** Giữ & sửa pipeline build + lỗi main/IPC.
+   - **(Đã chọn) B:** Gỡ bỏ hoàn toàn Electron để dự án thuần Web PWA (nếu sau này làm Desktop sẽ dựng mới bằng Tauri v2).
 2. **D2 — Thư mục `fix/`, `inventory/`, `review/` ở root & `docs/` screenshots (`15.3 MB`): Đã chốt A**
    - **(Khuyến nghị) A:** Gộp `fix/`, `inventory/`, `review/` vào `docs/archive/` (giữ lịch sử, sạch root). Giữ nguyên untracked `doc/` và `KHKT 10A3-12B1.docx`.
    - **B:** Xóa hẳn `fix/`, `inventory/`, `review/` khỏi Git (vẫn còn trong git history).

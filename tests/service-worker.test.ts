@@ -63,34 +63,6 @@ describe('PWA Service Worker & Cache Preservation Tests (Rule 8 Compliance)', ()
         expect(deletedCaches).not.toContain('tudien-audio');
     });
 
-    it('Desktop IPC Bridge: fetchSheetValues calls window.electronAPI when present', async () => {
-        const mockElectronFetch = vi.fn().mockResolvedValue({
-            success: true,
-            data: {
-                values: [
-                    ['Nhà', 'Hnam', '', '', '', ''],
-                    ['Nước', 'Đak', '', '', '', '']
-                ]
-            }
-        });
-
-        window.electronAPI = {
-            fetchSheetsData: mockElectronFetch,
-            isOffline: () => false,
-            getPlatform: () => 'win32',
-            isElectron: true
-        };
-
-        const rows = await fetchSheetValues({ range: 'Tu_Dien!A2:F', useCache: false });
-
-        expect(mockElectronFetch).toHaveBeenCalledWith('Tu_Dien!A2:F');
-        expect(rows.length).toBe(2);
-        expect(rows[0][0]).toBe('Nhà');
-        expect(rows[0][1]).toBe('Hnam');
-
-        delete window.electronAPI;
-    });
-
     it('keeps APP_CONFIG.APP_CACHE_NAME synchronized with service-worker CACHE_NAME and verifies all precache assets exist', () => {
         const swSource = fs.readFileSync(path.resolve(__dirname, '../src/renderer/service-worker.ts'), 'utf-8');
         const cacheMatch = swSource.match(/const CACHE_NAME\s*=\s*'([^']+)'/);

@@ -80,23 +80,6 @@ export async function fetchSheetValues(options: SheetFetchOptions = {}): Promise
     }
 
     const requestPromise = (async (): Promise<string[][]> => {
-        if (typeof window !== 'undefined' && window.electronAPI) {
-            try {
-                const res = await window.electronAPI.fetchSheetsData(range);
-                if (res && res.success && res.data && res.data.values) {
-                    const values: string[][] = res.data.values;
-                    if (useCache) {
-                        memoryCache.set(cacheKey, { timestamp: Date.now(), data: values });
-                    }
-                    if (!res.isOfflineSnapshot) {
-                        writePersistentCache(range, values);
-                    }
-                    return values;
-                }
-            } catch (ipcErr) {
-                console.warn('[SheetsService] Electron IPC fetch failed, falling back:', ipcErr);
-            }
-        }
 
         if (!apiKey || apiKey.trim() === '') {
             const persisted = readPersistentCache(range);

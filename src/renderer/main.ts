@@ -194,8 +194,7 @@ export async function bootstrap(): Promise<void> {
 
     dismissAppLoading();
 
-    const isElectron = Boolean(window.electronAPI?.isElectron);
-    if ('serviceWorker' in navigator && !isElectron) {
+    if ('serviceWorker' in navigator) {
         const registerSw = () => {
             navigator.serviceWorker.register('./service-worker.js').catch(err => {
                 console.warn('[SW] Registration failed:', err);
