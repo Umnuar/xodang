@@ -1,129 +1,110 @@
 <div align="center">
 
 # Chính Sách Bảo Mật (Security Policy)
-### *Tiêu Chuẩn Đảm Bảo An Ninh Ứng Dụng & Quy Trình Tiếp Nhận Lỗ Hổng Bảo Mật*
+### *Tiêu Chuẩn An Toàn Mã Nguồn, Phòng Vệ Kiến Trúc & Quy Trình Tiết Lộ Lỗ Hổng*
 
-[![Security Status](https://img.shields.io/badge/Security_Policy-Active-22c55e?style=flat-square&logo=shield)](https://github.com/Umnuar/xodang/security)
-[![Vulnerability Reporting](https://img.shields.io/badge/Vulnerability_Reporting-Private_Advisory-3b82f6?style=flat-square&logo=github)](https://github.com/Umnuar/xodang/security/advisories/new)
-[![Response SLA](https://img.shields.io/badge/Response_SLA-%3C_48h-f59e0b?style=flat-square)](https://github.com/Umnuar/xodang)
-[![CVSS Standard](https://img.shields.io/badge/Severity_Standard-CVSS_v3.1-6366f1?style=flat-square)](https://www.first.org/cvss/)
+[![Security Policy](https://img.shields.io/badge/Security_Policy-Active-22c55e?style=flat-square&logo=shield)](https://github.com/Umnuar/xodang/security)
+[![Private Reporting](https://img.shields.io/badge/Reporting-GitHub_Private_Advisory-3b82f6?style=flat-square&logo=github)](https://github.com/Umnuar/xodang/security/advisories/new)
+[![Severity Standard](https://img.shields.io/badge/Severity-CVSS_v3.1-6366f1?style=flat-square)](https://www.first.org/cvss/)
 
-[English](SECURITY.en.md) • **Tiếng Việt** • **[Tạo Báo Cáo Riêng Tư](https://github.com/Umnuar/xodang/security/advisories/new)**
+[English](SECURITY.en.md) • **Tiếng Việt** • **[Gửi Báo Cáo Riêng Tư](https://github.com/Umnuar/xodang/security/advisories/new)**
 
 </div>
 
 ---
 
-Dự án **Từ Điển Xơ Đăng – Tiếng Việt** (`tudien-xedang`) cam kết bảo vệ dữ liệu văn hóa bản địa, an toàn thông tin người dùng và duy trì tiêu chuẩn kỹ thuật an ninh phần mềm theo chuẩn **OWASP ASVS** và các thông lệ quốc tế tốt nhất.
-
-Tài liệu này xác định phạm vi phiên bản được hỗ trợ, mô hình phòng vệ kiến trúc và quy trình **Tiết lộ có trách nhiệm (Responsible Disclosure)**.
+Dự án **Từ Điển Xơ Đăng – Tiếng Việt** (`tudien-xedang`) cam kết bảo vệ dữ liệu ngôn ngữ cộng đồng và an toàn của người dùng cuối theo thực hành **OWASP ASVS** cho ứng dụng Web PWA và dịch vụ phụ trợ Rust.
 
 ---
 
-## 1. ⬡ Các phiên bản được hỗ trợ (Supported Versions)
+## 1. Phiên bản được hỗ trợ (Supported Versions)
 
-Chúng tôi cung cấp các bản vá bảo mật và cập nhật an ninh định kỳ cho các phiên bản theo lộ trình sau:
-
-| Phiên Bản | Hỗ Trợ Bảo Mật | Trạng Thái | Chiến Lược Bản Vá |
-| :---: | :---: | :---: | :--- |
-| **10.0.x** | Có | Bản phát hành sản xuất chính thức (PWA & Electron) | Bản vá khẩn cấp P0/P1 trong vòng 24–72 giờ |
-| **< 10.0.0** | Không | Phiên bản cũ (Legacy Web) | Hết hạn hỗ trợ; khuyến nghị nâng cấp |
+| Phiên bản | Hỗ trợ bảo mật | Phạm vi phát hành | Chính sách xử lý |
+| :---: | :---: | :--- | :--- |
+| **10.0.x** | Có | Web PWA chính thức + Rust Audio Tooling & Contribute Gateway (`services/contribute-api`) | Vá lỗi P0/P1 khẩn cấp qua bản phát hành chính thức |
+| **< 10.0.0** | Không | Phiên bản legacy cũ | Ngừng hỗ trợ; khuyến nghị nâng cấp lên nhánh `main` mới nhất |
 
 ---
 
-## 2. ⛊ Báo cáo lỗ hổng bảo mật (Reporting a Vulnerability)
+## 2. Quy trình báo cáo lỗ hổng (Responsible Disclosure)
 
-Nếu phát hiện bất kỳ vấn đề an ninh hoặc lỗ hổng bảo mật nào trong mã nguồn hoặc hệ thống triển khai, vui lòng tuân thủ quy trình **Tiết lộ có trách nhiệm**:
-
-### ▷ Phương thức ưu tiên (Khuyến nghị trên GitHub)
-Sử dụng tính năng **GitHub Private Vulnerability Reporting** tại:  
-▷ **[Tạo Báo Cáo Lỗ Hổng Riêng Tư (New Security Advisory)](https://github.com/Umnuar/xodang/security/advisories/new)**
+### Kênh tiếp nhận ưu tiên
+Vui lòng báo cáo riêng tư thông qua tính năng **GitHub Private Security Advisory**:
+- **[Tạo Security Advisory riêng tư](https://github.com/Umnuar/xodang/security/advisories/new)**
 
 > [!WARNING]
-> **Tuyệt đối không** mở Issue công khai, Pull Request hoặc bình luận công khai trên GitHub để báo cáo lỗ hổng an ninh hoặc đính kèm mã khai thác (PoC) trước khi bản vá được phát hành.
+> **Không** mở Issue công khai, Pull Request hoặc đăng tải PoC khai thác công khai trước khi bản vá được kiểm chứng và phát hành.
 
-### ▷ Thông tin cần cung cấp trong báo cáo:
-1. **Phân loại lỗ hổng**: Mã CWE hoặc danh mục OWASP Top 10 (ví dụ: *CWE-79: Cross-site Scripting*, *CWE-200: Information Disclosure*).
-2. **Phạm vi tác động**: Module bị ảnh hưởng (Trang chủ, tra cứu, bài thi, minigame, Service Worker, hoặc tiến trình Electron).
-3. **Các bước tái hiện (Proof of Concept - PoC)**:
-   * Trình tự từng bước tái hiện hành vi lỗi.
-   * Dữ liệu đầu vào hoặc URL giả lập (không gây ảnh hưởng đến dữ liệu thực tế).
-4. **Đánh giá mức độ nghiêm trọng (CVSS v3.1 Calculator)**: Điểm số ước lượng và khả năng khai thác thực tế.
-5. **Đề xuất khắc phục (nếu có)**: Giải pháp kỹ thuật hoặc mã sửa đổi khuyến nghị.
+### Thông tin cần đính kèm
+1. **Phân loại vấn đề:** Mã CWE / OWASP (ví dụ: `CWE-79` XSS, `CWE-434` Unrestricted Upload, `CWE-22` Path Traversal).
+2. **Thành phần ảnh hưởng:** Đường dẫn tệp hoặc phân hệ (`src/renderer/*`, `service-worker.ts`, `services/contribute-api/*`, CI/CD).
+3. **Các bước tái hiện (PoC):** Kịch bản tối thiểu, không tác động lên dữ liệu thật hoặc làm gián đoạn dịch vụ công cộng.
+4. **Mức độ nghiêm trọng đề xuất:** Ước lượng theo thang điểm **CVSS v3.1** kèm điều kiện khai thác.
 
----
+### Cam kết thiện chí (Safe Harbor)
+Nhóm phát triển không khởi kiện hoặc truy cứu đối với các nghiên cứu bảo mật tuân thủ nguyên tắc thiện chí: không khai thác phá hoại dữ liệu, không thử tải DDoS diện rộng, không truy cập dữ liệu riêng tư của người dùng khác và cho phép thời gian hợp lý để vá lỗi trước khi công bố.
 
-## 3. ▷ Quy trình xử lý & Cam kết SLA (Incident Response Lifecycle)
-
-```text
-[Báo cáo gửi đến] 
-       │
-       ▼ (≤ 24 giờ)
-[Xác nhận tiếp nhận & Kiểm tra PoC ban đầu]
-       │
-       ▼ (≤ 72 giờ)
-[Xác định điểm CVSS v3.1 & Tạo nhánh vá bảo mật nội bộ]
-       │
-       ▼ (7–14 ngày)
-[Kiểm thử hồi quy tự động (Vitest) & Biên dịch an toàn]
-       │
-       ▼
-[Triển khai Bản Vá & Công bố Security Advisory phối hợp]
-```
-
-### Cam kết thời gian phản hồi:
-| Mức Độ Nghiêm Trọng (CVSS v3.1) | Điểm Số | Xác Nhận Tiếp Nhận | Thời Gian Phát Hành Bản Vá |
-| :--- | :---: | :---: | :---: |
-| **Critical (Khẩn cấp)** | 9.0 – 10.0 | < 12 giờ | **Trong vòng 24 giờ** |
-| **High (Nghiêm trọng)** | 7.0 – 8.9 | < 24 giờ | **Trong vòng 72 giờ** |
-| **Medium (Trung bình)** | 4.0 – 6.9 | < 48 giờ | Trong chu kỳ phát hành (7 ngày) |
-| **Low (Thấp)** | 0.1 – 3.9 | < 72 giờ | Bản phát hành định kỳ kế tiếp |
+### Ngoài phạm vi (Out of Scope)
+- Khóa API Google Sheets chỉ-đọc công khai trên trình duyệt vốn được giới hạn bởi HTTP Referrer (`https://umnuar.github.io/xodang/*`) theo thiết kế của Google Sheets API phía client.
+- Lỗ hổng chỉ phát sinh trên trình duyệt quá cũ không hỗ trợ Web Crypto / ES2022 / `CacheStorage`.
+- Thử nghiệm spam/từ chối dịch vụ (DoS/DDoS) vào GitHub Pages hoặc Google Apps Script.
 
 ---
 
-## 4. ⊞ Mô hình đe dọa & Phòng vệ kiến trúc (Threat Model & Defenses)
+## 3. Thời gian phản hồi mục tiêu (SLA)
 
-Dự án được thiết kế với cơ chế phòng thủ theo chiều sâu (Defense-in-Depth):
+| Mức độ (CVSS v3.1) | Điểm | Xác nhận tiếp nhận | Mục tiêu phát hành bản vá |
+| :--- | :---: | :---: | :--- |
+| **Critical** | 9.0 – 10.0 | ≤ 24 giờ | ≤ 48 giờ |
+| **High** | 7.0 – 8.9 | ≤ 48 giờ | ≤ 72 giờ |
+| **Medium** | 4.0 – 6.9 | ≤ 72 giờ | Chu kỳ 7–14 ngày |
+| **Low** | 0.1 – 3.9 | ≤ 5 ngày | Bản phát hành kế tiếp |
+
+---
+
+## 4. Mô hình phòng vệ kiến trúc đã triển khai
 
 ### 4.1. An toàn chuỗi cung ứng (Supply Chain Defense)
-* **Zero Runtime Dependencies**: Không chứa bất kỳ thư viện bên ngoài nào trong `dependencies`. Toàn bộ mã chạy trên trình duyệt là TypeScript thuần chuyển mã sang ESM.
-* **Tác động an ninh**: Triệt tiêu hoàn toàn bề mặt tấn công từ các cuộc tấn công chiếm quyền gói npm (typosquatting, dependency confusion, malicious sub-dependencies).
+- **Zero Runtime Dependencies phía trình duyệt:** [package.json](package.json) không chứa thư viện `dependencies` nào; toàn bộ logic web là TypeScript thuần, loại bỏ nguy cơ chèn mã qua gói npm runtime bên thứ ba.
+- **Lockfile cố định:** Cài đặt bằng `npm ci` với [package-lock.json](package-lock.json) và Cargo lockfiles (`Cargo.lock`) cho công cụ Rust.
 
-### 4.2. Chống chèn mã phía Client (XSS & Injection Mitigation)
-* Dữ liệu từ điển và dữ liệu người dùng nhập tuyệt đối không được gán trực tiếp qua `innerHTML` chưa xử lý.
-* Áp dụng bắt buộc `textContent`, `document.createElement`, hoặc hàm tạo DOM an toàn.
-* Tự động kiểm thử liên tục qua suite: [`tests/xss-security.test.ts`](tests/xss-security.test.ts) (100% pass với payload XSS chuyên sâu).
+### 4.2. Content Security Policy (CSP) & Referrer Hardening
+- Cấu hình build trong [vite.config.ts](vite.config.ts) tự động chèn `<meta http-equiv="Content-Security-Policy">` vào `dist/index.html`:
+  - `default-src 'self'`, `script-src 'self'`, `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`.
+  - `connect-src` giới hạn rõ nguồn gốc hợp lệ (`'self'`, `https://sheets.googleapis.com`, `https://script.google.com`, `https://script.googleusercontent.com` và origin của `VITE_CONTRIBUTE_API_URL` nếu cấu hình).
+- [index.html](index.html) khai báo `<meta name="referrer" content="strict-origin-when-cross-origin">`.
 
-### 4.3. Bảo vệ khóa Google Sheets API (Least Privilege & Key Protection)
-* **Nguyên tắc đặc quyền tối thiểu**: Khóa API sử dụng cho dự án chỉ có quyền đọc (Read-only) dữ liệu bảng tính.
-* **HTTP Referrer Restriction**: Khóa API được khóa cứng tên miền trong Google Cloud Console (`hoctiengxodang.online/*`).
-* **Khả năng phục hồi ngoại tuyến**: Khi khóa API bị thu hồi hoặc lỗi hạn ngạch (quota exceeded), ứng dụng tự động chuyển sang snapshot tĩnh (`src/shared/data/snapshot-fallback.ts`), không làm lộ thông tin nhạy cảm.
-* **Bảo vệ biến môi trường**: Tệp `.env` thực tế được chặn 100% trong `.gitignore`. Kho lưu trữ chỉ chứa tệp mẫu `.env.example`.
+### 4.3. Phòng chống XSS phía Client
+- Toàn bộ kết quả tra cứu, câu trả lời chatbot, bảng xếp hạng, huy hiệu, chứng chỉ và hàng đợi đóng góp được render bằng DOM API an toàn (`document.createElement` + `textContent`) thay vì nội suy trực tiếp chuỗi chưa làm sạch vào `innerHTML`.
+- Được kiểm thử hồi quy bắt buộc trong [tests/xss-security.test.ts](tests/xss-security.test.ts).
 
-### 4.4. Cách ly bộ nhớ đệm PWA (Service Worker Sandbox)
-* Service Worker chỉ lưu trữ tài nguyên có cùng nguồn gốc (`same-origin`) và tài nguyên âm thanh/font chữ đã định danh.
-* Cơ chế tự dọn dẹp cache cũ khi có phiên bản mới, ngăn ngừa rò rỉ dữ liệu hoặc đầu độc bộ đệm (Cache Poisoning).
+### 4.4. Bảo vệ dữ liệu lưu trữ & Private Mode
+- Toàn bộ thao tác `localStorage` được tập trung qua [src/renderer/services/storage.service.ts](src/renderer/services/storage.service.ts) với xử lý an toàn khi gặp `SecurityError`, `QuotaExceededError` hoặc JSON hỏng ([tests/legacy-storage.test.ts](tests/legacy-storage.test.ts)).
+- Không dùng fallback secret hardcode trong mã nguồn ([tests/smoke.test.ts](tests/smoke.test.ts)); toàn bộ tệp `.env*` bị chặn qua [.gitignore](.gitignore).
+
+### 4.5. Cách ly Service Worker Cache
+- [src/renderer/service-worker.ts](src/renderer/service-worker.ts) chỉ cache tài nguyên `same-origin` và thư mục audio; thực hiện dọn sạch cache phiên bản cũ khi kích hoạt (`tudien-modular-v10.0.4`) nhưng bảo toàn kho âm thanh `tudien-audio`.
+- Tệp gói lớn `/audio-pack.bin` và bảng chỉ mục `/audio-pack.index.json` bỏ qua bộ đệm SW để tránh nhân đôi dung lượng lưu trữ và bảo đảm kiểm tra hash phiên bản luôn chính xác từ mạng ([tests/service-worker.test.ts](tests/service-worker.test.ts)).
+
+### 4.6. Hardening cho Rust Axum Contribute Gateway (`services/contribute-api`)
+Khi triển khai backend tùy chọn [services/contribute-api](services/contribute-api/):
+- **Giới hạn kích thước cứng:** Từ chối payload vượt `MAX_UPLOAD_BYTES` (`10 MB` mặc định) với HTTP `413`.
+- **Kiểm tra Magic Bytes thực tế:** Không tin phần mở rộng hay `Content-Type`; chỉ chấp nhận binary khớp chữ ký WebM (`1A 45 DF A3`), MP4/M4A (`ftyp`), OGG (`OggS`), MP3 (`ID3` / frame sync), WAV (`RIFF....WAVE`) hoặc FLAC (`fLaC`) — trả `415` cho tệp giả mạo HTML/EXE/script.
+- **Chống Path Traversal:** Làm sạch toàn bộ ký tự điều hướng `/` / `\` / `..` trong tên tệp trước khi lưu đĩa.
+- **Rate Limit & CORS:** Giới hạn tần suất theo IP (`429`), danh sách `ALLOWED_ORIGINS` cấu hình qua biến môi trường, và chạy trong Docker container bằng user không có quyền root (`appuser`).
 
 ---
 
-## 5. ⊚ Quy trình thu hồi & Xoay khóa khẩn cấp (Key Rotation Protocol)
+## 5. Quy trình xoay khóa khẩn cấp (Key Rotation)
 
-Trong trường hợp có dấu hiệu rò rỉ khóa API hoặc thông tin bí mật:
-1. **Thu hồi khẩn cấp**: Truy cập Google Cloud Console và vô hiệu hóa ngay khóa nghi ngờ bị lộ.
-2. **Khởi tạo khóa mới**: Tạo khóa thay thế, cấu hình giới hạn chỉ cho phép HTTP Referrer của website chính thức.
-3. **Cập nhật cấu hình**: Cập nhật biến môi trường trên GitHub Actions Secrets và máy chủ triển khai.
-4. **Kiểm tra nhật ký truy cập**: Đánh giá lưu lượng truy cập để bảo đảm không có lạm dụng hạn ngạch.
-
----
-
-## 6. ◈ Vinh danh đóng góp bảo mật (Security Hall of Fame)
-
-Chúng tôi trân trọng ghi nhận và vinh danh các chuyên gia bảo mật và cộng tác viên đã phát hiện, báo cáo có trách nhiệm các lỗ hổng giúp nâng cao độ an toàn của hệ sinh thái Từ Điển Xơ Đăng.
-
-*Mọi đóng góp bảo mật hợp lệ sẽ được ghi nhận tên và liên kết hồ sơ trên trang thông báo phát hành (Release Notes) và tài liệu bảo mật chính thức của dự án.*
+Khi nghi ngờ lộ khóa Google Sheets API hoặc biến môi trường triển khai:
+1. Vô hiệu hóa khóa cũ ngay lập tức trong Google Cloud Console.
+2. Tạo khóa mới với quyền tối thiểu (Read-only Sheets API) và khóa chặt HTTP Referrer theo tên miền chính thức.
+3. Cập nhật giá trị `VITE_GOOGLE_API_KEY` trong GitHub Repository Secrets và chạy lại workflow triển khai.
+4. Rà soát nhật ký hạn ngạch (quota/metrics) trên Cloud Console để phát hiện truy vấn bất thường.
 
 ---
 
 <div align="center">
-  <sub>Bảo mật thông tin là nền tảng bảo tồn tri thức di sản bền vững.</sub>
+  <sub>An toàn hệ thống là nền tảng để bảo tồn tri thức ngôn ngữ lâu dài.</sub>
 </div>

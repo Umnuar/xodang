@@ -44,3 +44,25 @@ graphify-out/
 tools/audio-optimizer/target/
 services/contribute-api/target/
 services/contribute-api/data/
+.agents/
+.graphifyignore
+.ignore
+doc/
+KHKT 10A3-12B1.docx
+docs/agent/
+docs/archive/
+docs/qa/
+docs/security/
+docs/design/before/
+docs/design/after/
+docs/design/*.png
+docs/design/components.md
+docs/design/icon-inventory.md
+docs/design/optional-proposals.md
+docs/design/page-inventory.md
+docs/design/shared-components.md
+docs/design/stitch-manifest.md
+docs/audit-remediation-plan.md
+docs/rust-optimization-plan.md
+docs/tidy-plan.md
+docs/ux-audit.md

@@ -1,226 +1,195 @@
 <div align="center">
 
 # Xe Dang – Vietnamese Dictionary
-### *Bilingual Lexical Engine & Indigenous Language Learning Platform*
+### *Bilingual Lexical Platform & Indigenous Language Learning Web PWA*
 
-[![Build Status](https://img.shields.io/badge/build-passing-22c55e?style=flat-square&logo=vite)](https://github.com/Umnuar/xodang)
-[![Tests](https://img.shields.io/badge/tests-95%2F95%20passed-34d399?style=flat-square&logo=vitest)](https://github.com/Umnuar/xodang)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![PWA Ready](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
+[![Vitest](https://img.shields.io/badge/vitest-116%20passed-22c55e?style=flat-square&logo=vitest)](tests/)
+[![Rust Tooling](https://img.shields.io/badge/rust%20tests-15%20passed-f97316?style=flat-square&logo=rust)](tools/audio-optimizer/)
+[![PWA Offline-First](https://img.shields.io/badge/PWA-Offline--First-f59e0b?style=flat-square&logo=pwa)](src/renderer/service-worker.ts)
+[![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-0-1e7e48?style=flat-square)](package.json)
 [![WCAG 2.2](https://img.shields.io/badge/WCAG%202.2-AA%20%2F%20AAA-4ade80?style=flat-square)](docs/design/dark-mode-tokens.md)
-[![Zero Runtime Deps](https://img.shields.io/badge/dependencies-0%20runtime-blueviolet?style=flat-square)](#-system-architecture)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](LICENSE)
 
-**English** • [Tiếng Việt](README.md) • **[Live Application](https://umnuar.github.io/xodang/#home)** • **[Design Tokens](docs/design/dark-mode-tokens.md)** • **[Security](SECURITY.md)**
+**English** • [Tiếng Việt](README.md) • **[Live Application](https://umnuar.github.io/xodang/#home)** • **[Design Tokens](docs/design/dark-mode-tokens.md)** • **[Security Policy](SECURITY.en.md)**
 
 </div>
 
 ---
 
-## ◈ Overview
+## Overview
 
-**Xe Dang Dictionary** (`tudien-xedang`) is an educational platform and linguistic repository for the Xe Dang (Sedang) language, an indigenous Mon-Khmer language spoken in the Central Highlands of Vietnam. It is engineered for indigenous language learners, linguistic researchers, and software developers building digital tools for ethnic language preservation.
+**Xe Dang Dictionary** (`tudien-xedang`) is an offline-first **Progressive Web App (PWA)** for learning, phonetically searching, and preserving the Xe Dang (Sedang) language (Mon-Khmer family, Central Highlands of Vietnam).
 
-The platform is engineered around modern software standards:
-* **Zero Runtime Dependencies**: Authored entirely with native Web APIs and pure TypeScript. Eliminating runtime framework overhead ensures sub-500ms First Contentful Paint.
-* **Offline-First Resilience**: Functions reliably in remote environments with intermittent connectivity through Service Worker caching and a bundled static snapshot fallback (`snapshot-fallback.ts`).
-* **Phonetic Normalization**: Handles complex Mon-Khmer diacritical marks and breathy vowels via automated Unicode NFC normalization pipelines.
-* **WCAG 2.2 Dark Mode**: Contrast-calibrated dark palettes ("Graphite" and "Forest Midnight") supporting accessible study under low-light conditions.
+### Key Engineering Highlights
+- **Zero Frontend Runtime Dependencies:** Authored entirely in strict TypeScript and Native Web APIs (`package.json` contains devDependencies only for type-checking, testing, and Vite bundling).
+- **Route-Level Code Splitting:** Lightweight startup bundle (`83.94 kB` JS / `34.32 kB` CSS initial chunks); `quiz`, `games`, `contribute`, and `chat` load on demand or during browser idle time.
+- **Hybrid Audio Pack & Offline-First Sync:**
+  - `1,261` native `.webm` recordings compressed via **Rust + FFmpeg Opus VoIP 24 kbps** (`40.38 MB` → `8.23 MiB`, averaging `6.8 KB`/entry) and packed into `audio-pack.bin` + `audio-pack.index.json`.
+  - First-time offline caching completes in **a single HTTP request** (`8.23 MiB`) with byte-level streaming progress into `CacheStorage` (`tudien-audio`). Subsequent vocabulary additions or re-recordings use FNV-1a hashes to download only changed/new entries.
+  - Background auto-sync schedules via `requestIdleCallback` and respects offline state, Data Saver (`saveData`), and slow `2g` connections.
+- **Resilient Data Layer:** Request deduplication, persistent `localStorage` fallback with Private Mode exception safety (`SecurityError` / `QuotaExceededError`), and build-time static dictionary snapshot fallback (`snapshot-fallback.ts`).
+- **Unicode Phonetic Indexing:** `WeakMap`-cached search engine supporting Unicode NFC normalization, Unicode word boundaries (`\p{L}\p{N}`) across Xe Dang diacritics (`ơ̆`, `ŏ`, `ê̆`), and accent-insensitive fallback ranking.
+- **Companion Rust Tooling:** Zero-dependency Rust CLI ([tools/audio-optimizer](tools/audio-optimizer/)) for audio compression/packing and an optional Axum Contribute Gateway ([services/contribute-api](services/contribute-api/)) that validates binary uploads before forwarding to Google Apps Script.
 
 ---
 
-## ⬡ System Architecture
+## System Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│                     Client Application Layer                     │
-├────────────────────────────────┬────────────────────────────────┤
-│       Web Browser (PWA)        │    Desktop Client (Electron)    │
-│    (Service Worker Cache)      │       (IPC Bridge Fetcher)     │
-└────────────────────────────────┴────────────────────────────────┘
-                                │
-┌───────────────────────────────▼─────────────────────────────────┐
-│               Core Presentation & Modules (Vite + TS)            │
-├───────────────┬────────────────┬───────────────┬────────────────┤
-│  Dictionary   │  Study & Quiz  │   Game Hub    │  Contribute    │
-│  Dual Search  │ 3D Flashcards  │  4 Minigames  │ WebAudio / Mic │
-└───────────────┴────────────────┴───────────────┴────────────────┘
-                                │
-┌───────────────────────────────▼─────────────────────────────────┐
-│                    Service & Data Access Layer                   │
-├──────────────────┬───────────────────────┬──────────────────────┤
-│ DictionaryEngine │ StorageService (v10)  │ Google Sheets API    │
-│  (Unicode NFC)   │ (Progress / Badges)   │ (Online Live Sync)   │
-└──────────────────┴───────────────────────┴──────────────────────┘
-                                │
-                                ▼ [Fallback on offline or API failure]
-┌─────────────────────────────────────────────────────────────────┐
-│             Offline Local Snapshot (`snapshot-fallback.ts`)     │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Web PWA Client (Vite + Pure TypeScript)              │
+├──────────────────┬────────────────────┬─────────────────┬───────────────┤
+│  Home & Search   │   Study & Quiz     │    Game Hub     │  Contribute   │
+│ (Initial Chunk)  │  (Lazy Imported)   │ (Lazy Imported) │(Lazy Imported)│
+└────────┬─────────┴──────────┬─────────┴────────┬────────┴───────┬───────┘
+         │                    │                  │                │
+         ▼                    ▼                  ▼                ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Domain & Resilience Layer                        │
+├───────────────────┬──────────────────────┬──────────────────────────────┤
+│ DictionaryService │ SheetsService        │ OfflineSyncService           │
+│ WeakMap + NFC     │ Dedupe + LS +        │ audio-pack.bin (1 req) /     │
+│ & Accent Fallback │ Build Snapshot       │ Hash Delta + Idle Auto-Sync  │
+└─────────┬─────────┴──────────┬───────────┴──────────────┬───────────────┘
+          │                    │                          │
+          ▼                    ▼                          ▼
+┌───────────────────┐  ┌───────────────────┐   ┌──────────────────────────┐
+│  Service Worker   │  │ Google Sheets API │   │ Google Apps Script or    │
+│  Cache-First PWA  │  │ (Online Sync)     │   │ Rust Axum Gateway (A2)   │
+└───────────────────┘  └───────────────────┘   └──────────────────────────┘
 ```
 
 ---
 
-## ◇ Core Features
-
-### 1. ⌕ Bidirectional Lexical Search Engine
-* Bidirectional lookup: **Xe Dang → Vietnamese** and **Vietnamese → Xe Dang**.
-* Integrated virtual diacritic bar for special characters: `ơ̆`, `ŏ`, `ê̆`, `ô̆`, `ă`, `ĭ`, `ŭ`.
-* Voice-driven search powered by the Web Speech Recognition API.
-* Concise lexical summary bar displaying definition summaries and entry counts directly above the fold.
-
-### 2. ⎘ Study & Spaced Repetition
-* **Double-sided 3D Flashcards**: Front side presents Xe Dang terms with phonetic guides; reverse side reveals definitions and context examples.
-* **Topic-based Examination**: Timed quizzes, automated scoring, and real-time answer explanation feedback.
-* Localized study history preserved in `localStorage` with resilient recovery against corrupted JSON.
-
-### 3. ⊡ Gamification Hub
-* **4 Interactive Minigames**:
-  1. *Memory Match*: Vocabulary recall and visual matching.
-  2. *Word Catcher*: Reflex-based translation pairing.
-  3. *Word Shooter*: Spelling and orthographic recognition.
-  4. *Vocabulary Farm*: Gamified lexical progression.
-* **Automated Certificate Generation**: Client-rendered completion certificates via HTML5 Canvas.
-* Privacy-preserving client-side leaderboard and achievement badges.
-
-### 4. ⊚ Crowdsourced Audio Repository
-* Bundled library of native pronunciation recordings in WebM format.
-* In-browser audio recorder equipped with real-time waveform visualization via Web Audio API (`AudioContext` / `AnalyserNode`).
-* Streamlined single-step download and audio removal workflows.
-
-### 5. ◐ Mathematically Audited Dark Mode (WCAG 2.2 AA / AAA)
-* Structured surface elevation model (`Canvas < Card < Raised/Input`).
-* Avoids pure black `#000000` and pure white text `#ffffff`.
-* Token specifications:
-  * Neutral Graphite canvas: `#0f1012`
-  * Card surface: `#17181b`
-  * Primary text: `#e8e8ea` (**14.51:1 AAA contrast**)
-  * Vibrant green accent: `#34d399` (**9.90:1 AAA contrast** with dark button labels)
-* Complete specifications available in [docs/design/dark-mode-tokens.md](docs/design/dark-mode-tokens.md).
-
----
-
-## ◫ Project Structure
+## Project Structure
 
 ```text
-tudien-main/
-├── docs/
-│   └── design/                 # Design tokens, contrast audits, and theme previews
+.
+├── .github/workflows/          # GitHub Actions CI & GitHub Pages deployment
+├── docs/design/                # Contrast audits, CSS themes, and design tokens (WCAG 2.2)
 ├── public/
-│   ├── audio/                  # Native Xe Dang audio pronunciations (.webm)
-│   ├── fonts/jakarta/          # Locally bundled Plus Jakarta Sans font
-│   └── icons/                  # PWA application icons (72x72 to 512x512)
+│   ├── audio/                  # Native pronunciation recordings (1,261 .webm, 2 .mp3)
+│   ├── fonts/jakarta/          # Locally bundled Plus Jakarta Sans font files
+│   ├── icons/                  # PWA application icons (48x48 to 512x512)
+│   ├── audio-pack.bin          # Consolidated binary pack for single-request offline sync
+│   ├── audio-pack.index.json   # Byte offset, length, and FNV-1a hash manifest
+│   ├── manifest.json           # Web App Manifest
+│   └── offline.html            # Standalone offline fallback page
 ├── scripts/
-│   └── generate-snapshot.ts    # Build-time Google Sheets snapshot exporter
+│   └── generate-snapshot.ts    # Build-time Google Sheets static snapshot generator
+├── services/contribute-api/    # Optional Rust Axum server for binary upload & forwarding
 ├── src/
-│   ├── main/                   # Electron main process and IPC fetcher
-│   ├── preload/                # Secure Electron preload bridge
-│   ├── shared/                 # Shared constants, types, and fallback snapshot
-│   └── renderer/               # Web client and renderer implementation
-│       ├── components/         # Common UI components (navbar, footer, modal, toast)
-│       ├── features/           # Feature modules (home, quiz, games, chat, contribute)
-│       ├── services/           # Domain logic (dictionary, speech, audio, storage)
-│       ├── styles/             # Modular CSS architecture
+│   ├── shared/                 # Config constants, storage keys, and snapshot fallback
+│   └── renderer/
+│       ├── components/         # Navbar, onboarding, install modal, toast, event-bus
+│       ├── features/           # home, quiz, games (4 minigames + certificates), contribute, chat
+│       ├── services/           # dictionary, sheets, offline-sync, quiz, faq, speech, storage
+│       ├── styles/             # Tokenized CSS & route-split feature stylesheets
 │       ├── router.ts           # Client-side hash router
-│       └── main.ts             # Application bootstrap entry
-├── tests/                      # Vitest test suite (95 tests)
-├── index.html                  # HTML entry point with metadata
-├── vite.config.ts              # Vite and PWA build configuration
-└── package.json                # Project configuration (zero runtime dependencies)
+│       ├── service-worker.ts   # PWA Service Worker with versioned cache eviction
+│       └── main.ts             # Application entry point & route lazy-loader
+├── tests/                      # 16 Vitest suites covering 116 automated checks
+├── tools/audio-optimizer/      # Zero-dep Rust CLI for Opus encoding & pack generation
+├── index.html                  # HTML shell with SEO & Schema.org metadata
+├── package.json                # Project scripts & devDependencies
+├── tsconfig.json               # Strict TypeScript compiler configuration
+├── tsconfig.node.json          # Type checks for Vite/Vitest config files
+├── vite.config.ts              # Vite build, CSP injection & snapshot virtual resolver
+└── vitest.config.ts            # Vitest + happy-dom test setup
 ```
 
 ---
 
-## ▷ Quick Start & Development
+## Quick Start
 
-### System Requirements
-* Node.js >= 18.0.0
-* npm >= 9.0.0
+### Prerequisites
+- **Web PWA:** Node.js `>= 18.0.0`, npm `>= 9.0.0`
+- **Rust Tooling (optional for audio optimization or contribute backend):** `rustc` / `cargo`, `ffmpeg` & `ffprobe`
 
-### 1. Clone Repository
+### 1. Setup & Run Web PWA
 ```bash
 git clone https://github.com/Umnuar/xodang.git
 cd xodang
+npm ci
 ```
 
-### 2. Install Development Dependencies
-```bash
-npm install
-```
-
-### 3. Environment Variables (Optional)
-To connect a custom Google Sheets database, configure `.env`:
+Copy `.env.example` if using a custom Google Sheet or Contribute API endpoint:
 ```bash
 cp .env.example .env
 ```
-Configuration entries:
 ```ini
-VITE_GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY_HERE
-VITE_SHEET_ID=YOUR_SHEET_ID_HERE
+VITE_GOOGLE_API_KEY=YOUR_GOOGLE_SHEETS_API_KEY_HERE
+GOOGLE_SHEETS_API_KEY=YOUR_GOOGLE_SHEETS_API_KEY_HERE
+VITE_SHEET_ID=YOUR_GOOGLE_SHEET_ID_HERE
+VITE_CONTRIBUTE_API_URL=https://YOUR_CONTRIBUTE_API_DOMAIN/api/contributions
 ```
-*(If unconfigured, the application seamlessly defaults to bundled static data in `src/shared/data/snapshot-fallback.ts`).*
+*(When `VITE_CONTRIBUTE_API_URL` is omitted, submissions fall back cleanly to the configured Google Apps Script endpoint).*
 
-### 4. Run Development Server
 ```bash
+# Development server at http://localhost:3000
 npm run dev
-```
-Open `http://localhost:5173` in your browser.
 
-### 5. Production Build
-```bash
+# Production build into dist/ (with strict CSP meta tag injection)
 npm run build
+npm run preview
 ```
-Optimized assets are emitted to the `dist/` directory.
+
+### 2. Rust Audio Optimizer & Pack CLI (`tools/audio-optimizer`)
+```bash
+# Transcode WebM recordings to Opus VoIP 24 kbps + loudnorm (keeps originals if not smaller)
+cargo run --release --manifest-path tools/audio-optimizer/Cargo.toml -- --input public/audio --bitrate 24k
+
+# Bundle all .webm recordings into audio-pack.bin + audio-pack.index.json
+cargo run --release --manifest-path tools/audio-optimizer/Cargo.toml -- --input public/audio --pack --pack-out public
+```
+
+### 3. Rust Axum Contribute Gateway (`services/contribute-api`, Optional)
+```bash
+cp services/contribute-api/.env.example services/contribute-api/.env
+cargo run --release --manifest-path services/contribute-api/Cargo.toml
+```
+Docker support is included via [services/contribute-api/Dockerfile](services/contribute-api/Dockerfile).
 
 ---
 
-## ⊚ Quality Gates & Automated Testing
-
-The test suite runs on Vitest with happy-dom:
+## Quality Gates & Testing
 
 ```bash
-# Run all 95 tests
+# TypeScript type checking (app + config)
+npx tsc --noEmit
+npx tsc -p tsconfig.node.json --noEmit
+
+# Run all 116 Vitest tests (16 files)
 npm test
 
-# Run tests in watch mode
-npm run test:watch
+# Run all 15 Rust unit & integration tests (7 CLI + 8 Axum API)
+cargo test --manifest-path tools/audio-optimizer/Cargo.toml
+cargo test --manifest-path services/contribute-api/Cargo.toml
 ```
 
-### Key Test Coverage:
-| Test Category | Test File | Target Invariant |
+### Automated Test Coverage Highlights
+| Suite | File | Guarantees Verified |
 | :--- | :--- | :--- |
-| **XSS Security** | `tests/xss-security.test.ts` | Enforces zero unsanitized HTML injections |
-| **Unicode NFC** | `tests/unicode-nfc.test.ts` | Validates diacritic clustering and vowel preservation |
-| **Memory Leaks** | `tests/memory-leak.test.ts` | Verifies timer and listener disposal on route transitions |
-| **Storage Integrity** | `tests/legacy-storage.test.ts` | Tests schema migrations and corrupt data recovery |
-| **Offline Reliability** | `tests/service-worker.test.ts` | Ensures correct cache-first service worker behavior |
+| **XSS Prevention** | [tests/xss-security.test.ts](tests/xss-security.test.ts) | DOM API (`textContent`) rendering across search, chat, quiz, leaderboards, badges & certificates |
+| **Phonetic NFC & Search** | [tests/unicode-nfc.test.ts](tests/unicode-nfc.test.ts), [tests/golden-search.test.ts](tests/golden-search.test.ts) | Unicode diacritic clustering, exact-match parity & accent-insensitive fallback |
+| **Audio Pack & Upload** | [tests/audio.test.ts](tests/audio.test.ts) | Single-request binary pack unpack, hash delta sync, auto-download gating, `FormData` & fallback upload |
+| **Memory & Timer Cleanup** | [tests/memory-leak.test.ts](tests/memory-leak.test.ts) | Cleanup of `requestAnimationFrame`, timeouts, timers, and mic streams across route transitions |
+| **Storage Resilience** | [tests/legacy-storage.test.ts](tests/legacy-storage.test.ts) | Legacy schema migration & safe handling of `SecurityError` / `QuotaExceededError` / malformed JSON |
+| **SW & Config Guards** | [tests/service-worker.test.ts](tests/service-worker.test.ts), [tests/smoke.test.ts](tests/smoke.test.ts) | Audio cache preservation, `audio-pack.*` cache bypass, `ALLOWED_SHEET_RANGES` enforcement |
 
 ---
 
-## ⊞ Desktop Packaging (Electron)
+## Security & Contributing
 
-Supports cross-platform desktop application packaging for Windows, macOS, and Linux:
-
-```bash
-# Run Electron in development
-npm run electron:dev
-
-# Build distributable installer packages
-npm run electron:build
-```
+- Security policies, architectural controls, and private disclosure procedures are documented in [SECURITY.en.md](SECURITY.en.md) ([Tiếng Việt](SECURITY.md)).
+- Pull Requests must:
+  1. Pass `npx tsc --noEmit` and `npx tsc -p tsconfig.node.json --noEmit` with zero errors.
+  2. Pass `npm test` and `npm run build`.
+  3. Introduce zero unapproved frontend runtime dependencies.
 
 ---
 
-## ⛊ Security & Contributing
+## License
 
-* Review security policies and vulnerability disclosure procedures in [SECURITY.md](SECURITY.md).
-* All pull requests must satisfy:
-  1. 100% passing test suite: `npm test`.
-  2. Clean compilation and packaging: `npm run build`.
-  3. No unapproved runtime dependencies.
-
----
-
-## ⎘ License
-
-Distributed under the [MIT License](LICENSE).
+Licensed under the [MIT License](LICENSE).

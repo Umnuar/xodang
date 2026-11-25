@@ -1,12 +1,11 @@
 <div align="center">
 
 # Security Policy
-### *Application Security Standards & Vulnerability Disclosure Program*
+### *Application Security Architecture & Coordinated Vulnerability Disclosure*
 
-[![Security Status](https://img.shields.io/badge/Security_Policy-Active-22c55e?style=flat-square&logo=shield)](https://github.com/Umnuar/xodang/security)
-[![Vulnerability Reporting](https://img.shields.io/badge/Vulnerability_Reporting-Private_Advisory-3b82f6?style=flat-square&logo=github)](https://github.com/Umnuar/xodang/security/advisories/new)
-[![Response SLA](https://img.shields.io/badge/Response_SLA-%3C_48h-f59e0b?style=flat-square)](https://github.com/Umnuar/xodang)
-[![CVSS Standard](https://img.shields.io/badge/Severity_Standard-CVSS_v3.1-6366f1?style=flat-square)](https://www.first.org/cvss/)
+[![Security Policy](https://img.shields.io/badge/Security_Policy-Active-22c55e?style=flat-square&logo=shield)](https://github.com/Umnuar/xodang/security)
+[![Private Reporting](https://img.shields.io/badge/Reporting-GitHub_Private_Advisory-3b82f6?style=flat-square&logo=github)](https://github.com/Umnuar/xodang/security/advisories/new)
+[![Severity Standard](https://img.shields.io/badge/Severity-CVSS_v3.1-6366f1?style=flat-square)](https://www.first.org/cvss/)
 
 **English** • [Tiếng Việt](SECURITY.md) • **[Create Private Advisory](https://github.com/Umnuar/xodang/security/advisories/new)**
 
@@ -14,116 +13,97 @@
 
 ---
 
-The **Xe Dang – Vietnamese Dictionary** project (`tudien-xedang`) is committed to safeguarding indigenous cultural data and ensuring user safety by adhering to **OWASP ASVS** guidelines and international software security best practices.
-
-This document outlines supported versions, architectural defense models, and **Responsible Disclosure** procedures.
+The **Xe Dang – Vietnamese Dictionary** project (`tudien-xedang`) is committed to protecting community linguistic assets and end-user safety by aligning with **OWASP ASVS** principles across the Web PWA frontend and optional Rust backend tooling.
 
 ---
 
-## 1. ⬡ Supported Versions
+## 1. Supported Versions
 
-We provide scheduled security maintenance and security patches according to the following support lifecycle:
-
-| Version | Supported | Status | Patch Strategy |
-| :---: | :---: | :---: | :--- |
-| **10.0.x** | Yes | Active Production Release (PWA & Electron) | Critical P0/P1 patches within 24–72 hours |
-| **< 10.0.0** | No | Legacy Release | End of life; upgrade recommended |
+| Version | Supported | Release Scope | Maintenance Policy |
+| :---: | :---: | :--- | :--- |
+| **10.0.x** | Yes | Production Web PWA + Rust Audio Optimizer & Axum Gateway (`services/contribute-api`) | P0/P1 security patches shipped on `main` |
+| **< 10.0.0** | No | Legacy releases | End of life; upgrade to latest `main` |
 
 ---
 
-## 2. ⛊ Reporting a Vulnerability
+## 2. Reporting a Vulnerability
 
-If you discover a security vulnerability in the codebase or deployed infrastructure, please follow our **Responsible Disclosure** guidelines:
-
-### ▷ Preferred Channel (Recommended on GitHub)
-Submit a private report using **GitHub Private Vulnerability Reporting**:  
-▷ **[Create Private Security Advisory](https://github.com/Umnuar/xodang/security/advisories/new)**
+### Preferred Disclosure Channel
+Submit vulnerability reports privately via **GitHub Private Security Advisory**:
+- **[Create a Private Security Advisory](https://github.com/Umnuar/xodang/security/advisories/new)**
 
 > [!WARNING]
-> **Please do not** open public issues, public pull requests, or public comments containing exploit payloads prior to an official coordinated release.
+> **Do not** disclose security issues or functional exploits in public GitHub issues, pull requests, or discussions prior to a coordinated fix.
 
-### ▷ Information to Include in Your Report:
-1. **Vulnerability Classification**: CWE identifier or OWASP Top 10 category (e.g., *CWE-79: Cross-site Scripting*, *CWE-200: Information Disclosure*).
-2. **Affected Scope**: Impacted module (search engine, quiz module, games hub, service worker, or Electron process).
-3. **Step-by-step Reproduction (Proof of Concept - PoC)**:
-   * Explicit sequence of reproduction steps.
-   * Sample non-destructive input payload or URL parameter.
-4. **Severity Assessment (CVSS v3.1 Calculator)**: Estimated score and practical exploitability.
-5. **Proposed Remediation (Optional)**: Suggested code fix or mitigation strategy.
+### Required Report Details
+1. **Vulnerability Category:** CWE ID or OWASP classification (e.g., `CWE-79` XSS, `CWE-434` Unrestricted File Upload, `CWE-22` Path Traversal).
+2. **Affected Surface:** File path or module (`src/renderer/*`, `service-worker.ts`, `services/contribute-api/*`, CI workflows).
+3. **Minimal Reproduction (PoC):** Clear, non-destructive steps demonstrating the impact without touching real user data.
+4. **Estimated Severity:** Approximate **CVSS v3.1** vector/score and prerequisites.
 
----
+### Good-Faith Research (Safe Harbor)
+Maintainers will not pursue legal action against researchers who conduct good-faith testing within scope, avoid data destruction, refrain from automated volumetric attacks, respect user privacy, and allow reasonable remediation time before public disclosure.
 
-## 3. ▷ Response & Remediation SLA
-
-```text
-[Report Received] 
-       │
-       ▼ (≤ 24 hours)
-[Initial Triage & PoC Validation]
-       │
-       ▼ (≤ 72 hours)
-[CVSS v3.1 Scoring & Internal Security Branch Created]
-       │
-       ▼ (7–14 days)
-[Automated Regression Testing (Vitest) & Verified Build]
-       │
-       ▼
-[Patch Deployed & Coordinated Security Advisory Published]
-```
-
-### Response Time Commitments:
-| Severity (CVSS v3.1) | Score | Initial Acknowledgment | Patch Release SLA |
-| :--- | :---: | :---: | :---: |
-| **Critical** | 9.0 – 10.0 | < 12 hours | **Within 24 hours** |
-| **High** | 7.0 – 8.9 | < 24 hours | **Within 72 hours** |
-| **Medium** | 4.0 – 6.9 | < 48 hours | Within 7 days |
-| **Low** | 0.1 – 3.9 | < 72 hours | Next regular release |
+### Out of Scope
+- Public browser-side Google Sheets read-only API keys intended to be domain-restricted via Google Cloud HTTP Referrer rules (`https://umnuar.github.io/xodang/*`).
+- Issues requiring obsolete browsers lacking ES2022 or `CacheStorage` support.
+- Volumetric spam or DoS/DDoS testing against GitHub Pages or Google Apps Script endpoints.
 
 ---
 
-## 4. ⊞ Threat Model & Architectural Defenses
+## 3. Target Response SLA
 
-The system implements Defense-in-Depth across multiple application tiers:
-
-### 4.1. Supply Chain Defense
-* **Zero Runtime Dependencies**: No third-party packages are imported at runtime. The browser client is authored purely in native TypeScript compiled to ESM.
-* **Security Impact**: Eliminates attack surfaces related to npm account takeovers, typosquatting, dependency confusion, or malicious sub-dependencies.
-
-### 4.2. Client-Side XSS & Injection Mitigation
-* Lexical and user-entered text is never directly interpolated into unescaped `innerHTML`.
-* Safe DOM construction via `textContent` and `document.createElement` is mandatory.
-* Enforced continuously by automated regression tests in [`tests/xss-security.test.ts`](tests/xss-security.test.ts).
-
-### 4.3. Google Sheets API Credential Protection
-* **Least Privilege**: The Google Sheets API key is granted strictly read-only access.
-* **HTTP Referrer Restriction**: Keys are constrained within Google Cloud Console to authorized domain referrers (`hoctiengxodang.online/*`).
-* **Offline Snapshot Resilience**: On network failure or quota exhaustion, the app gracefully falls back to bundled static data (`src/shared/data/snapshot-fallback.ts`) without leaking credentials or error traces.
-* **Environment Variable Hygiene**: Production `.env` files are strictly excluded via `.gitignore`. Only `.env.example` is committed.
-
-### 4.4. Service Worker Sandboxing
-* CacheStorage is restricted to same-origin resources and pre-approved media assets.
-* Built-in versioned cache eviction routines prevent cache poisoning across deployments.
+| Severity (CVSS v3.1) | Score | Initial Acknowledgment | Target Patch Release |
+| :--- | :---: | :---: | :--- |
+| **Critical** | 9.0 – 10.0 | ≤ 24 hours | ≤ 48 hours |
+| **High** | 7.0 – 8.9 | ≤ 48 hours | ≤ 72 hours |
+| **Medium** | 4.0 – 6.9 | ≤ 72 hours | 7–14 days |
+| **Low** | 0.1 – 3.9 | ≤ 5 days | Next scheduled release |
 
 ---
 
-## 5. ⊚ Emergency Key Rotation Protocol
+## 4. Implemented Architectural Defenses
 
-In the event of suspected key compromise or accidental exposure:
-1. **Immediate Revocation**: Deactivate the compromised key in Google Cloud Console without delay.
-2. **Issue Replacement Key**: Generate a new credential and enforce domain referrer constraints.
-3. **Update Secrets**: Update production environment secrets in GitHub Actions and hosting environments.
-4. **Audit Access Logs**: Review Cloud Console metrics to detect anomalous traffic patterns.
+### 4.1. Supply Chain Hardening
+- **Zero Frontend Runtime Dependencies:** [package.json](package.json) declares zero `dependencies`; production client bundles ship pure compiled TypeScript with no third-party runtime npm packages.
+- **Deterministic Installs:** Reproducible builds backed by `npm ci` ([package-lock.json](package-lock.json)) and pinned Rust `Cargo.lock` manifests.
+
+### 4.2. Content Security Policy (CSP) & Referrer Policy
+- Production builds in [vite.config.ts](vite.config.ts) automatically inject a strict `<meta http-equiv="Content-Security-Policy">` tag into `dist/index.html`:
+  - `default-src 'self'`, `script-src 'self'`, `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`.
+  - Explicit `connect-src` allowlist (`'self'`, `https://sheets.googleapis.com`, `https://script.google.com`, `https://script.googleusercontent.com`, plus the origin of `VITE_CONTRIBUTE_API_URL` when configured).
+- [index.html](index.html) enforces `<meta name="referrer" content="strict-origin-when-cross-origin">`.
+
+### 4.3. Client-Side DOM XSS Mitigation
+- Dictionary entries, chat replies, leaderboards, badges, completion certificates, and upload queues are rendered through safe DOM APIs (`document.createElement` + `textContent`) rather than unescaped `innerHTML` string interpolation.
+- Enforced via automated regression checks in [tests/xss-security.test.ts](tests/xss-security.test.ts).
+
+### 4.4. Storage Safety & Credential Hygiene
+- All browser storage access flows through [src/renderer/services/storage.service.ts](src/renderer/services/storage.service.ts), catching `SecurityError`, `QuotaExceededError`, and corrupt JSON without crashing ([tests/legacy-storage.test.ts](tests/legacy-storage.test.ts)).
+- Hardcoded fallback API secrets are prohibited and checked by [tests/smoke.test.ts](tests/smoke.test.ts); `.env*` files are excluded via [.gitignore](.gitignore).
+
+### 4.5. Service Worker Isolation
+- [src/renderer/service-worker.ts](src/renderer/service-worker.ts) caches only `same-origin` assets and audio resources, evicts stale versioned caches on activation while preserving `tudien-audio`, and explicitly bypasses SW caching for `/audio-pack.bin` and `/audio-pack.index.json` to ensure accurate hash-delta verification ([tests/service-worker.test.ts](tests/service-worker.test.ts)).
+
+### 4.6. Rust Contribute Gateway Controls (`services/contribute-api`)
+When deploying the optional [services/contribute-api](services/contribute-api/) backend:
+- **Hard Payload Limit:** Rejects uploads exceeding `MAX_UPLOAD_BYTES` (default `10 MB`) with HTTP `413`.
+- **Magic-Byte Validation:** Ignores client file extensions/MIME claims and validates actual binary headers (`WebM`, `MP4/M4A`, `OGG`, `MP3`, `WAV`, `FLAC`), returning HTTP `415` for spoofed HTML/scripts/executables.
+- **Path Traversal Prevention:** Strips directory separators and normalizes filenames before touching disk storage.
+- **Rate Limiting, CORS & Least Privilege:** Per-IP sliding-window throttling (`429`), configurable `ALLOWED_ORIGINS`, and non-root Docker execution (`appuser`).
 
 ---
 
-## 6. ◈ Security Hall of Fame
+## 5. Emergency Key Rotation Protocol
 
-We gratefully recognize security researchers and developers who practice responsible disclosure to protect the Xe Dang linguistic archive and its community of learners.
-
-*Eligible security contributors will be credited in our official release notes and documentation.*
+If a Google Sheets API key or CI secret is suspected of exposure:
+1. Revoke the affected key immediately in Google Cloud Console.
+2. Issue a replacement key restricted strictly to read-only Sheets API access and authorized HTTP Referrers.
+3. Update `VITE_GOOGLE_API_KEY` in GitHub Repository Secrets and re-run the deployment workflow.
+4. Audit Cloud Console usage metrics for anomalous requests.
 
 ---
 
 <div align="center">
-  <sub>Information security is the bedrock of enduring cultural preservation.</sub>
+  <sub>Strong security fundamentals safeguard long-term cultural preservation.</sub>
 </div>

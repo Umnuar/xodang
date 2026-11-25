@@ -71,22 +71,7 @@ Tài liệu đặc tả hệ thống giao diện tối (Dark Mode) cho ứng d�
 
 ---
 
-## 3. Thư viện Ảnh trực quan đã xuất vào `docs/design/`
-
-Toàn bộ ảnh chụp giao diện hoàn chỉnh của 3 trang tiêu biểu (Trang chủ, Học & Thi, Trò chơi) trên cả 2 độ phân giải Desktop (1440px/2560px) và Mobile (390px) đã được xuất trực tiếp vào thư mục `docs/design/`:
-
-| Tên tệp ảnh | Phương án | Màn hình áp dụng | Thiết bị | Mô tả thành phần |
-| :--- | :--- | :--- | :--- | :--- |
-| [dark-a-home-desktop.png](file:///c:/Users/umnuar/Downloads/tudien-main/docs/design/dark-a-home-desktop.png) | Phương án A (Rừng đêm) | **Trang chủ (Home)** | Desktop | Navbar phân tầng, ô tìm kiếm thông minh tích hợp nút micro, thẻ từ vựng nổi bật với nút nghe phát âm bản địa, cụm chủ đề văn hóa. |
-| [dark-a-home-mobile.png](file:///c:/Users/umnuar/Downloads/tudien-main/docs/design/dark-a-home-mobile.png) | Phương án A (Rừng đêm) | **Trang chủ (Home)** | Mobile (390px) | Ô tìm kiếm tối ưu ngón cái, thẻ từ trong ngày, bottom navigation tiện dụng, thanh tra cứu nhanh ký tự đặc biệt. |
-| [dark-a-study-desktop.png](file:///c:/Users/umnuar/Downloads/tudien-main/docs/design/dark-a-study-desktop.png) | Phương án A (Rừng đêm) | **Học & Thi (Study & Quiz)** | Desktop | Flashcard 3D lật mặt (mặt trước tiếng Xơ Đăng, mặt sau nghĩa tiếng Việt + âm thanh), trắc nghiệm 4 lựa chọn phản hồi trạng thái đúng/sai. |
-| [dark-a-study-mobile.png](file:///c:/Users/umnuar/Downloads/tudien-main/docs/design/dark-a-study-mobile.png) | Phương án A (Rừng đêm) | **Học & Thi (Study & Quiz)** | Mobile (390px) | Flashcard học tập trực quan, tiến độ học tập dạng thanh bar xanh sáng, các nút chọn đáp án lớn chống bấm nhầm. |
-| [dark-b-games-desktop.png](file:///c:/Users/umnuar/Downloads/tudien-main/docs/design/dark-b-games-desktop.png) | Phương án B (Graphite) | **Trò chơi (Game Hub)** | Desktop | Nền than chì phẳng, các thẻ trò chơi trí tuệ (Nối từ, Đoán tranh, Đua gõ tiếng Xơ Đăng), huy hiệu điểm số và bảng xếp hạng. |
-| [dark-b-games-mobile.png](file:///c:/Users/umnuar/Downloads/tudien-main/docs/design/dark-b-games-mobile.png) | Phương án B (Graphite) | **Trò chơi (Game Hub)** | Mobile (390px) | Bố cục dạng thẻ dọc cuộn mượt, thẻ thử thách ngày, nút bắt đầu chơi viền xanh nổi bật. |
-
----
-
-## 4. Đặc tả Quy chuẩn Kỹ thuật Font & Dấu thanh Xơ Đăng
+## 3. Đặc tả Quy chuẩn Kỹ thuật Font & Dấu thanh Xơ Đăng
 
 - **Font chữ quy định**: `Plus Jakarta Sans`, các họ sans-serif dự phòng: `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`.
 - **Đặc thù ký tự ngữ âm Xơ Đăng**: Ngôn ngữ Xơ Đăng có hệ thống nguyên âm phức tạp với các dấu phụ đặc trưng (như `ơ̆`, `ŏ`, `ê̆`, dấu thanh ngã, huyền, hỏi đè lên nhau, dấu giọng thở).
@@ -95,7 +80,7 @@ Toàn bộ ảnh chụp giao diện hoàn chỉnh của 3 trang tiêu biểu (Tr
 
 ---
 
-## 5. Tệp dữ liệu Token & Mã nguồn CSS đính kèm
+## 4. Tệp dữ liệu Token & Mã nguồn CSS đính kèm
 
-- **Tệp Token JSON**: [dark-mode-tokens.json](file:///c:/Users/umnuar/Downloads/tudien-main/docs/design/dark-mode-tokens.json) – Cấu trúc chuẩn JSON Schema mô tả chi tiết 2 theme, giá trị màu, độ tương phản và ánh xạ component.
-- **Tệp Biến CSS Drop-in**: [dark-mode-themes.css](file:///c:/Users/umnuar/Downloads/tudien-main/docs/design/dark-mode-themes.css) – Bộ biến CSS custom properties sẵn sàng tích hợp với thuộc tính `[data-theme="forest-midnight"]` hoặc `[data-theme="graphite"]`.
+- **Tệp Token JSON**: [dark-mode-tokens.json](./dark-mode-tokens.json) – Cấu trúc chuẩn JSON Schema mô tả chi tiết 2 theme, giá trị màu, độ tương phản và ánh xạ component.
+- **Tệp Biến CSS Drop-in**: [dark-mode-themes.css](./dark-mode-themes.css) – Bộ biến CSS custom properties sẵn sàng tích hợp với thuộc tính `[data-theme="forest-midnight"]` hoặc `[data-theme="graphite"]`.
