@@ -148,7 +148,8 @@ async function fetchStaticManifest(): Promise<StaticDictManifest | null> {
 }
 
 async function fetchStaticChunkRows(meta: StaticChunkMeta): Promise<string[][] | null> {
-    const parsed = await fetchStaticJson<unknown>(meta.path);
+    const versionTag = meta.sha256 ? `?v=${encodeURIComponent(meta.sha256.slice(0, 12))}` : '';
+    const parsed = await fetchStaticJson<unknown>(`${meta.path}${versionTag}`);
     return Array.isArray(parsed) ? (parsed as string[][]) : null;
 }
 

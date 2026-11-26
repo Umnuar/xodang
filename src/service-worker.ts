@@ -95,11 +95,14 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
         return;
     }
 
-    if (url.pathname.endsWith('/dict-manifest.json')) {
+    if (
+        url.pathname.endsWith('/dict-manifest.json') ||
+        (url.pathname.includes('/data/') && url.pathname.endsWith('.json'))
+    ) {
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
-                    if (response && response.ok && url.origin === self.location.origin) {
+                    if (response && response.ok && url.origin === sw.location.origin) {
                         const copy = response.clone();
                         void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
                     }

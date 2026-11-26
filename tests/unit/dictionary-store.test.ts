@@ -221,10 +221,10 @@ describe('dictionary-store and delta sync', () => {
                 if (url.endsWith('/dict-manifest.json')) {
                     return new Response(JSON.stringify(activeManifest), { status: 200 });
                 }
-                if (url.endsWith('/words.json')) {
+                if (url.includes('/words.json')) {
                     return new Response(JSON.stringify(activeWords), { status: 200 });
                 }
-                if (url.endsWith('/phrases.json')) {
+                if (url.includes('/phrases.json')) {
                     return new Response(JSON.stringify(activePhrases), { status: 200 });
                 }
                 return new Response('[]', { status: 200 });
@@ -233,8 +233,8 @@ describe('dictionary-store and delta sync', () => {
 
         const coldEntries = await fetchDictionaryData();
         expect(coldEntries).toHaveLength(2);
-        expect(fetchedUrls.some((u) => u.endsWith('/words.json'))).toBe(true);
-        expect(fetchedUrls.some((u) => u.endsWith('/phrases.json'))).toBe(true);
+        expect(fetchedUrls.some((u) => u.includes('/words.json?v=w1'))).toBe(true);
+        expect(fetchedUrls.some((u) => u.includes('/phrases.json?v=p1'))).toBe(true);
 
         clearSheetsCache(false);
         fetchedUrls.length = 0;
@@ -260,8 +260,8 @@ describe('dictionary-store and delta sync', () => {
 
         expect(changed).toBe(true);
         expect(updatedEvents).toEqual([3]);
-        expect(fetchedUrls.some((u) => u.endsWith('/words.json'))).toBe(true);
-        expect(fetchedUrls.some((u) => u.endsWith('/phrases.json'))).toBe(false);
+        expect(fetchedUrls.some((u) => u.includes('/words.json?v=w2'))).toBe(true);
+        expect(fetchedUrls.some((u) => u.includes('/phrases.json'))).toBe(false);
 
         fetchedUrls.length = 0;
         const unchanged = await syncStaticCorpusDelta();
