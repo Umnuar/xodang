@@ -1,11 +1,47 @@
 import fs from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 import { APP_CONFIG } from '../src/shared/constants/config';
+import { classifyEntryKind, type EntryKind } from '../src/services/dictionary.service';
 import type { SnapshotDictionaryEntry } from '../src/shared/data/snapshot-fallback';
+
+export { classifyEntryKind, type EntryKind };
+
+export interface StaticChunkMeta {
+    path: string;
+    sha256: string;
+    count: number;
+    bytes: number;
+}
+
+export interface StaticDictManifest {
+    version: number;
+    generatedAt: string;
+    totalEntries: number;
+    chunks: {
+        words: StaticChunkMeta;
+        phrases: StaticChunkMeta;
+        quiz: StaticChunkMeta;
+        chat: StaticChunkMeta;
+    };
+}
+
+export type StaticPackFileName =
+    | 'dict-manifest.json'
+    | 'words.json'
+    | 'phrases.json'
+    | 'quiz.json'
+    | 'chat.json';
+
+export interface BuiltStaticDataPack {
+    manifest: StaticDictManifest;
+    files: Record<StaticPackFileName, string>;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const textEncoder = new TextEncoder();
 
 const PRIORITY_FALLBACK_VIET = [
     'bố',
@@ -77,9 +113,9 @@ function loadDotEnv(envPath: string): void {
     }
 }
 
-function loadValidAudioIds(indexPath: string): Set<string> {
+function loadValidAudioIds(indexPath: string): Set<string> | null {
     if (!fs.existsSync(indexPath)) {
-        throw new Error(`Missing audio index file: ${indexPath}`);
+        return null;
     }
     const parsed = JSON.parse(fs.readFileSync(indexPath, 'utf8')) as {
         files?: Record<string, unknown>;
@@ -115,10 +151,10 @@ async function fetchSheetPayload(
     };
 }
 
-function sanitizeVocabRows(rows: string[][], validAudioIds: Set<string>): string[][] {
+function sanitizeVocabRows(rows: string[][], validAudioIds: Set<string> | null): string[][] {
     return rows.map((row) => {
         const nextRow = [...row];
-        if (nextRow.length > 3) {
+        if (nextRow.length > 3 && validAudioIds) {
             const rawDriveId = String(nextRow[3] || '').trim();
             nextRow[3] = rawDriveId && validAudioIds.has(rawDriveId) ? rawDriveId : '';
         }
@@ -140,6 +176,96 @@ function toDictionaryEntry(row: string[]): SnapshotDictionaryEntry | null {
     if (exampleViet) entry.exampleViet = exampleViet;
     if (exampleEthnic) entry.exampleEthnic = exampleEthnic;
     return entry;
+}
+
+export function packVocabTuple(entry: SnapshotDictionaryEntry): string[] {
+    const tuple = [
+        (entry.viet || '').trim(),
+        (entry.ethnic || '').trim(),
+        (entry.pronunciation || '').trim(),
+        (entry.driveId || '').trim(),
+        (entry.exampleViet || '').trim(),
+        (entry.exampleEthnic || '').trim()
+    ];
+    while (tuple.length > 2 && tuple[tuple.length - 1] === '') {
+        tuple.pop();
+    }
+    return tuple;
+}
+
+function serializeChunk(filePath: string, data: unknown): { json: string; meta: StaticChunkMeta } {
+    const json = JSON.stringify(data);
+    const bytes = textEncoder.encode(json);
+    const sha256 = createHash('sha256').update(bytes).digest('hex');
+    const count = Array.isArray(data) ? data.length : 0;
+    return {
+        json,
+        meta: {
+            path: filePath,
+            sha256,
+            count,
+            bytes: bytes.byteLength
+        }
+    };
+}
+
+function filterNonEmptyRows(rows: string[][]): string[][] {
+    return rows.filter(
+        (row) => Array.isArray(row) && row.some((cell) => String(cell || '').trim().length > 0)
+    );
+}
+
+export function buildStaticDataPack(
+    vocabRows: string[][],
+    quizRows: string[][],
+    chatRows: string[][],
+    generatedAt: string = new Date().toISOString()
+): BuiltStaticDataPack {
+    const wordsTuples: string[][] = [];
+    const phrasesTuples: string[][] = [];
+
+    for (const row of vocabRows) {
+        const entry = toDictionaryEntry(row);
+        if (!entry) continue;
+        const kind = classifyEntryKind(entry.viet, entry.ethnic);
+        const packed = packVocabTuple(entry);
+        if (kind === 'word') {
+            wordsTuples.push(packed);
+        } else {
+            phrasesTuples.push(packed);
+        }
+    }
+
+    const cleanQuizRows = filterNonEmptyRows(quizRows);
+    const cleanChatRows = filterNonEmptyRows(chatRows);
+
+    const wordsChunk = serializeChunk('words.json', wordsTuples);
+    const phrasesChunk = serializeChunk('phrases.json', phrasesTuples);
+    const quizChunk = serializeChunk('quiz.json', cleanQuizRows);
+    const chatChunk = serializeChunk('chat.json', cleanChatRows);
+
+    const manifest: StaticDictManifest = {
+        version: 1,
+        generatedAt,
+        totalEntries: wordsTuples.length + phrasesTuples.length,
+        chunks: {
+            words: wordsChunk.meta,
+            phrases: phrasesChunk.meta,
+            quiz: quizChunk.meta,
+            chat: chatChunk.meta
+        }
+    };
+
+    return {
+        manifest,
+        files: {
+            'dict-manifest.json': `${JSON.stringify(manifest, null, 2)}\n`,
+            'words.json': wordsChunk.json,
+            'phrases.json': phrasesChunk.json,
+            'quiz.json': quizChunk.json,
+            'chat.json': chatChunk.json
+        }
+    };
 }
 
 function buildFallbackDictionary(vocabRows: string[][]): SnapshotDictionaryEntry[] {
@@ -230,7 +356,53 @@ function writeSnapshotFallbackTs(
     fs.writeFileSync(targetPath, content, 'utf8');
 }
 
-async function generateSnapshots(): Promise<void> {
+function readLocalSnapshotValues(filePath: string): string[][] {
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`Missing local snapshot file: ${filePath}`);
+    }
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8')) as { values?: string[][] };
+    if (!parsed || !Array.isArray(parsed.values)) {
+        throw new Error(`Invalid snapshot payload in ${filePath}`);
+    }
+    return parsed.values;
+}
+
+function writeStaticPackFiles(dataDir: string, pack: BuiltStaticDataPack): void {
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+    for (const [fileName, content] of Object.entries(pack.files)) {
+        fs.writeFileSync(path.join(dataDir, fileName), content, 'utf8');
+    }
+    console.log(
+        `Generated public/data pack: words=${pack.manifest.chunks.words.count} (${pack.manifest.chunks.words.bytes}B), phrases=${pack.manifest.chunks.phrases.count} (${pack.manifest.chunks.phrases.bytes}B), quiz=${pack.manifest.chunks.quiz.count}, chat=${pack.manifest.chunks.chat.count}`
+    );
+}
+
+export async function generateSnapshots(options?: { fromLocal?: boolean }): Promise<void> {
+    const fromLocal = Boolean(options?.fromLocal);
+    const snapshotDir = path.resolve(__dirname, '../src/shared/data/snapshot');
+    const publicDataDir = path.resolve(__dirname, '../public/data');
+    const audioIndexPath = path.resolve(__dirname, '../public/audio-pack.index.json');
+    const validAudioIds = loadValidAudioIds(audioIndexPath);
+
+    if (fromLocal) {
+        const vocabValues = sanitizeVocabRows(
+            readLocalSnapshotValues(path.join(snapshotDir, 'vocab-snapshot.json')),
+            validAudioIds
+        );
+        const quizValues = readLocalSnapshotValues(path.join(snapshotDir, 'quiz-snapshot.json'));
+        const chatValues = readLocalSnapshotValues(path.join(snapshotDir, 'chat-snapshot.json'));
+
+        const pack = buildStaticDataPack(vocabValues, quizValues, chatValues);
+        writeStaticPackFiles(publicDataDir, pack);
+
+        const fallbackPath = path.resolve(__dirname, '../src/shared/data/snapshot-fallback.ts');
+        writeSnapshotFallbackTs(fallbackPath, vocabValues, quizValues, chatValues);
+        console.log('Updated src/shared/data/snapshot-fallback.ts from local snapshots');
+        return;
+    }
+
     loadDotEnv(path.resolve(__dirname, '../.env'));
 
     const apiKey =
@@ -242,11 +414,13 @@ async function generateSnapshots(): Promise<void> {
         process.exit(1);
     }
 
+    if (!validAudioIds) {
+        throw new Error(`Missing audio index file: ${audioIndexPath}`);
+    }
+
     const sheetId = process.env.VITE_SHEET_ID || APP_CONFIG.SHEET_ID;
-    const validAudioIds = loadValidAudioIds(path.resolve(__dirname, '../public/audio-pack.index.json'));
-    const outputDir = path.resolve(__dirname, '../src/shared/data/snapshot');
-    if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
+    if (!fs.existsSync(snapshotDir)) {
+        fs.mkdirSync(snapshotDir, { recursive: true });
     }
 
     const vocabPayload = await fetchSheetPayload(sheetId, APP_CONFIG.DICTIONARY_RANGE, apiKey);
@@ -262,17 +436,34 @@ async function generateSnapshots(): Promise<void> {
     ];
 
     for (const out of outputs) {
-        const filePath = path.join(outputDir, out.name);
+        const filePath = path.join(snapshotDir, out.name);
         fs.writeFileSync(filePath, JSON.stringify(out.payload, null, 2) + '\n', 'utf8');
         console.log(`Saved ${out.name}: ${out.payload.values.length} rows`);
     }
+
+    const pack = buildStaticDataPack(vocabPayload.values, quizPayload.values, chatPayload.values);
+    writeStaticPackFiles(publicDataDir, pack);
 
     const fallbackPath = path.resolve(__dirname, '../src/shared/data/snapshot-fallback.ts');
     writeSnapshotFallbackTs(fallbackPath, vocabPayload.values, quizPayload.values, chatPayload.values);
     console.log('Updated src/shared/data/snapshot-fallback.ts');
 }
 
-generateSnapshots().catch((err) => {
-    console.error('Snapshot generation failed:', err instanceof Error ? err.message : String(err));
-    process.exit(1);
-});
+const isDirectExecution = (() => {
+    if (typeof process === 'undefined' || process.env.VITEST || !Array.isArray(process.argv)) {
+        return false;
+    }
+    return process.argv.some((arg) => {
+        if (typeof arg !== 'string') return false;
+        const normalized = arg.replace(/\\/g, '/');
+        return normalized.endsWith('scripts/generate-snapshot.ts') || normalized.includes('/vite-node');
+    });
+})();
+
+if (isDirectExecution) {
+    const fromLocal = process.argv.includes('--from-local');
+    generateSnapshots({ fromLocal }).catch((err) => {
+        console.error('Snapshot generation failed:', err instanceof Error ? err.message : String(err));
+        process.exit(1);
+    });
+}

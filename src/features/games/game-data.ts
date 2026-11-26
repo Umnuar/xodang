@@ -1,4 +1,5 @@
 import { getLoadedDictionary } from '@/features/home/home';
+import { classifyEntryKind, type EntryKind } from '@/services/dictionary.service';
 import { getStorageItem } from '@/services/storage.service';
 import { STORAGE_KEYS } from '@/shared/constants/storage-keys';
 import { snapshotFallback } from '@snapshot/data';
@@ -12,6 +13,7 @@ export interface GameWordPair {
     driveId?: string;
     topic?: string;
     difficulty?: 1 | 2 | 3;
+    kind?: EntryKind;
 }
 
 export interface GameQuestion {
@@ -36,17 +38,39 @@ export interface MemoryCardItem {
     lang?: 'ethnic' | 'viet';
 }
 
+const COMBINING_MARKS_REGEX = /[\u0300-\u036f]/;
+
 function normalizeLookupKey(text: string): string {
-    return (text || '').normalize('NFC').trim().toLowerCase();
+    const trimmed = (text || '').trim();
+    const normalized = COMBINING_MARKS_REGEX.test(trimmed) ? trimmed.normalize('NFC') : trimmed;
+    return normalized.toLowerCase();
 }
 
 function cleanNumberHintSuffix(viet: string): string {
-    return (viet || '').trim().replace(/\s*\((?:10|[1-9])\)\s*$/u, '').trim();
+    const trimmed = (viet || '').trim();
+    if (!trimmed.endsWith(')')) return trimmed;
+    return trimmed.replace(/\s*\((?:10|[1-9])\)\s*$/u, '').trim();
+}
+
+function countDelimiters(text: string, splitHyphens: boolean): number {
+    let count = 0;
+    let inToken = false;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text.charCodeAt(i);
+        const isSep = ch <= 32 || (splitHyphens && ch === 45);
+        if (isSep) {
+            inToken = false;
+        } else if (!inToken) {
+            inToken = true;
+            count++;
+        }
+    }
+    return count;
 }
 
 function computeWordDifficulty(ethnic: string, viet: string): 1 | 2 | 3 {
-    const ethnicSyllables = ethnic.trim().split(/[\s-]+/).filter(Boolean).length;
-    const vietWords = viet.trim().split(/\s+/).filter(Boolean).length;
+    const ethnicSyllables = countDelimiters(ethnic, true);
+    const vietWords = countDelimiters(viet, false);
 
     if (ethnicSyllables <= 1 && vietWords <= 2 && ethnic.length <= 12 && viet.length <= 14) {
         return 1;
@@ -57,11 +81,13 @@ function computeWordDifficulty(ethnic: string, viet: string): 1 | 2 | 3 {
     return 3;
 }
 
-function inferTopicFromEntry(viet: string, existingTopic?: string): string {
+const TOPIC_KEYWORD_GUARD = /(?:^số |^con |^cá |chim|bố|mẹ|cha|anh em|cơm|ăn|uống|núi|sông|suối|cây|lá|tháng|rừng|nhà|chào|cảm ơn)/;
+
+function inferTopicFromLower(lower: string, existingTopic?: string): string {
     if (existingTopic && existingTopic.trim()) {
         return existingTopic.trim();
     }
-    const lower = normalizeLookupKey(viet);
+    if (!TOPIC_KEYWORD_GUARD.test(lower)) return 'Từ điển';
     if (lower.startsWith('số ')) return 'Số đếm';
     if (/^(con |chim|cá )/.test(lower) || lower === 'chim') return 'Động vật';
     if (/(bố|mẹ|cha|anh em)/.test(lower)) return 'Gia đình';
@@ -96,54 +122,71 @@ function isLegacyCachedEntry(raw: Record<string, unknown>): boolean {
     return false;
 }
 
-function normalizeWordPair(raw: {
-    ethnic?: unknown;
-    viet?: unknown;
-    pronunciation?: unknown;
-    driveId?: unknown;
-    topic?: unknown;
-    difficulty?: unknown;
-}): GameWordPair | null {
-    if (typeof raw.ethnic !== 'string' || typeof raw.viet !== 'string') {
-        return null;
-    }
-    const ethnic = raw.ethnic.trim();
-    const viet = cleanNumberHintSuffix(raw.viet);
-    if (!ethnic || !viet) {
-        return null;
-    }
-    const pronunciation = typeof raw.pronunciation === 'string' && raw.pronunciation.trim()
-        ? raw.pronunciation.trim()
-        : undefined;
-    const driveId = sanitizeDriveId(raw.driveId);
-    const topic = inferTopicFromEntry(
-        viet,
-        typeof raw.topic === 'string' ? raw.topic : undefined
-    );
-    const difficulty: 1 | 2 | 3 =
-        raw.difficulty === 1 || raw.difficulty === 2 || raw.difficulty === 3
-            ? raw.difficulty
-            : computeWordDifficulty(ethnic, viet);
+const loadedGameVocabCache = new WeakMap<object[], GameWordPair[]>();
 
-    return {
-        ethnic,
-        viet,
-        pronunciation,
-        driveId,
-        topic,
-        difficulty
-    };
-}
-
-function deduplicateVocab(items: GameWordPair[]): GameWordPair[] {
+function normalizeAndDeduplicateList(
+    rawList: Array<{
+        ethnic?: unknown;
+        viet?: unknown;
+        pronunciation?: unknown;
+        driveId?: unknown;
+        topic?: unknown;
+        difficulty?: unknown;
+        kind?: unknown;
+    }>
+): GameWordPair[] {
     const seen = new Set<string>();
     const result: GameWordPair[] = [];
-    for (const item of items) {
-        const key = `${normalizeLookupKey(item.ethnic)}||${normalizeLookupKey(item.viet)}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        result.push(item);
+
+    for (let i = 0; i < rawList.length; i++) {
+        const raw = rawList[i];
+        if (!raw || typeof raw.ethnic !== 'string' || typeof raw.viet !== 'string') {
+            continue;
+        }
+        const ethnicRaw = raw.ethnic.trim();
+        const vietRaw = cleanNumberHintSuffix(raw.viet);
+        if (!ethnicRaw || !vietRaw) {
+            continue;
+        }
+        const ethnic = COMBINING_MARKS_REGEX.test(ethnicRaw) ? ethnicRaw.normalize('NFC') : ethnicRaw;
+        const viet = COMBINING_MARKS_REGEX.test(vietRaw) ? vietRaw.normalize('NFC') : vietRaw;
+        const ethnicKey = ethnic.toLowerCase();
+        const vietKey = viet.toLowerCase();
+        const dedupKey = `${ethnicKey}||${vietKey}`;
+        if (seen.has(dedupKey)) {
+            continue;
+        }
+        seen.add(dedupKey);
+
+        const pronunciation =
+            typeof raw.pronunciation === 'string' && raw.pronunciation.trim()
+                ? raw.pronunciation.trim()
+                : undefined;
+        const driveId = sanitizeDriveId(raw.driveId);
+        const topic = inferTopicFromLower(
+            vietKey,
+            typeof raw.topic === 'string' ? raw.topic : undefined
+        );
+        const difficulty: 1 | 2 | 3 =
+            raw.difficulty === 1 || raw.difficulty === 2 || raw.difficulty === 3
+                ? raw.difficulty
+                : computeWordDifficulty(ethnic, viet);
+        const kind: EntryKind =
+            raw.kind === 'word' || raw.kind === 'phrase'
+                ? raw.kind
+                : classifyEntryKind(viet, ethnic);
+
+        result.push({
+            ethnic,
+            viet,
+            pronunciation,
+            driveId,
+            topic,
+            difficulty,
+            kind
+        });
     }
+
     return result;
 }
 
@@ -156,15 +199,34 @@ export function shuffleArray<T>(items: T[]): T[] {
     return copy;
 }
 
+function sampleRandomItems<T>(items: T[], maxCount: number): T[] {
+    if (items.length <= maxCount) {
+        return shuffleArray(items);
+    }
+    const picked: T[] = [];
+    const usedIndices = new Set<number>();
+    const maxAttempts = maxCount * 4;
+    let attempts = 0;
+    while (picked.length < maxCount && attempts < maxAttempts) {
+        attempts++;
+        const idx = Math.floor(Math.random() * items.length);
+        if (usedIndices.has(idx)) continue;
+        usedIndices.add(idx);
+        picked.push(items[idx]);
+    }
+    return picked;
+}
+
 export function getAllGameVocab(): GameWordPair[] {
     const dict = getLoadedDictionary();
     if (Array.isArray(dict) && dict.length >= 4) {
-        const dictMapped = deduplicateVocab(
-            dict
-                .map((entry) => normalizeWordPair(entry))
-                .filter((item): item is GameWordPair => item !== null)
-        );
+        const cached = loadedGameVocabCache.get(dict);
+        if (cached) {
+            return cached;
+        }
+        const dictMapped = normalizeAndDeduplicateList(dict);
         if (dictMapped.length >= 4) {
+            loadedGameVocabCache.set(dict, dictMapped);
             return dictMapped;
         }
     }
@@ -175,11 +237,7 @@ export function getAllGameVocab(): GameWordPair[] {
             (item): item is Record<string, unknown> => Boolean(item && typeof item === 'object')
         );
         if (!cachedObjects.some((item) => isLegacyCachedEntry(item))) {
-            const validatedCached = deduplicateVocab(
-                cachedObjects
-                    .map((item) => normalizeWordPair(item))
-                    .filter((item): item is GameWordPair => item !== null)
-            );
+            const validatedCached = normalizeAndDeduplicateList(cachedObjects);
             if (validatedCached.length >= 4) {
                 return validatedCached;
             }
@@ -188,53 +246,97 @@ export function getAllGameVocab(): GameWordPair[] {
 
     const fallbackDict = snapshotFallback?.dictionary;
     if (Array.isArray(fallbackDict) && fallbackDict.length > 0) {
-        return deduplicateVocab(
-            fallbackDict
-                .map((entry) => normalizeWordPair(entry))
-                .filter((item): item is GameWordPair => item !== null)
-        );
+        return normalizeAndDeduplicateList(fallbackDict);
     }
 
     return [];
 }
 
+interface TieredVocabBuckets {
+    tier1Words: GameWordPair[];
+    tier2Words: GameWordPair[];
+    phraseShort: GameWordPair[];
+    tier3All: GameWordPair[];
+}
+
+const tieredBucketsCache = new WeakMap<GameWordPair[], TieredVocabBuckets>();
+
+function getTieredBuckets(vocab: GameWordPair[]): TieredVocabBuckets {
+    let buckets = tieredBucketsCache.get(vocab);
+    if (!buckets) {
+        const tier1Words: GameWordPair[] = [];
+        const tier2Words: GameWordPair[] = [];
+        const phraseShort: GameWordPair[] = [];
+        const tier3All: GameWordPair[] = [];
+
+        for (let i = 0; i < vocab.length; i++) {
+            const item = vocab[i];
+            if (item.difficulty === 3) {
+                tier3All.push(item);
+            } else if (item.kind === 'phrase') {
+                phraseShort.push(item);
+            } else if (item.difficulty === 2) {
+                tier2Words.push(item);
+            } else {
+                tier1Words.push(item);
+            }
+        }
+
+        buckets = { tier1Words, tier2Words, phraseShort, tier3All };
+        tieredBucketsCache.set(vocab, buckets);
+    }
+    return buckets;
+}
+
 function getTieredVocabForLevel(vocab: GameWordPair[], level: number): GameWordPair[] {
-    const tier1 = shuffleArray(vocab.filter((item) => (item.difficulty || 1) === 1));
-    const tier2 = shuffleArray(vocab.filter((item) => item.difficulty === 2));
-    const tier3 = shuffleArray(vocab.filter((item) => item.difficulty === 3));
+    const poolLimit = vocab.length > 400 ? 150 : vocab.length;
+    const buckets = getTieredBuckets(vocab);
+    const tier1Words = sampleRandomItems(buckets.tier1Words, poolLimit);
+    const tier2Words = sampleRandomItems(buckets.tier2Words, poolLimit);
+    const phraseShort = sampleRandomItems(buckets.phraseShort, poolLimit);
+    const tier3All = sampleRandomItems(buckets.tier3All, poolLimit);
 
     if (level <= 1) {
-        return [...tier1, ...tier2, ...tier3];
+        return [...tier1Words, ...tier2Words, ...phraseShort, ...tier3All];
     }
     if (level === 2) {
-        return [...tier2, ...tier1, ...tier3];
+        return [...tier2Words, ...tier1Words, ...phraseShort, ...tier3All];
     }
-    return [...tier3, ...tier2, ...tier1];
+    return [...tier3All, ...tier2Words, ...phraseShort, ...tier1Words];
 }
 
 function pickWrongAnswers(
     vocab: GameWordPair[],
     targetItem: GameWordPair,
     count: number,
-    direction: GameDirection
+    direction: GameDirection,
+    precomputedForbidden?: Set<string>
 ): string[] {
     const isEthnicToViet = direction === 'ethnic_to_viet';
     const targetHeadKey = normalizeLookupKey(isEthnicToViet ? targetItem.ethnic : targetItem.viet);
     const correctDisplay = isEthnicToViet ? targetItem.viet : targetItem.ethnic;
-    const forbidden = new Set<string>([normalizeLookupKey(correctDisplay)]);
+    const forbidden = precomputedForbidden || new Set<string>([normalizeLookupKey(correctDisplay)]);
 
-    for (const entry of vocab) {
-        const headKey = normalizeLookupKey(isEthnicToViet ? entry.ethnic : entry.viet);
-        if (headKey === targetHeadKey) {
-            const polysemyVal = isEthnicToViet ? entry.viet : entry.ethnic;
-            forbidden.add(normalizeLookupKey(polysemyVal));
+    if (!precomputedForbidden) {
+        const targetRawLen = targetHeadKey.length;
+        for (let i = 0; i < vocab.length; i++) {
+            const entry = vocab[i];
+            const headRaw = isEthnicToViet ? entry.ethnic : entry.viet;
+            if (headRaw.length !== targetRawLen) {
+                continue;
+            }
+            if (headRaw.toLowerCase() === targetHeadKey) {
+                const polysemyVal = isEthnicToViet ? entry.viet : entry.ethnic;
+                forbidden.add(normalizeLookupKey(polysemyVal));
+            }
         }
     }
 
     const candidates: Array<{ text: string; key: string; score: number }> = [];
     const seenCandidateKeys = new Set<string>();
+    const candidatePool = vocab.length > 250 ? sampleRandomItems(vocab, 90) : shuffleArray(vocab);
 
-    for (const entry of shuffleArray(vocab)) {
+    for (const entry of candidatePool) {
         const candidateText = isEthnicToViet ? entry.viet : entry.ethnic;
         const candidateKey = normalizeLookupKey(candidateText);
         if (!candidateKey || forbidden.has(candidateKey) || seenCandidateKeys.has(candidateKey)) {
@@ -280,7 +382,18 @@ export function getQuestionsForLevel(
     if (vocab.length === 0 || count <= 0) return [];
 
     const tiered = getTieredVocabForLevel(vocab, level);
-    const questions: GameQuestion[] = [];
+    const ethnicTargets = new Map<string, Set<string>[]>();
+    const vietTargets = new Map<string, Set<string>[]>();
+    const ethnicLens = new Set<number>();
+    const vietLens = new Set<number>();
+
+    const selected: Array<{
+        item: GameWordPair;
+        resolvedDirection: GameDirection;
+        questionText: string;
+        correctText: string;
+        forbidden: Set<string>;
+    }> = [];
 
     for (let i = 0; i < count; i++) {
         const item = tiered[i % tiered.length];
@@ -293,17 +406,67 @@ export function getQuestionsForLevel(
 
         const questionText = resolvedDirection === 'ethnic_to_viet' ? item.ethnic : item.viet;
         const correctText = resolvedDirection === 'ethnic_to_viet' ? item.viet : item.ethnic;
+        const headKey = normalizeLookupKey(questionText);
+        const forbidden = new Set<string>([normalizeLookupKey(correctText)]);
 
+        if (resolvedDirection === 'ethnic_to_viet') {
+            ethnicLens.add(questionText.length);
+            let list = ethnicTargets.get(headKey);
+            if (!list) {
+                list = [];
+                ethnicTargets.set(headKey, list);
+            }
+            list.push(forbidden);
+        } else {
+            vietLens.add(questionText.length);
+            let list = vietTargets.get(headKey);
+            if (!list) {
+                list = [];
+                vietTargets.set(headKey, list);
+            }
+            list.push(forbidden);
+        }
+
+        selected.push({ item, resolvedDirection, questionText, correctText, forbidden });
+    }
+
+    const checkEthnic = ethnicTargets.size > 0;
+    const checkViet = vietTargets.size > 0;
+    for (let i = 0; i < vocab.length; i++) {
+        const entry = vocab[i];
+        if (checkEthnic && ethnicLens.has(entry.ethnic.length)) {
+            const matched = ethnicTargets.get(entry.ethnic.toLowerCase());
+            if (matched) {
+                const val = entry.viet.toLowerCase();
+                for (let k = 0; k < matched.length; k++) {
+                    matched[k].add(val);
+                }
+            }
+        }
+        if (checkViet && vietLens.has(entry.viet.length)) {
+            const matched = vietTargets.get(entry.viet.toLowerCase());
+            if (matched) {
+                const val = entry.ethnic.toLowerCase();
+                for (let k = 0; k < matched.length; k++) {
+                    matched[k].add(val);
+                }
+            }
+        }
+    }
+
+    const questions: GameQuestion[] = [];
+    for (let i = 0; i < selected.length; i++) {
+        const entry = selected[i];
         questions.push({
             id: `lvl${level}_q${i}`,
-            question: questionText,
-            correct: correctText,
-            wrongs: pickWrongAnswers(vocab, item, 3, resolvedDirection),
-            topic: item.topic || 'Chung',
+            question: entry.questionText,
+            correct: entry.correctText,
+            wrongs: pickWrongAnswers(vocab, entry.item, 3, entry.resolvedDirection, entry.forbidden),
+            topic: entry.item.topic || 'Chung',
             level,
-            driveId: item.driveId,
-            pronunciation: item.pronunciation,
-            direction: resolvedDirection
+            driveId: entry.item.driveId,
+            pronunciation: entry.item.pronunciation,
+            direction: entry.resolvedDirection
         });
     }
 

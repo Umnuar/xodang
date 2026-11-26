@@ -1,6 +1,18 @@
 import { fetchDictionaryData } from '@/services/sheets.service';
-import { getSuggestions, searchDictionary, type DictionaryEntry, type SearchDirection } from '@/services/dictionary.service';
-import { renderWordCards } from './word-card';
+import {
+    getSuggestions,
+    searchDictionaryPaginated,
+    type DictionaryEntry,
+    type PaginatedSearchResult,
+    type SearchDirection
+} from '@/services/dictionary.service';
+import {
+    getSuggestionsAsync,
+    isSearchWorkerActive,
+    searchDictionaryAsync,
+    setSearchCorpus
+} from '@/services/search-client.service';
+import { appendWordCards, renderWordCards } from './word-card';
 import { showToast } from '@/components/toast';
 import { showLoading, hideLoading } from '@/components/loading-overlay';
 import {
@@ -18,6 +30,7 @@ import {
 import { getLucideIcon } from '@/utils/icons';
 import { eventBus } from '@/utils/event-bus';
 
+const SEARCH_PAGE_SIZE = 30;
 let dictionaryData: DictionaryEntry[] = [];
 
 interface QuickChipItem {
@@ -55,7 +68,7 @@ function getEthnicQuickChips(dictionary: DictionaryEntry[]): QuickChipItem[] {
     }
 
     const hasDefaultSamples = DEFAULT_ETHNIC_QUICK_CHIPS.some(
-        (chip) => searchDictionary(chip.query, 'ethnic_to_viet', dictionary).length > 0
+        (chip) => searchDictionaryPaginated(chip.query, 'ethnic_to_viet', dictionary, { offset: 0, limit: 1 }).total > 0
     );
     if (hasDefaultSamples) {
         return DEFAULT_ETHNIC_QUICK_CHIPS;
@@ -174,11 +187,10 @@ export async function initHome(): Promise<void> {
         activeOption.scrollIntoView?.({ block: 'nearest' });
     };
 
-    function getSuggestionCandidates(query: string, direction: SearchDirection): string[] {
-        const trimmed = query.trim();
-        if (trimmed) {
-            return getSuggestions(trimmed, direction, dictionaryData, 10);
-        }
+    let latestSearchSeq = 0;
+    let latestSuggestionSeq = 0;
+
+    function getEmptyQuerySuggestions(direction: SearchDirection): string[] {
         const unique = new Set<string>();
         for (const entry of dictionaryData) {
             const val = (direction === 'viet_to_ethnic' ? entry.viet : entry.ethnic).trim();
@@ -190,9 +202,9 @@ export async function initHome(): Promise<void> {
         return Array.from(unique);
     }
 
-    function updateSuggestions(query: string, direction: SearchDirection, shouldOpen: boolean = false): void {
+    function renderSuggestionsList(terms: string[], shouldOpen: boolean): void {
         if (!suggestionsList || !wordInput) return;
-        currentSuggestionTerms = getSuggestionCandidates(query, direction);
+        currentSuggestionTerms = terms;
         activeSuggestionIndex = -1;
         wordInput.removeAttribute('aria-activedescendant');
 
@@ -222,6 +234,27 @@ export async function initHome(): Promise<void> {
             suggestionsList.hidden = true;
             wordInput.setAttribute('aria-expanded', 'false');
         }
+    }
+
+    function updateSuggestions(query: string, direction: SearchDirection, shouldOpen: boolean = false): void {
+        if (!suggestionsList || !wordInput) return;
+        const trimmed = query.trim();
+        const seq = ++latestSuggestionSeq;
+
+        if (!trimmed) {
+            renderSuggestionsList(getEmptyQuerySuggestions(direction), shouldOpen);
+            return;
+        }
+
+        if (!isSearchWorkerActive()) {
+            renderSuggestionsList(getSuggestions(trimmed, direction, dictionaryData, 10), shouldOpen);
+            return;
+        }
+
+        void getSuggestionsAsync(trimmed, direction, dictionaryData, 10).then((terms) => {
+            if (seq !== latestSuggestionSeq) return;
+            renderSuggestionsList(terms, shouldOpen);
+        });
     }
 
     function renderQuickChips(direction: SearchDirection): void {
@@ -265,27 +298,33 @@ export async function initHome(): Promise<void> {
         errorDiv.hidden = true;
     }
 
+    function applyLoadedCorpus(entries: DictionaryEntry[]): void {
+        dictionaryData = entries;
+
+        if (dictCount) dictCount.textContent = `${dictionaryData.length}+ từ vựng chuẩn`;
+        if (statWords) statWords.textContent = `${dictionaryData.length}+`;
+
+        const audioCount = filterValidDriveIds(dictionaryData.map(d => d.driveId)).length;
+        if (statAudio) statAudio.textContent = `${audioCount}+`;
+
+        const exampleCount = dictionaryData.filter(
+            d => isValidOptionalField(d.exampleViet) || isValidOptionalField(d.exampleEthnic)
+        ).length;
+        if (statExamples) statExamples.textContent = `${exampleCount}+`;
+        if (statQuestions) statQuestions.textContent = '100+';
+
+        void setSearchCorpus(dictionaryData);
+
+        const currentDir = (directionSelect?.value as SearchDirection) || 'viet_to_ethnic';
+        updateSuggestions(wordInput?.value || '', currentDir, false);
+        renderQuickChips(currentDir);
+    }
+
     async function loadDictionaryData(): Promise<void> {
         try {
             showLoading('Đang tải dữ liệu từ điển...');
             clearDictionaryError();
-            dictionaryData = await fetchDictionaryData();
-
-            if (dictCount) dictCount.textContent = `${dictionaryData.length}+ từ vựng chuẩn`;
-            if (statWords) statWords.textContent = `${dictionaryData.length}+`;
-
-            const audioCount = filterValidDriveIds(dictionaryData.map(d => d.driveId)).length;
-            if (statAudio) statAudio.textContent = `${audioCount}+`;
-
-            const exampleCount = dictionaryData.filter(
-                d => isValidOptionalField(d.exampleViet) || isValidOptionalField(d.exampleEthnic)
-            ).length;
-            if (statExamples) statExamples.textContent = `${exampleCount}+`;
-            if (statQuestions) statQuestions.textContent = '100+';
-
-            const currentDir = (directionSelect?.value as SearchDirection) || 'viet_to_ethnic';
-            updateSuggestions(wordInput?.value || '', currentDir, false);
-            renderQuickChips(currentDir);
+            applyLoadedCorpus(await fetchDictionaryData());
 
             if (btnDownload && downloadStatus) {
                 void checkOfflineAudioState();
@@ -301,9 +340,68 @@ export async function initHome(): Promise<void> {
 
     await loadDictionaryData();
 
+    function renderPaginatedResults(
+        page: PaginatedSearchResult,
+        query: string,
+        direction: SearchDirection,
+        append: boolean,
+        seq: number
+    ): void {
+        if (!resultDiv) return;
+        resultDiv.querySelector('.load-more-results-wrap')?.remove();
+
+        if (!append && page.entries.length === 0) {
+            if (searchStatus) searchStatus.textContent = `Không tìm thấy từ: "${query}"`;
+            renderNoResult(resultDiv, query);
+            return;
+        }
+
+        if (append) {
+            appendWordCards(resultDiv, page.entries, direction);
+        } else {
+            renderWordCards(resultDiv, page.entries, direction);
+        }
+
+        if (searchStatus) {
+            searchStatus.textContent =
+                page.total > page.nextOffset
+                    ? `Tìm thấy ${page.total} kết quả cho "${query}" (hiển thị ${page.nextOffset}/${page.total}):`
+                    : `Tìm thấy ${page.total} kết quả cho "${query}":`;
+        }
+
+        if (page.hasMore) {
+            const loadMoreWrap = document.createElement('div');
+            loadMoreWrap.className = 'load-more-results-wrap';
+            const loadMoreBtn = document.createElement('button');
+            loadMoreBtn.type = 'button';
+            loadMoreBtn.className = 'btn btn-secondary load-more-results-btn';
+            const remaining = page.total - page.nextOffset;
+            loadMoreBtn.textContent = `Xem thêm ${Math.min(SEARCH_PAGE_SIZE, remaining)} kết quả (còn ${remaining})`;
+            loadMoreBtn.addEventListener('click', () => {
+                loadMoreBtn.disabled = true;
+                const nextOptions = { offset: page.nextOffset, limit: SEARCH_PAGE_SIZE };
+                if (!isSearchWorkerActive()) {
+                    const nextPage = searchDictionaryPaginated(query, direction, dictionaryData, nextOptions);
+                    if (seq === latestSearchSeq) {
+                        renderPaginatedResults(nextPage, query, direction, true, seq);
+                    }
+                    return;
+                }
+                void searchDictionaryAsync(query, direction, dictionaryData, nextOptions).then((nextPage) => {
+                    if (seq === latestSearchSeq) {
+                        renderPaginatedResults(nextPage, query, direction, true, seq);
+                    }
+                });
+            });
+            loadMoreWrap.appendChild(loadMoreBtn);
+            resultDiv.appendChild(loadMoreWrap);
+        }
+    }
+
     function executeSearch(query: string, direction: SearchDirection): void {
         if (!resultDiv) return;
         const trimmed = query.trim();
+        const seq = ++latestSearchSeq;
 
         if (!trimmed) {
             if (searchStatus) searchStatus.textContent = '';
@@ -319,18 +417,17 @@ export async function initHome(): Promise<void> {
             return;
         }
 
-        const results = searchDictionary(trimmed, direction, dictionaryData);
-
-        if (results.length === 0) {
-            if (searchStatus) searchStatus.textContent = `Không tìm thấy từ: "${trimmed}"`;
-            renderNoResult(resultDiv, trimmed);
+        const pageOptions = { offset: 0, limit: SEARCH_PAGE_SIZE };
+        if (!isSearchWorkerActive()) {
+            const page = searchDictionaryPaginated(trimmed, direction, dictionaryData, pageOptions);
+            renderPaginatedResults(page, trimmed, direction, false, seq);
             return;
         }
 
-        if (searchStatus) {
-            searchStatus.textContent = `Tìm thấy ${results.length} kết quả cho "${trimmed}":`;
-        }
-        renderWordCards(resultDiv, results, direction);
+        void searchDictionaryAsync(trimmed, direction, dictionaryData, pageOptions).then((page) => {
+            if (seq !== latestSearchSeq) return;
+            renderPaginatedResults(page, trimmed, direction, false, seq);
+        });
     }
 
     if (resultDiv) {
@@ -752,6 +849,12 @@ export async function initHome(): Promise<void> {
                     audio.pause();
                 }
             });
+        }
+    });
+
+    eventBus.on('dictionary:updated', (updated: DictionaryEntry[]) => {
+        if (Array.isArray(updated) && updated.length > 0) {
+            applyLoadedCorpus(updated);
         }
     });
 

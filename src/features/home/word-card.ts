@@ -213,3 +213,11 @@ export function renderWordCards(container: HTMLElement, entries: DictionaryEntry
     const cards = entries.map(entry => createWordCard(entry, direction));
     container.replaceChildren(...cards);
 }
+
+export function appendWordCards(container: HTMLElement, entries: DictionaryEntry[], direction: SearchDirection): void {
+    const fragment = document.createDocumentFragment();
+    for (const entry of entries) {
+        fragment.appendChild(createWordCard(entry, direction));
+    }
+    container.appendChild(fragment);
+}

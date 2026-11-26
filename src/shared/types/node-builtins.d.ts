@@ -17,6 +17,15 @@ declare module 'url' {
     export function fileURLToPath(url: string): string;
 }
 
+declare module 'crypto' {
+    export interface Hash {
+        update(data: string | Uint8Array): this;
+        digest(encoding: 'hex' | 'base64'): string;
+    }
+
+    export function createHash(algorithm: string): Hash;
+}
+
 declare const __dirname: string;
 declare const __filename: string;
 
@@ -28,6 +37,7 @@ declare namespace NodeJS {
 
 declare const process: {
     env: Record<string, string | undefined>;
+    argv: string[];
     platform: string;
     exit(code?: number): never;
 };

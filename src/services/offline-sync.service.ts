@@ -18,7 +18,7 @@ export function getAudioUrl(driveId: string): string {
     if (!cleanId || cleanId === 'null' || cleanId === 'undefined') {
         return '';
     }
-    return `./audio/${encodeURIComponent(cleanId)}.webm`;
+    return `${APP_CONFIG.AUDIO_BASE_URL}/${encodeURIComponent(cleanId)}.webm`;
 }
 
 export function filterValidDriveIds(driveIds: Array<string | undefined | null>): string[] {

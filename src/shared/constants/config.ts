@@ -1,6 +1,7 @@
 const viteEnv = (typeof import.meta !== 'undefined' && (import.meta as { env?: Record<string, string | undefined> }).env) || {};
 const nodeEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
 const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9XYdorp6vsKFTCrqx2tUSJGecpOmCbrROqKfkHYSFn2WXieQtJXWCQvSJvxCk6yrs/exec';
+const stripTrailingSlashes = (value: string): string => value.replace(/\/+$/, '');
 
 export const APP_CONFIG = {
     GOOGLE_API_KEY: viteEnv.VITE_GOOGLE_API_KEY || nodeEnv.VITE_GOOGLE_API_KEY || nodeEnv.GOOGLE_SHEETS_API_KEY || '',
@@ -10,6 +11,8 @@ export const APP_CONFIG = {
     QUIZ_RANGE: 'Data_Tracnghiem!A2:H',
     CONTRIBUTE_URL: DEFAULT_APPS_SCRIPT_URL,
     CONTRIBUTE_API_URL: viteEnv.VITE_CONTRIBUTE_API_URL || nodeEnv.VITE_CONTRIBUTE_API_URL || DEFAULT_APPS_SCRIPT_URL,
+    DATA_BASE_URL: stripTrailingSlashes(viteEnv.VITE_DATA_BASE_URL || nodeEnv.VITE_DATA_BASE_URL || './data'),
+    AUDIO_BASE_URL: stripTrailingSlashes(viteEnv.VITE_AUDIO_BASE_URL || nodeEnv.VITE_AUDIO_BASE_URL || './audio'),
     AUDIO_CACHE_NAME: 'tudien-audio',
     APP_CACHE_NAME: 'tudien-modular-v10.0.4',
     REQUEST_TIMEOUT_MS: 8000,

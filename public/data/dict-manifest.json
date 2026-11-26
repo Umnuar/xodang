@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-26T12:28:47.951Z",
+  "totalEntries": 1260,
+  "chunks": {
+    "words": {
+      "path": "words.json",
+      "sha256": "c2e06b294d1e0b5983886123a612c65988c44a659f44f6a3ec9a0eeca5667cad",
+      "count": 954,
+      "bytes": 152533
+    },
+    "phrases": {
+      "path": "phrases.json",
+      "sha256": "023a56a4b87fe022d266e80b8460792a3f873198b50a427194889cb3774501aa",
+      "count": 306,
+      "bytes": 58688
+    },
+    "quiz": {
+      "path": "quiz.json",
+      "sha256": "0a3264b2757ea456a7c264af9b742495b8e600ce2b9f16abd3e1276f430cb5b5",
+      "count": 221,
+      "bytes": 26951
+    },
+    "chat": {
+      "path": "chat.json",
+      "sha256": "a444b1a51463714496c7c70a17663f65c823a2968ca428982344de1c7d260a01",
+      "count": 39,
+      "bytes": 13032
+    }
+  }
+}
